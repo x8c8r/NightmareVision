@@ -9,7 +9,8 @@ function onLoad() {
 
     var stageCurtains:FlxSprite = new FlxSprite(-600, -300);
     stageCurtains.loadGraphic(Paths.image("stagecurtains"));
-    foreground.add(stageCurtains);
+	stageCurtains.zIndex = 1;
+    add(stageCurtains);
 
     trace("DICK");
 }
