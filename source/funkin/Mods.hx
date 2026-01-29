@@ -1,12 +1,13 @@
 package funkin;
 
-import grig.audio.SampleRate;
+import haxe.Json;
+import haxe.DynamicAccess;
 
-import openfl.utils.Assets;
+import grig.audio.SampleRate;
 
 import lime.graphics.Image;
 
-import haxe.Json;
+import openfl.utils.Assets;
 
 import funkin.states.transitions.*;
 
@@ -24,20 +25,10 @@ typedef ModMeta =
 	var ?iconFile:String;
 	
 	var ?defaultTransition:String;
-	var ?stateRedirects:RedirectableStates;
 	
-	// make sure to include .ttf or .otf!!!!
+	var ?stateRedirects:DynamicAccess<String>;
+	
 	var ?defaultFont:String;
-}
-
-typedef RedirectableStates =
-{
-	var ?TitleState:String;
-	var ?MainMenuState:String;
-	var ?StoryMenuState:String;
-	var ?FreeplayState:String;
-	var ?CreditsState:String;
-	var ?OptionsState:String;
 }
 
 typedef ModsList =
@@ -293,15 +284,20 @@ class Mods
 	{
 		var pack = getPack();
 		if (pack == null) return null;
-		funkin.utils.WindowUtil.setTitle(pack.windowTitle ?? 'Friday Night Funkin');
+		
+		WindowUtil.setTitle(pack.windowTitle ?? 'Friday Night Funkin');
+		
 		inline function resetIcon()
 		{
 			final path = Paths.getPath('images/branding/icon/icon64.png', null, true);
+			
 			FlxG.stage.window.setIcon(Image.fromBytes(FunkinAssets.getBytes(path)));
 		}
+		
 		if (pack.iconFile != null)
 		{
 			final path = Paths.getPath('images/${pack.iconFile}.png', null, true);
+			
 			if (FunkinAssets.exists(path)) FlxG.stage.window.setIcon(Image.fromBytes(FunkinAssets.getBytes(path)));
 			else
 			{
@@ -310,30 +306,30 @@ class Mods
 			}
 		}
 		else resetIcon();
+		
 		if (pack.defaultTransition != null)
 		{
-			switch (pack.defaultTransition)
+			switch (pack.defaultTransition.toLowerCase())
 			{
 				case 'base', 'swipe':
-					final trans = SwipeTransition;
-					MusicBeatState.transitionInState = trans;
-					MusicBeatState.transitionOutState = trans;
+					MusicBeatState.transitionInState = SwipeTransition;
+					MusicBeatState.transitionOutState = SwipeTransition;
 				case 'fade':
-					final trans = FadeTransition;
-					MusicBeatState.transitionInState = trans;
-					MusicBeatState.transitionOutState = trans;
+					MusicBeatState.transitionInState = FadeTransition;
+					MusicBeatState.transitionOutState = FadeTransition;
 				default:
 					ScriptedTransition.setTransition(pack.defaultTransition);
 			}
 		}
 		else
 		{
-			final trans = SwipeTransition;
-			MusicBeatState.transitionInState = trans;
-			MusicBeatState.transitionOutState = trans;
+			MusicBeatState.transitionInState = SwipeTransition;
+			MusicBeatState.transitionOutState = SwipeTransition;
 		}
+		
 		if (pack.discordClientID != null) funkin.api.DiscordClient.rpcId = pack.discordClientID;
 		else funkin.api.DiscordClient.rpcId = DiscordClient.NMV_ID;
+		
 		if (pack.defaultFont != null)
 		{
 			if (FunkinAssets.exists(Paths.font(pack.defaultFont)))
@@ -351,55 +347,7 @@ class Mods
 		return pack;
 	}
 	
-	public static function isStateRedirected(nextState:flixel.FlxState):Bool
-	{
-		final stateName = Type.getClassName(Type.getClass(nextState)).split('.').pop();
-		if (currentMod == null || currentMod.stateRedirects == null) return false;
-		var retVal = false;
-		switch (stateName)
-		{
-			case 'TitleState':
-				retVal = currentMod.stateRedirects.TitleState != null;
-			case 'MainMenuState':
-				retVal = currentMod.stateRedirects.MainMenuState != null;
-			case 'StoryMenuState':
-				retVal = currentMod.stateRedirects.StoryMenuState != null;
-			case 'FreeplayState':
-				retVal = currentMod.stateRedirects.FreeplayState != null;
-			case 'CreditsState':
-				retVal = currentMod.stateRedirects.CreditsState != null;
-			case 'OptionsState':
-				retVal = currentMod.stateRedirects.OptionsState != null;
-			case 'ScriptedState':
-				retVal = false;
-		}
-		return retVal;
-	}
-	
-	public static function getRedirect(nextState:flixel.FlxState):Null<String>
-	{
-		final stateName = Type.getClassName(Type.getClass(nextState)).split('.').pop();
-		if (currentMod == null || currentMod.stateRedirects == null) return null;
-		var retVal = null;
-		switch (stateName)
-		{
-			case 'TitleState':
-				retVal = currentMod.stateRedirects.TitleState;
-			case 'MainMenuState':
-				retVal = currentMod.stateRedirects.MainMenuState;
-			case 'StoryMenuState':
-				retVal = currentMod.stateRedirects.StoryMenuState;
-			case 'FreeplayState':
-				retVal = currentMod.stateRedirects.FreeplayState;
-			case 'CreditsState':
-				retVal = currentMod.stateRedirects.CreditsState;
-			case 'OptionsState':
-				retVal = currentMod.stateRedirects.OptionsState;
-		}
-		return retVal;
-	}
-	
-	public static function getModIcon(?mod:String):String
+	public static function getModIcon(mod:String):String
 	{
 		if (mod.length < 1) mod = currentModDirectory;
 		var retVal = 'branding/icon/fallback';
@@ -408,7 +356,7 @@ class Mods
 		return retVal;
 	}
 	
-	public static function getModName(?mod:String):String
+	public static function getModName(mod:String):String
 	{
 		if (mod.length < 1) mod = currentModDirectory;
 		var retVal = mod;
@@ -417,7 +365,7 @@ class Mods
 		return retVal;
 	}
 	
-	public static function getModFont(?mod:String):String
+	public static function getModFont(mod:String):String
 	{
 		if (mod.length < 1) mod = currentModDirectory;
 		var retVal = Paths.font('vcr.ttf');
