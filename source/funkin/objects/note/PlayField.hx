@@ -28,7 +28,7 @@ class PlayField extends FlxTypedContainer<StrumNote>
 		{
 			if (i != null)
 			{
-				i.isQuant = false;
+				i.isQuant = quants;
 				i.reloadNote();
 			}
 		}

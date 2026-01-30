@@ -33,6 +33,12 @@ class StrumNote extends FlxSprite
 	
 	public var animOffsets:Map<String, Array<Float>> = new Map();
 	
+	// stupid editor crashes
+	public function getAnimName()
+	{
+		return animation?.curAnim?.name ?? 'static';
+	}
+	
 	public function get_swagWidth()
 	{
 		return parent == null ? Note.swagWidth : parent.swagWidth;
@@ -81,6 +87,7 @@ class StrumNote extends FlxSprite
 		useRGBShader = NoteSkinHelper.instance?.data?.inGameColoring ?? false;
 		
 		rgbShader = NoteSkinHelper.initRGBShader(this, noteData);
+		isQuant = parent?.quants ?? ClientPrefs.quants;
 		
 		handleColors();
 	}
@@ -89,8 +96,9 @@ class StrumNote extends FlxSprite
 	{
 		if (!NoteSkinHelper.shaderEnabled) return;
 		
-		var arr:Array<FlxColor> = [];
-		arr = NoteSkinHelper.getCurColors(noteData, note != null ? note.quant : 4);
+		var arr:Array<FlxColor> = note?.rgbShader?.colorArray ?? [];
+		if(arr == null || arr.length <= 0)
+			arr = NoteSkinHelper.getCurColors(noteData, (isQuant && note != null) ? note.quant : 4);
 		
 		if (isQuant && anim == 'pressed') arr = ClientPrefs.arrowRGBquant[0];
 		
@@ -107,7 +115,6 @@ class StrumNote extends FlxSprite
 		var lastAnim:String = null;
 		if (animation.curAnim != null) lastAnim = animation.curAnim.name;
 		var br:String = texture;
-		isQuant = ClientPrefs.quants;
 		
 		if (NoteSkinHelper.instance.data.isPixel)
 		{
@@ -206,7 +213,7 @@ class StrumNote extends FlxSprite
 		}
 		if (animation.curAnim?.name == 'confirm' && !NoteSkinHelper.instance.data.isPixel) centerOrigin();
 		
-		handleColors(anim, ClientPrefs.quants ? note : null);
+		handleColors(anim, note);
 	}
 	
 	public function addOffset(name:String, x:Float = 0, y:Float = 0)

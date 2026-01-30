@@ -222,11 +222,12 @@ class PlayableSong extends VocalGroup
 	public var trackSwap:Bool;
 	public var splitVocals:Bool;
 	public var needsVoices:Bool;
+	public var _length:Float = 0;
 	
 	public function populate(data:SwagSong)
 	{
 		volume = 1;
-
+		
 		if (data != null)
 		{
 			needsVoices = false;
@@ -249,31 +250,38 @@ class PlayableSong extends VocalGroup
 				if (needsVoices)
 				{
 					splitVocals = true;
-
+					
 					var playerSound = Paths.voices(data.song, 'player');
-					if(playerSound == null){
+					if (playerSound == null)
+					{
 						playerSound = Paths.voices(data.song, null);
 						splitVocals = false;
 					}
 					if (playerSound != null) addPlayerVocals(new FlxSoundEx().loadEmbedded(playerSound));
 					
 					final opponentSound = Paths.voices(data.song, 'opp');
-					if (opponentSound != null) 	addOpponentVocals(new FlxSoundEx().loadEmbedded(opponentSound));
+					if (opponentSound != null) addOpponentVocals(new FlxSoundEx().loadEmbedded(opponentSound));
 				}
 				
 				inst = new FlxSound().loadEmbedded(Paths.inst(data.song));
 				add(inst);
-
 			}
+			
+			_length = inst.length;
 		}
 	}
-
+	
 	override public function play(forceRestart:Bool = false, startTime:Float = 0.0, ?endTime:Null<Float>)
 	{
-		if(trackSwap)
-			inst.volume = 0;
+		if (trackSwap) inst.volume = 0;
 		
 		super.play(forceRestart, startTime, endTime);
+	}
+	
+	// for some reason the inst wont stop with calling stop? so itll just null it now. woohoo
+	public function stopInst()
+	{
+		if (inst != null) inst = FlxDestroyUtil.destroy(inst);
 	}
 	
 	public function miss()
@@ -284,7 +292,6 @@ class PlayableSong extends VocalGroup
 			opponentVolume = 1;
 		}
 		else playerVolume = 0;
-
 	}
 	
 	public function hit()
@@ -293,8 +300,7 @@ class PlayableSong extends VocalGroup
 		{
 			inst.volume = 1;
 			opponentVolume = 0;
-		} else 
-			playerVolume = 1;
+		}
+		else playerVolume = 1;
 	}
 }
-

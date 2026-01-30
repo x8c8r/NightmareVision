@@ -43,7 +43,6 @@
                     <rule />
                     <spacer height="1"/>
 
-                    <checkbox text="In-Engine Coloring Enabled?" id="shaderColoringBox"/>
                     <checkbox text="Note Splashes Enabled?" id="splashBox"/>
                     <checkbox text="Anti-aliasing Enabled?" id="antialiasingBox"/>
                 </vbox>
@@ -107,16 +106,7 @@
                         </hbox>
                     </vbox>
                 </hbox>
-
-                <hbox>
-                    <vbox>
-                        <hbox>
-                            <checkbox text="Flip X?" id="flipXAnimCheckbox"  verticalAlign="center"  tooltip="If enabled, this animation will be flipped horizontally"/>
-                            <checkbox text="Flip Y?" id="flipYAnimCheckbox"  verticalAlign="center"  tooltip="If enabled, this animation will be flipped vertically"/>
-                        </hbox> 
-                    </vbox>
-                </hbox>
-
+                
                 <spacer height="1"/>
                 <rule />
                 <spacer height="1"/>

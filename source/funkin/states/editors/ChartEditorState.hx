@@ -1270,7 +1270,8 @@ class ChartEditorState extends MusicBeatState
 			for (i in 0..._song.notes[curSec].sectionNotes.length)
 			{
 				var note:Array<Dynamic> = _song.notes[curSec].sectionNotes[i];
-				if(7 >= note[1]){
+				if (7 >= note[1])
+				{
 					note[1] = (note[1] + 4) % 8;
 					_song.notes[curSec].sectionNotes[i] = note;
 				}
@@ -1283,7 +1284,7 @@ class ChartEditorState extends MusicBeatState
 			{
 				var note:Array<Dynamic> = _song.notes[curSec].sectionNotes[i];
 				note[1] = (note[1] + 4);
-				if(note[1] >= (lanes + 1) * 4) note[1] = (note[1] % 4);
+				if (note[1] >= (lanes + 1) * 4) note[1] = (note[1] % 4);
 				_song.notes[curSec].sectionNotes[i] = note;
 			}
 			updateGrid();

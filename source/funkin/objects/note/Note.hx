@@ -367,7 +367,7 @@ class Note extends FlxSprite
 		
 		var lastScaleY:Float = scale.y;
 		var blahblah:String = arraySkin.join('/');
-		isQuant = ClientPrefs.quants && NoteSkinHelper.instance.data.isQuants;
+		isQuant = ClientPrefs.quants && NoteSkinHelper.instance.data.isQuants && canQuant;
 		if (NoteSkinHelper.instance.data.isPixel)
 		{
 			if (isSustainNote)

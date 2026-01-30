@@ -466,7 +466,7 @@ class PlayState extends MusicBeatState
 	
 	public var inCutscene:Bool = false;
 	public var ingameCutscene:Bool = false;
-
+	
 	public var genNotesBeforeCountdown:Bool = true;
 	
 	public var skipCountdown:Bool = false;
@@ -817,14 +817,14 @@ class PlayState extends MusicBeatState
 		FlxG.watch.addFunction('Conductor: ', () -> Conductor.songPosition);
 		FlxG.watch.addFunction('SongTime: ', () -> FlxStringUtil.formatTime(Conductor.songPosition / 1000)
 			+ ' / '
-			+ FlxStringUtil.formatTime(audio.inst.length / 1000));
+			+ FlxStringUtil.formatTime(audio._length / 1000));
 			
 		FlxG.watch.addFunction('curSec: ', () -> curSection);
 		FlxG.watch.addFunction('curBeat: ', () -> curBeat);
 		FlxG.watch.addFunction('curStep: ', () -> curStep);
 		#end
 		
-		audio.inst?.stop();
+		audio?.stop();
 		
 		generatedFields = false;
 		modifiersRegistered = false;
@@ -908,9 +908,8 @@ class PlayState extends MusicBeatState
 		
 		Conductor.safeZoneOffset = (ClientPrefs.safeFrames / 60) * 1000;
 		
-		if(genNotesBeforeCountdown)
-			generatePlayfields();
-
+		if (genNotesBeforeCountdown) generatePlayfields();
+		
 		scripts.call('onCreatePost', []);
 		
 		callHUDFunc(hud -> hud.cachePopUpScore());
@@ -1168,10 +1167,9 @@ class PlayState extends MusicBeatState
 	}
 	
 	public function generatePlayfields()
-	{		
-		if(generatedFields)
-			return;
-
+	{
+		if (generatedFields) return;
+		
 		if (skipCountdown || startOnTime > 0) skipArrowStartTween = true;
 		
 		for (lane in 0...SONG.lanes)
@@ -1199,6 +1197,10 @@ class PlayState extends MusicBeatState
 				else if (ClientPrefs.middleScroll) strums.baseAlpha = 0.35;
 			}
 		}
+		
+		// this broke a lot so im adding it back sorry data
+		scripts.set('playerStrums', playerStrums);
+		scripts.set('opponentStrums', opponentStrums);
 		
 		modManager.receptors = [for (i in playFields) i.members];
 		
@@ -1380,7 +1382,7 @@ class PlayState extends MusicBeatState
 		audio.time = time;
 		#if FLX_PITCH audio.pitch = playbackRate; #end
 		audio.play();
-
+		
 		audio.hit();
 		
 		Conductor.songPosition = time;
@@ -1396,14 +1398,10 @@ class PlayState extends MusicBeatState
 		
 		previousFrameTime = FlxG.game.ticks;
 		
-		// FunkinSound.playMusic(Paths.inst(PlayState.SONG.song), 1, false);
-		
 		audio.inst.onComplete = finishSong.bind(false);
-		audio.inst.play();
-		audio.inst.volume = 1 * volumeMult;
 		
 		#if FLX_PITCH
-		audio.inst.pitch = playbackRate;
+		audio.pitch = playbackRate;
 		#end
 		
 		if (startOnTime > 0) setSongTime(startOnTime - 500);
@@ -1411,7 +1409,10 @@ class PlayState extends MusicBeatState
 		
 		if (paused) audio.pause();
 		
-		songLength = audio.inst.length;
+		songLength = audio._length;
+		
+		audio.volume = 1 * volumeMult;
+		audio.play();
 		
 		// Updating Discord Rich Presence (with Time Left)
 		if (automatedDiscord) DiscordClient.changePresence(rpcDescription, rpcSongName + ' ' + rpcDifficulty, null, true, songLength);
@@ -1495,13 +1496,11 @@ class PlayState extends MusicBeatState
 		
 		curSong = songData.song;
 		
-		// if (!ClientPrefs.streamedMusic) Paths.inst(PlayState.SONG.song);
-		
 		audio = new PlayableSong();
 		audio.populate(SONG);
 		audio.hit();
 		add(audio);
-
+		
 		#if FLX_PITCH
 		audio.pitch = playbackRate;
 		#end
@@ -2009,7 +2008,8 @@ class PlayState extends MusicBeatState
 		
 		doDeathCheck();
 		
-		if(modifiersRegistered){
+		if (modifiersRegistered)
+		{
 			modManager.updateTimeline(curDecStep);
 			modManager.update(elapsed);
 		}
@@ -2818,8 +2818,10 @@ class PlayState extends MusicBeatState
 	public function finishSong(?ignoreNoteOffset:Bool = false):Void
 	{
 		updateTime = false;
+		
 		audio.volume = 0;
 		audio.stop();
+		audio.stopInst();
 		
 		if (songEndCallback == null)
 		{
@@ -2892,7 +2894,7 @@ class PlayState extends MusicBeatState
 				if (storyMeta.playlist.length <= 0)
 				{
 					FlxG.sound.playMusic(Paths.music('freakyMenu'));
-					FlxG.sound.music.volume = 1 * volumeMult;
+					FlxG.sound.music.volume = 1;
 					
 					CoolUtil.cancelMusicFadeTween();
 					FlxG.switchState(() -> new StoryMenuState());
@@ -2933,16 +2935,19 @@ class PlayState extends MusicBeatState
 			}
 			else
 			{
-				trace('WENT BACK TO FREEPLAY??');
 				CoolUtil.cancelMusicFadeTween();
 				FlxG.switchState(() -> new FreeplayState());
 				
 				FlxG.sound.playMusic(Paths.music('freakyMenu'));
-				FlxG.sound.music.volume = 1 * volumeMult;
+				FlxG.sound.music.volume = 1;
+				
 				changedDifficulty = false;
 			}
 			transitioning = true;
 		}
+		
+		audio.stop();
+		audio.stopInst();
 	}
 	
 	public function KillNotes():Void
@@ -3286,7 +3291,7 @@ class PlayState extends MusicBeatState
 	}
 	
 	function noteHit(note:Note, field:PlayField):Void
-	{	
+	{
 		switch (field.ID)
 		{
 			case 0:
@@ -3399,10 +3404,9 @@ class PlayState extends MusicBeatState
 				}
 			}
 		}
-
-		if(field.playerControls || (!audio.splitVocals && !audio.trackSwap))
-			audio.hit();
-
+		
+		if (field.playerControls || (!audio.splitVocals && !audio.trackSwap)) audio.hit();
+		
 		if (field.autoPlayed)
 		{
 			var time:Float = 0.15;
@@ -3444,8 +3448,10 @@ class PlayState extends MusicBeatState
 				'extraNoteHit';
 		}
 		
+		final globalScript = callNoteTypeScript(note.noteType, 'hit', scriptArgs);
+
 		final noteScriptRet = callNoteTypeScript(note.noteType, funcToCall, scriptArgs);
-		if (noteScriptRet != ScriptConstants.Function_Stop) scripts.call(funcToCall, scriptArgs, false, [note.noteType]);
+		if (noteScriptRet != ScriptConstants.Function_Stop) {scripts.call(funcToCall, scriptArgs, false, [note.noteType]);}
 		
 		if (!note.isSustainNote) disposeNote(note);
 	}
@@ -3502,9 +3508,12 @@ class PlayState extends MusicBeatState
 		
 		final maxToleratedOffset:Float = 20 * playbackRate;
 		
-		if (Math.abs(audio.inst.time - (Conductor.songPosition - Conductor.offset)) > maxToleratedOffset
-			|| (SONG.needsVoices && audio.getDesyncDifference(Math.abs(Conductor.songPosition - Conductor.offset)) > maxToleratedOffset)) resyncVocals();
-			
+		if (audio.inst != null)
+		{
+			if (Math.abs(audio.inst.time - (Conductor.songPosition - Conductor.offset)) > maxToleratedOffset
+				|| (SONG.needsVoices && audio.getDesyncDifference(Math.abs(Conductor.songPosition - Conductor.offset)) > maxToleratedOffset)) resyncVocals();
+		}
+		
 		if (curStep == lastStepHit) return;
 		
 		lastStepHit = curStep;

@@ -14,6 +14,8 @@ class DebugBounds extends FlxBasic
 	final right:FlxSprite;
 	final bottom:FlxSprite;
 	
+	public final middle:FlxSprite;
+	
 	public function new(?target:FlxSprite)
 	{
 		super();
@@ -24,8 +26,9 @@ class DebugBounds extends FlxBasic
 		left = new FlxSprite().loadGraphic(top.graphic);
 		right = new FlxSprite().loadGraphic(top.graphic);
 		bottom = new FlxSprite().loadGraphic(top.graphic);
+		middle = new FlxSprite().loadGraphic(top.graphic);
 		
-		top.active = left.active = right.active = bottom.active = false;
+		top.active = left.active = right.active = bottom.active = middle.active = false;
 	}
 	
 	override function update(elapsed:Float)
@@ -55,6 +58,9 @@ class DebugBounds extends FlxBasic
 			bottom.scale.set(targetBounds.width, thickness);
 			bottom.updateHitbox();
 			
+			middle.scale.set(targetBounds.width, targetBounds.height);
+			middle.updateHitbox();
+			
 			// position em
 			top.x = targetBounds.x - thickness;
 			top.y = targetBounds.y - thickness;
@@ -67,6 +73,9 @@ class DebugBounds extends FlxBasic
 			
 			right.x = targetBounds.right;
 			right.y = targetBounds.y;
+			
+			middle.x = targetBounds.x;
+			middle.y = targetBounds.y;
 			
 			top.alpha = alpha;
 			right.alpha = alpha;
@@ -104,6 +113,7 @@ class DebugBounds extends FlxBasic
 		FlxDestroyUtil.destroy(left);
 		FlxDestroyUtil.destroy(right);
 		FlxDestroyUtil.destroy(bottom);
+		FlxDestroyUtil.destroy(middle);
 		
 		super.destroy();
 	}

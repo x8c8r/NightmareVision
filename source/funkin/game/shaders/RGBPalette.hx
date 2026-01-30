@@ -117,6 +117,9 @@ class RGBShaderReference
 	public var r(default, set):FlxColor;
 	public var g(default, set):FlxColor;
 	public var b(default, set):FlxColor;
+
+	// only for reading
+	public var colorArray:Array<FlxColor> = [];
 	
 	public var mult(default, set):Float;
 	public var alphaMult(default, set):Float;
@@ -197,6 +200,8 @@ class RGBShaderReference
 		r = colors[0];
 		g = colors[1];
 		b = colors[2];
+
+		colorArray = colors;
 	}
 	
 	public var allowNew = true;
@@ -212,6 +217,8 @@ class RGBShaderReference
 			parent.r = _original.r;
 			parent.g = _original.g;
 			parent.b = _original.b;
+
+			colorArray = [parent.r, parent.g, parent.b];
 			// parent.setColors([_original.r, _original.g, _original.b]);
 			parent.mult = _original.mult;
 			

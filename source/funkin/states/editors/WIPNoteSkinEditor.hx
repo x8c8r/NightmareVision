@@ -14,11 +14,13 @@ import openfl.events.KeyboardEvent;
 
 import extensions.openfl.FileReferenceEx;
 
+import flixel.group.FlxContainer;
 import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.input.keyboard.FlxKey;
 import flixel.addons.display.FlxBackdrop;
 
 import funkin.states.editors.ui.NoteskinEditorKit.NoteEditorUI;
+import funkin.states.editors.ui.DebugBounds;
 import funkin.data.*;
 import funkin.objects.*;
 import funkin.objects.note.*;
@@ -34,7 +36,10 @@ class WIPNoteSkinEditor extends UIState
 	
 	var bg:FlxSprite;
 	var scrollingBG:FlxBackdrop;
+	var ghostfields:FlxTypedGroup<PlayField>;
 	var playfields:FlxTypedGroup<PlayField>;
+	var fieldLayering:FlxContainer;
+	var fieldBounds:Array<DebugBounds> = [];
 	var uiElements:NoteEditorUI;
 	
 	var curName:String = 'default';
@@ -84,9 +89,15 @@ class WIPNoteSkinEditor extends UIState
 		scrollingBG.alpha = 0.75;
 		add(scrollingBG);
 		
+		fieldLayering = new FlxContainer();
+		fieldLayering.camera = FlxG.camera;
+		add(fieldLayering);
+		
+		ghostfields = new FlxTypedGroup<PlayField>();
+		fieldLayering.add(ghostfields);
+		
 		playfields = new FlxTypedGroup<PlayField>();
-		playfields.camera = FlxG.camera;
-		add(playfields);
+		fieldLayering.add(playfields);
 		
 		buildUI();
 		buildNotes();
@@ -146,6 +157,7 @@ class WIPNoteSkinEditor extends UIState
 		add(uiElements);
 		
 		refreshUIValues();
+		uiElements.toolBar.showBounds.value = false;
 		
 		refreshSkinDropdown();
 		uiElements.toolBar.skinDropdown.onChange = (ui) -> {
@@ -189,6 +201,44 @@ class WIPNoteSkinEditor extends UIState
 			bg.visible = ui.value.toBool();
 			scrollingBG.visible = ui.value.toBool();
 			if (bg.visible) camBG.bgColor = FlxColor.BLACK;
+		}
+		
+		uiElements.toolBar.showBounds.onChange = (ui) -> {
+			final show = ui.value.toBool();
+			if (fieldBounds.length > 0 && fieldBounds != null)
+			{
+				for (i in fieldBounds)
+				{
+					if (i != null) i.visible = show;
+				}
+			}
+		}
+		
+		uiElements.toolBar.enableGhost.onClick = (ui) -> {
+			spawnGhostField();
+		}
+		
+		uiElements.toolBar.ghostInFront.onChange = (ui) -> {
+			ghostfields.zIndex = ui.value.toBool() ? 999 : -1;
+			fieldLayering.sort(SortUtil.sortByZ, flixel.util.FlxSort.ASCENDING);
+		}
+		
+		var slider = uiElements.toolBar.ghostSettings.findComponent('ghostAlphaSlider', Slider);
+		if (slider != null)
+		{
+			slider.onChange = (ui) -> {
+				for (i in ghostfields.members)
+				{
+					final a = ui.value.toFloat();
+					
+					for (j in i.members)
+						j.targetAlpha = a;
+				}
+			}
+		}
+		
+		uiElements.settingsBox.animationsDropdown.onChange = (ui) -> {
+			refreshAnimDropdown('receptors');
 		}
 		
 		uiElements.settingsBox.reloadTextures.onClick = (ui) -> {
@@ -265,9 +315,9 @@ class WIPNoteSkinEditor extends UIState
 		}
 		
 		uiElements.settingsBox.shaderColoringBox.onClick = (ui) -> {
-			// helper.data.inGameColoring = ui.value.toBool();
-			// buildNotes(true);
-			trace(ui);
+			helper.data.inGameColoring = ui.value.toBool();
+			buildNotes(true);
+			trace(ui.value.toBool());
 		}
 		
 		uiElements.settingsBox.splashBox.onChange = (ui) -> {
@@ -390,11 +440,44 @@ class WIPNoteSkinEditor extends UIState
 	
 	function updateStrumColors()
 	{
+		if (!helper.data.inGameColoring) return;
+		
 		for (field in playfields.members)
 		{
 			for (strumnote in field.members)
 			{
 				if (strumnote.animation.curAnim.name != 'static') strumnote.rgbShader.setColors(NoteSkinHelper.colorToArray(helper.data.arrowRGBdefault[strumnote.noteData]));
+			}
+		}
+	}
+	
+	function spawnGhostField()
+	{
+		if (ghostfields.members.length > 0)
+		{
+			for (i in ghostfields.members)
+				i = FlxDestroyUtil.destroy(i);
+				
+			ghostfields.clear();
+		}
+		
+		for (i in playfields.members)
+		{
+			var field = new PlayField(i.baseX, i.baseY, i.keyCount, null, true, false, true, i.player);
+			field.baseAlpha = uiElements.toolBar.ghostAlphaSlider.value;
+			field.generateReceptors();
+			field.fadeIn(true);
+			field.quants = false;
+			ghostfields.add(field);
+			
+			for (j in field.members)
+			{
+				final ogNote = i.members[j.noteData];
+				
+				j.scrollFactor.set(1, 1);
+				j.antialiasing = ogNote.antialiasing;
+				j.useRGBShader = ogNote.useRGBShader;
+				j.playAnim(ogNote.getAnimName(), true);
 			}
 		}
 	}
@@ -405,7 +488,18 @@ class WIPNoteSkinEditor extends UIState
 		NoteSkinHelper.instance = helper;
 		trace('rebuilding notes');
 		
+		ClientPrefs.quants = false;
+		
 		if (playfields.members.length > 0) playfields.clear();
+		if (fieldBounds.length > 0)
+		{
+			for (i in fieldBounds)
+			{
+				remove(i);
+				i = FlxDestroyUtil.destroy(i);
+			}
+			fieldBounds = [];
+		}
 		
 		for (i in 0...Std.int(uiElements.settingsBox.lanecount.value))
 		{
@@ -421,10 +515,40 @@ class WIPNoteSkinEditor extends UIState
 			{
 				i.scrollFactor.set(1, 1);
 				i.antialiasing = helper.data.antialiasing;
+				i.useRGBShader = helper.data.inGameColoring;
+				i.playAnim('static', true);
+				
+				var bounds = new DebugBounds(i);
+				bounds.visible = uiElements.toolBar.showBounds.value;
+				add(bounds);
+				fieldBounds.push(bounds);
 			}
 		}
 		
 		curSelectedNote = playfields.members[0].members[0];
+	}
+	
+	function refreshAnimDropdown(current:String = 'receptors')
+	{
+		switch (current)
+		{
+			case 'receptors':
+				final receptorAnimArray = [];
+				final data = curSelectedNote != null ? curSelectedNote.noteData ?? 0 : 0;
+				
+				for (anim in helper.data.receptorAnimations[data])
+				{
+					receptorAnimArray.push(ToolKitUtils.makeSimpleDropDownItem(anim.anim));
+				}
+				uiElements.settingsBox.animationsDropdown.populateList(receptorAnimArray);
+				
+				uiElements.settingsBox.playerTexture.value = helper.data.playerSkin;
+				uiElements.settingsBox.opponentTexture.value = helper.data.opponentSkin;
+				uiElements.settingsBox.extraTexture.value = helper.data.extraSkin;
+				
+			default:
+				// lol
+		}
 	}
 	
 	function refreshSkinDropdown()
@@ -460,28 +584,10 @@ class WIPNoteSkinEditor extends UIState
 		
 		controlCamera(elapsed);
 		
-		try
-		{
-			if (playfields != null && playfields.members.length > 0)
-			{
-				for (field in playfields)
-				{
-					for (i in 0...keys)
-					{
-						if (FlxG.mouse.overlaps(field.members[i]))
-						{
-							field.members[i].alpha = 0.9;
-							if (FlxG.mouse.justPressed) curSelectedNote = field.members[i];
-						}
-						else
-						{
-							if (field.members[i] == curSelectedNote) field.members[i].alpha = 1;
-							else field.members[i].alpha = 0.6;
-						}
-					}
-				}
-			}
-		}
+		// only reason these r separate funcs is just for better readability & workflow
+		// i dont want the giant block of code at the top of my func im sorry
+		handleReceptorAlpha(elapsed);
+		handleReceptorUpdate(elapsed);
 		
 		if ((ToolKitUtils.isHaxeUIHovered(camHUD) && FlxG.mouse.justPressed) || FlxG.mouse.justPressedRight)
 		{
@@ -489,9 +595,61 @@ class WIPNoteSkinEditor extends UIState
 		}
 	}
 	
+	function handleReceptorUpdate(elapsed:Float)
+	{
+		if (curSelectedNote != null)
+		{
+			final animName = curSelectedNote.getAnimName();
+			final baseOffset = getOffsetFromAnim('receptor', animName, curSelectedNote.noteData);
+			final bounds = fieldBounds[curSelectedNote.noteData];
+			
+			// moving offsets with ur mouse
+			if (FlxG.mouse.overlaps(bounds.middle) && FlxG.mouse.pressedRight)
+			{
+				final newOffset = [baseOffset[0] - FlxG.mouse.deltaViewX, baseOffset[1] - FlxG.mouse.deltaViewY];
+				addReceptorOffset(curSelectedNote, animName, newOffset);
+			}
+			
+			// reset current offset to 0,0
+			if (FlxG.keys.pressed.CONTROL && FlxG.keys.justPressed.R)
+			{
+				addReceptorOffset(curSelectedNote, animName, [0, 0]);
+				ToolKitUtils.makeNotification('Offsetting', 'Current animation offset reset to [0, 0].', Info);
+				FlxG.sound.play(Paths.sound('ui/openPopup'));
+			}
+		}
+	}
+	
+	function handleReceptorAlpha(elapsed:Float)
+	{
+		if (playfields != null && playfields.members.length > 0)
+		{
+			for (field in playfields)
+			{
+				for (i in 0...keys)
+				{
+					final note = field.members[i];
+					final bounds = fieldBounds[i];
+					
+					if (FlxG.mouse.overlaps(bounds.middle) && note != curSelectedNote)
+					{
+						note.alpha = 0.9;
+						if (FlxG.mouse.justPressed)
+						{
+							curSelectedNote = note;
+							refreshAnimDropdown('receptors');
+						}
+					}
+					else note.alpha = (note == curSelectedNote) ? 1 : 0.6;
+				}
+			}
+		}
+	}
+	
 	function controlCamera(elapsed:Float)
 	{
-		if (FlxG.keys.justPressed.R)
+		// flagging ctrl so that if u reset a offset it doesnt also reset the camera
+		if (FlxG.keys.justPressed.R && !FlxG.keys.pressed.CONTROL)
 		{
 			FlxG.camera.zoom = 1;
 			FlxG.camera.scroll.x = 0;
@@ -623,7 +781,7 @@ class WIPNoteSkinEditor extends UIState
 				{
 					for (field in playfields.members)
 					{
-						if (field.inControl && !field.autoPlayed && field.playerControls)
+						if (field.inControl && !field.autoPlayed && field.playerControls && !FlxG.keys.pressed.CONTROL)
 						{
 							var spr:StrumNote = field.members[key];
 							shuffleThroughAnims(spr);
@@ -658,6 +816,47 @@ class WIPNoteSkinEditor extends UIState
 			spr.playAnim(anim, true, null);
 			spr.resetAnim = time;
 		}
+	}
+	
+	function addReceptorOffset(note:Dynamic, name:String = 'static', offsets:Array<Float>)
+	{
+		if (offsets == null || offsets.length < 2) offsets = [0, 0];
+		
+		if (note != null)
+		{
+			note.addOffset(name, offsets[0], offsets[1]);
+			helper.data.receptorAnimations[note.noteData][getAnimIndex(name)].offsets = offsets;
+			
+			note.playAnim(name, true, null);
+		}
+	}
+	
+	function getAnimIndex(anim:String):Int
+	{
+		return switch (anim)
+		{
+			case 'pressed': 1;
+			case 'confirm': 2;
+			default: 0;
+		}
+	}
+	
+	// quick handler to get offsets quickly from an animation
+	function getOffsetFromAnim(type:String = 'receptors', anim:String = 'static', data:Int)
+	{
+		var offset:Null<Array<Float>> = switch (type)
+		{
+			default:
+				[0, 0];
+			case 'receptor':
+				final animIndex = getAnimIndex(anim);
+				
+				helper.data.receptorAnimations[data][animIndex].offsets;
+		}
+		final _x = offset[0] ?? 0;
+		final _y = offset[1] ?? 0;
+		
+		return [_x, _y];
 	}
 	
 	function getKeyFromEvent(key:FlxKey):Int
