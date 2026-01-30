@@ -170,7 +170,7 @@ class Paths
 		return FunkinAssets.getSound(key);
 	}
 	
-	public static inline function trackswap(song:String, ?postFix:String, checkMods:Bool = true):Null<Sound>
+	public static inline function trackSwap(song:String, ?postFix:String, checkMods:Bool = true):Null<Sound> // not sure if this should be here
 	{
 		var name = sanitize(song);
 		
@@ -180,7 +180,7 @@ class Paths
 		if (postFix != null) songKey += '-$postFix';
 		
 		songKey = findFileWithExts('songs/$songKey', ['ogg', 'wav'], null, checkMods);
-
+		
 		trace(songKey);
 		
 		if (ClientPrefs.streamedMusic) return FunkinAssets.getVorbisSound(songKey);
@@ -204,7 +204,7 @@ class Paths
 		return FunkinAssets.getSoundUnsafe(songKey);
 	}
 	
-	public static inline function inst(song:String, ?postFix:String, checkMods:Bool = true):Null<openfl.media.Sound>
+	public static inline function inst(song:String, ?postFix:String, checkMods:Bool = true):Sound
 	{
 		var name = sanitize(song);
 		
