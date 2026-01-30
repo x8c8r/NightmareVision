@@ -14,7 +14,8 @@ class DebugBounds extends FlxBasic
 	final right:FlxSprite;
 	final bottom:FlxSprite;
 	
-	public final middle:FlxSprite;
+	@:allow(funkin.states.editors.WIPNoteSkinEditor)
+	final middle:FlxSprite;
 	
 	public function new(?target:FlxSprite)
 	{
@@ -104,7 +105,6 @@ class DebugBounds extends FlxBasic
 			right.draw();
 			bottom.draw();
 		}
-		super.draw();
 	}
 	
 	override function destroy()
