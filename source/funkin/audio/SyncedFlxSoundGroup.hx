@@ -36,6 +36,8 @@ class SyncedFlxSoundGroup extends FlxTypedGroup<FlxSound>
 	 */
 	public var playing(get, never):Bool;
 	
+	public var songLength(get, never):Float;
+	
 	@:inheritDoc(flixel.sound.FlxSound.resume)
 	public function resume() forEachAlive(snd -> snd.resume());
 	
@@ -149,6 +151,8 @@ class SyncedFlxSoundGroup extends FlxTypedGroup<FlxSound>
 	function get_time():Float return getFirstAlive()?.time ?? 0.0;
 	
 	function get_playing():Bool return getFirstAlive()?.playing ?? false;
+	
+	function get_songLength():Float return getFirstAlive()?.length ?? 0.0;
 }
 
 // specialized ver
@@ -214,23 +218,18 @@ class VocalGroup extends SyncedFlxSoundGroup
 	}
 }
 
-// @:forward
-// abstract PlayableSong(VocalGroup) to VocalGroup from VocalGroup
-
 @:nullSafety(Strict)
 class PlayableSong extends VocalGroup
 {
-	public var inst:FlxSound;
-	public var trackSwap:Bool;
-	public var splitVocals:Bool;
-	public var needsVoices:Bool;
-	public var _length:Float = 0;
+	public var inst:Null<FlxSound> = null;
+	public var trackSwap:Bool = false;
+	public var splitVocals:Bool = false;
 	
 	public function populate(?data:SwagSong):Void
 	{
 		volume = 1;
 		
-		if (data != null)
+		if (data == null)
 		{
 			Logger.log('Song provided was null. Cannot create tracks', WARN);
 			
@@ -263,44 +262,32 @@ class PlayableSong extends VocalGroup
 			
 			if (data.needsVoices)
 			{
-				splitVocals = Paths.voices(data.song, 'player') != null;
-				
 				var playerSound = Paths.voices(data.song, 'player');
 				if (playerSound == null)
 				{
-					splitVocals = true;
-					
-					var playerSound = Paths.voices(data.song, 'player');
-					if (playerSound == null)
-					{
-						playerSound = Paths.voices(data.song, null);
-						splitVocals = false;
-					}
-					if (playerSound != null) addPlayerVocals(new FlxSoundEx().loadEmbedded(playerSound));
-					
-					final opponentSound = Paths.voices(data.song, 'opp');
-					if (opponentSound != null) addOpponentVocals(new FlxSoundEx().loadEmbedded(opponentSound));
+					playerSound = Paths.voices(data.song, null);
 				}
+				if (playerSound != null) addPlayerVocals(new FlxSoundEx().loadEmbedded(playerSound));
 				
-				inst = new FlxSound().loadEmbedded(Paths.inst(data.song));
-				add(inst);
+				final opponentSound = Paths.voices(data.song, 'opp');
+				if (opponentSound != null) addOpponentVocals(new FlxSoundEx().loadEmbedded(opponentSound));
+				
+				splitVocals = playerVocals.length != 0 && opponentVocals.length != 0;
 			}
-			
-			_length = inst.length;
 		}
 	}
 	
 	override public function play(forceRestart:Bool = false, startTime:Float = 0.0, ?endTime:Null<Float>)
 	{
-		if (trackSwap) inst.volume = 0;
+		if (trackSwap && inst != null) inst.volume = 0;
 		
 		super.play(forceRestart, startTime, endTime);
 	}
 	
 	// for some reason the inst wont stop with calling stop? so itll just null it now. woohoo
-	public function stopInst()
+	public inline function stopInst() // bandaid remove later
 	{
-		if (inst != null) inst = FlxDestroyUtil.destroy(inst);
+		inst = FlxDestroyUtil.destroy(inst);
 	}
 	
 	public function miss()

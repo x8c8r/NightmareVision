@@ -817,7 +817,7 @@ class PlayState extends MusicBeatState
 		FlxG.watch.addFunction('Conductor: ', () -> Conductor.songPosition);
 		FlxG.watch.addFunction('SongTime: ', () -> FlxStringUtil.formatTime(Conductor.songPosition / 1000)
 			+ ' / '
-			+ FlxStringUtil.formatTime(audio._length / 1000));
+			+ FlxStringUtil.formatTime(audio.songLength / 1000));
 			
 		FlxG.watch.addFunction('curSec: ', () -> curSection);
 		FlxG.watch.addFunction('curBeat: ', () -> curBeat);
@@ -1409,7 +1409,7 @@ class PlayState extends MusicBeatState
 		
 		if (paused) audio.pause();
 		
-		songLength = audio._length;
+		songLength = audio.songLength;
 		
 		audio.volume = 1 * volumeMult;
 		audio.play();
@@ -3449,9 +3449,12 @@ class PlayState extends MusicBeatState
 		}
 		
 		final globalScript = callNoteTypeScript(note.noteType, 'hit', scriptArgs);
-
+		
 		final noteScriptRet = callNoteTypeScript(note.noteType, funcToCall, scriptArgs);
-		if (noteScriptRet != ScriptConstants.Function_Stop) {scripts.call(funcToCall, scriptArgs, false, [note.noteType]);}
+		if (noteScriptRet != ScriptConstants.Function_Stop)
+		{
+			scripts.call(funcToCall, scriptArgs, false, [note.noteType]);
+		}
 		
 		if (!note.isSustainNote) disposeNote(note);
 	}
