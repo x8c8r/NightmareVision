@@ -344,7 +344,7 @@ class Note extends FlxSprite
 		if (texture == null) texture = '';
 		if (suffix == null) suffix = '';
 		
-		if (noteScript != null) if (noteScript.executeFunc("onReloadNote", [this, prefix, texture, suffix], this) == ScriptConstants.Function_Stop) return;
+		if (noteScript != null) if (noteScript.executeFunc("onReloadNote", [this, prefix, texture, suffix], this) == ScriptConstants.STOP_FUNC) return;
 		
 		var skin:String = texture;
 		if (texture.length < 1)

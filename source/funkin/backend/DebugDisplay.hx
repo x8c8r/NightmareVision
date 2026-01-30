@@ -57,9 +57,9 @@ class DebugDisplay extends Sprite
 	**/
 	public var memoryMegas(get, never):Float;
 	
-	@:noCompletion var times:Array<Float> = [];
+	var times:Array<Float> = [];
 	
-	@:noCompletion var deltaTimeout:Float = 0.0;
+	var deltaTimeout:Float = 0.0;
 	
 	public function new(x:Float = 10, y:Float = 10, color:Int = 0x000000)
 	{
@@ -117,9 +117,6 @@ class DebugDisplay extends Sprite
 		if (!canUpdate) return;
 		
 		textField.text = 'FPS: $currentFPS • Memory: ${flixel.util.FlxStringUtil.formatBytes(memoryMegas)}';
-		
-		textField.textColor = 0xFFFFFFFF;
-		if (currentFPS < FlxG.drawFramerate * 0.5) textField.textColor = 0xFFFF0000;
 	}
 	
 	inline function get_memoryMegas():Float

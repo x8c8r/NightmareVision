@@ -11,6 +11,7 @@ class ScriptedState extends MusicBeatState
 		
 		initStateScript(scriptName, false);
 		scriptGroup.parent = this;
+		scriptGroup.call('onLoad');
 	}
 	
 	override function create()
@@ -23,6 +24,6 @@ class ScriptedState extends MusicBeatState
 			return;
 		}
 		
-		scriptGroup.call('onLoad', []);
+		scriptGroup.call('onCreate');
 	}
 }

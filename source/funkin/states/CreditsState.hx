@@ -48,7 +48,7 @@ abstract CreditsData(Array<String>) from Array<String>
 @:nullSafety
 class CreditsState extends MusicBeatState
 {
-	// hardcoded list of credits
+	@:unreflective
 	static final hardcodedCredits:Array<Array<String>> = [
 		// NMV devs
 		['NIGHTMARE FEDS'],
@@ -120,71 +120,68 @@ class CreditsState extends MusicBeatState
 		addModCredits(); // add the mod credits.. if there is any
 		credits = credits.concat(hardcodedCredits); // then our credits
 		
-		initStateScript(null, false);
+		initStateScript();
 		
-		if (isHardcodedState() && scriptGroup.call('onLoad') != ScriptConstants.Function_Stop)
+		bg = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
+		add(bg);
+		bg.screenCenter();
+		
+		grpOptions = new FlxTypedGroup<Alphabet>();
+		add(grpOptions);
+		
+		for (i in 0...credits.length)
 		{
-			bg = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
-			add(bg);
-			bg.screenCenter();
+			var optionText:Alphabet = new Alphabet(0, 70 * i, credits[i].name, credits[i].isTitle, false);
+			optionText.isMenuItem = true;
+			optionText.screenCenter(X);
+			optionText.yAdd -= 70;
+			optionText.changeAxis = Y;
+			optionText.targetY = i;
+			grpOptions.add(optionText);
 			
-			grpOptions = new FlxTypedGroup<Alphabet>();
-			add(grpOptions);
+			if (credits[i].isTitle) continue; // if its a title we dont need to worry about adding a icon
 			
-			for (i in 0...credits.length)
+			if (credits[i].modDirectory != null)
 			{
-				var optionText:Alphabet = new Alphabet(0, 70 * i, credits[i].name, credits[i].isTitle, false);
-				optionText.isMenuItem = true;
-				optionText.screenCenter(X);
-				optionText.yAdd -= 70;
-				optionText.changeAxis = Y;
-				optionText.targetY = i;
-				grpOptions.add(optionText);
-				
-				if (credits[i].isTitle) continue; // if its a title we dont need to worry about adding a icon
-				
-				if (credits[i].modDirectory != null)
-				{
-					@:nullSafety(Off) // but i checked if it was null... :(
-					Mods.currentModDirectory = credits[i].modDirectory;
-				}
-				
-				var icon:AttachedSprite = new AttachedSprite('credits/${credits[i].iconPath}');
-				icon.setGraphicSize(130);
-				icon.updateHitbox();
-				icon.xAdd = optionText.width + 10;
-				icon.sprTracker = optionText;
-				icon.copyVisible = false;
-				icon.visible = Paths.fileExists('images/credits/${credits[i].iconPath}.png');
-				add(icon);
-				
-				Mods.currentModDirectory = '';
-				
-				if (curSelected == -1)
-				{
-					curSelected = i;
-					bg.color = credits[i].bgColour;
-				}
+				@:nullSafety(Off) // but i checked if it was null... :(
+				Mods.currentModDirectory = credits[i].modDirectory;
 			}
 			
-			descBox = new AttachedSprite().makeGraphic(1, 1, FlxColor.BLACK);
-			descBox.xAdd = -10;
-			descBox.yAdd = -10;
-			descBox.alphaMult = 0.6;
-			descBox.alpha = 0.6;
-			add(descBox);
+			var icon:AttachedSprite = new AttachedSprite('credits/${credits[i].iconPath}');
+			icon.setGraphicSize(130);
+			icon.updateHitbox();
+			icon.xAdd = optionText.width + 10;
+			icon.sprTracker = optionText;
+			icon.copyVisible = false;
+			icon.visible = Paths.fileExists('images/credits/${credits[i].iconPath}.png');
+			add(icon);
 			
-			descText = new FlxText(50, FlxG.height + descYOffset - 25, 1180, "", 32);
-			descText.setFormat(Paths.font("vcr"), 32, FlxColor.WHITE, CENTER);
-			descText.scrollFactor.set();
-			descBox.sprTracker = descText;
-			add(descText);
+			Mods.currentModDirectory = '';
+			
+			if (curSelected == -1)
+			{
+				curSelected = i;
+				bg.color = credits[i].bgColour;
+			}
 		}
+		
+		descBox = new AttachedSprite().makeGraphic(1, 1, FlxColor.BLACK);
+		descBox.xAdd = -10;
+		descBox.yAdd = -10;
+		descBox.alphaMult = 0.6;
+		descBox.alpha = 0.6;
+		add(descBox);
+		
+		descText = new FlxText(50, FlxG.height + descYOffset - 25, 1180, "", 32);
+		descText.setFormat(Paths.font("vcr"), 32, FlxColor.WHITE, CENTER);
+		descText.scrollFactor.set();
+		descBox.sprTracker = descText;
+		add(descText);
 		
 		changeSelection();
 		super.create();
 		
-		scriptGroup.call('onCreatePost');
+		scriptGroup.call('onCreate');
 	}
 	
 	var canInteract:Bool = true;
@@ -195,12 +192,6 @@ class CreditsState extends MusicBeatState
 		if (FlxG.sound.music != null && FlxG.sound.music.volume < 0.7)
 		{
 			FlxG.sound.music.volume += 0.5 * FlxG.elapsed;
-		}
-		
-		if (!isHardcodedState())
-		{
-			super.update(elapsed);
-			return;
 		}
 		
 		if (canInteract)

@@ -13,19 +13,19 @@ class ScriptConstants
 	/**
 	 * If returned in a script function, it's normal behavior will stop
 	 */
-	public static final Function_Stop:Dynamic = 1;
+	public static final STOP_FUNC:Int = 1;
 	
 	/**
 	 * If returned in a script function, it's normal behavior will continue
 	 * 
 	 * This is the regular return in a `ScriptGroup`
 	 */
-	public static final Function_Continue:Dynamic = 0;
+	public static final CONTINUE_FUNC:Int = 0;
 	
 	/**
 	 * Used in `ScriptGroup`, if Returned with in the group, the function will not be called on any remaining scripts that have yet to recieve this function call.
 	 */
-	public static final Function_Halt:Dynamic = 2;
+	public static final HALT_FUNC:Int = 2;
 	
 	/**
 	 * Gets the current state

@@ -69,8 +69,6 @@ class MusicBeatSubstate extends FlxSubState
 		return scripted;
 	}
 	
-	inline function isHardcodedState() return (scriptGroup != null && !scriptGroup.call('customMenu') == true) || (scriptGroup == null);
-	
 	public function refreshZ(?group:FlxTypedGroup<FlxBasic>)
 	{
 		group ??= FlxG.state;

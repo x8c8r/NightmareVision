@@ -75,7 +75,7 @@ class GameOverSubstate extends MusicBeatSubstate
 		
 		Conductor.songPosition = 0;
 		
-		if(PlayState.instance?.scripts.call('onGameOverStart', []) != ScriptConstants.Function_Stop)
+		if (PlayState.instance?.scripts.call('onGameOverStart', []) != ScriptConstants.STOP_FUNC)
 		{
 			if (boyfriend == null)
 			{
@@ -97,7 +97,6 @@ class GameOverSubstate extends MusicBeatSubstate
 			boyfriend.playAnim('firstDeath');
 			
 			FlxG.camera.follow(camFollow, LOCKON, 0);
-
 		}
 		
 		super.create();
@@ -135,13 +134,12 @@ class GameOverSubstate extends MusicBeatSubstate
 		
 		if (controls.ACCEPT)
 		{
-			if (PlayState.instance?.scripts.call('onGameOverConfirm', []) != ScriptConstants.Function_Stop)
-				endBullshit();
+			if (PlayState.instance?.scripts.call('onGameOverConfirm', []) != ScriptConstants.STOP_FUNC) endBullshit();
 		}
 		
 		if (controls.BACK)
 		{
-			if (PlayState.instance?.scripts.call('onGameOverCancel', []) != ScriptConstants.Function_Stop)
+			if (PlayState.instance?.scripts.call('onGameOverCancel', []) != ScriptConstants.STOP_FUNC)
 			{
 				FlxG.sound.music.stop();
 				PlayState.deathCounter = 0;

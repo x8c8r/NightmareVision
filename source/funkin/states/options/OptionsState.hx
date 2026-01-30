@@ -54,38 +54,36 @@ class OptionsState extends MusicBeatState
 	{
 		DiscordClient.changePresence("Options Menu");
 		
-		initStateScript('OptionsState');
-		scriptGroup.set('this', this);
+		initStateScript();
 		
-		if (isHardcodedState())
+		var bg:FlxSprite = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
+		bg.color = 0xFFea71fd;
+		bg.updateHitbox();
+		
+		bg.screenCenter();
+		add(bg);
+		
+		grpOptions = new FlxTypedGroup<Alphabet>();
+		add(grpOptions);
+		
+		for (i in 0...options.length)
 		{
-			var bg:FlxSprite = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
-			bg.color = 0xFFea71fd;
-			bg.updateHitbox();
-			
-			bg.screenCenter();
-			add(bg);
-			
-			grpOptions = new FlxTypedGroup<Alphabet>();
-			add(grpOptions);
-			
-			for (i in 0...options.length)
-			{
-				var optionText:Alphabet = new Alphabet(0, 0, options[i], true, false);
-				optionText.screenCenter();
-				optionText.y += (100 * (i - (options.length / 2))) + 50;
-				grpOptions.add(optionText);
-			}
-			
-			selectorLeft = new Alphabet(0, 0, '>', true, false);
-			add(selectorLeft);
-			selectorRight = new Alphabet(0, 0, '<', true, false);
-			add(selectorRight);
-			
-			changeSelection();
+			var optionText:Alphabet = new Alphabet(0, 0, options[i], true, false);
+			optionText.screenCenter();
+			optionText.y += (100 * (i - (options.length / 2))) + 50;
+			grpOptions.add(optionText);
 		}
 		
+		selectorLeft = new Alphabet(0, 0, '>', true, false);
+		add(selectorLeft);
+		selectorRight = new Alphabet(0, 0, '<', true, false);
+		add(selectorRight);
+		
+		changeSelection();
+		
 		super.create();
+		
+		scriptGroup.call('onCreate', []);
 	}
 	
 	override function closeSubState()
@@ -99,47 +97,43 @@ class OptionsState extends MusicBeatState
 	{
 		super.update(elapsed);
 		
-		if (isHardcodedState())
+		if (controls.UI_UP_P)
 		{
-			if (controls.UI_UP_P)
-			{
-				changeSelection(-1);
-			}
-			if (controls.UI_DOWN_P)
-			{
-				changeSelection(1);
-			}
-			
-			if (controls.BACK)
-			{
-				FlxG.sound.play(Paths.sound('cancelMenu'));
-				if (onPlayState)
-				{
-					FlxG.switchState(PlayState.new);
-					FlxG.sound.music.volume = 0;
-				}
-				else FlxG.switchState(MainMenuState.new);
-			}
-			
-			if (controls.ACCEPT)
-			{
-				openSelectedSubstate(options[curSelected]);
-			}
+			changeSelection(-1);
 		}
+		if (controls.UI_DOWN_P)
+		{
+			changeSelection(1);
+		}
+		
+		if (controls.BACK)
+		{
+			FlxG.sound.play(Paths.sound('cancelMenu'));
+			if (onPlayState)
+			{
+				FlxG.switchState(PlayState.new);
+				FlxG.sound.music.volume = 0;
+			}
+			else FlxG.switchState(MainMenuState.new);
+		}
+		
+		if (controls.ACCEPT)
+		{
+			openSelectedSubstate(options[curSelected]);
+		}
+		
+		scriptGroup.call('onUpdatePost', [elapsed]);
 	}
 	
-	function changeSelection(change:Int = 0)
+	function changeSelection(diff:Int = 0)
 	{
-		curSelected += change;
-		if (curSelected < 0) curSelected = options.length - 1;
-		if (curSelected >= options.length) curSelected = 0;
+		curSelected = FlxMath.wrap(curSelected + diff, 0, options.length - 1);
 		
-		var bullShit:Int = 0;
+		if (scriptGroup.call('onChangeSelection', [curSelected]) == ScriptConstants.STOP_FUNC) return;
 		
-		for (item in grpOptions.members)
+		for (idx => item in grpOptions.members)
 		{
-			item.targetY = bullShit - curSelected;
-			bullShit++;
+			item.targetY = idx - curSelected;
 			
 			item.alpha = 0.6;
 			if (item.targetY == 0)

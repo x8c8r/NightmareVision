@@ -66,6 +66,6 @@ function onStartCountdown()
 		if (gf != null) gf.playAnim('scared', true);
 		boyfriend.playAnim('scared', true);
 		
-		return ScriptConstants.Function_Stop;
+		return ScriptConstants.STOP_FUNC;
 	}
 }

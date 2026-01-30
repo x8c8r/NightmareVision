@@ -75,7 +75,7 @@ class TitleState extends MusicBeatState
 		
 		Conductor.bpm = 102;
 		
-		if (isHardcodedState() && scriptGroup.call('onStartIntro') != ScriptConstants.Function_Stop)
+		if (scriptGroup.call('onStartIntro') != ScriptConstants.STOP_FUNC)
 		{
 			swagShader = new ColorSwap();
 			
@@ -130,17 +130,11 @@ class TitleState extends MusicBeatState
 	{
 		if (FlxG.sound.music != null) Conductor.songPosition = FlxG.sound.music.time;
 		
-		if (!isHardcodedState())
-		{
-			super.update(elapsed);
-			return;
-		}
-		
 		final pressedEnter:Bool = FlxG.gamepads.lastActive?.justPressed.START || FlxG.keys.justPressed.ENTER || controls.ACCEPT;
 		
 		if (!transitioning && skippedIntro)
 		{
-			if (pressedEnter && scriptGroup.call('onEnter', []) != ScriptConstants.Function_Stop)
+			if (pressedEnter && scriptGroup.call('onEnter', []) != ScriptConstants.STOP_FUNC)
 			{
 				FlxG.camera.flash(ClientPrefs.flashing ? FlxColor.WHITE : 0x4CFFFFFF, 1);
 				transitioning = true;
@@ -232,66 +226,60 @@ class TitleState extends MusicBeatState
 			scriptGroup.set('curBeat', sickBeats);
 		}
 		
-		if (!isHardcodedState() || scriptGroup.call('onBeatHit', []) == ScriptConstants.Function_Stop) return;
-		
-		// just in case
-		if (isHardcodedState())
+		if (logo != null)
 		{
-			if (logo != null)
+			logo.animation.play('bump', true);
+		}
+		
+		if (gfDance != null)
+		{
+			danceLeft = !danceLeft;
+			gfDance.animation.play(danceLeft ? 'danceRight' : 'danceLeft');
+		}
+		
+		if (!closedState)
+		{
+			switch (sickBeats)
 			{
-				logo.animation.play('bump', true);
-			}
-			
-			if (gfDance != null)
-			{
-				danceLeft = !danceLeft;
-				gfDance.animation.play(danceLeft ? 'danceRight' : 'danceLeft');
-			}
-			
-			if (!closedState)
-			{
-				switch (sickBeats)
-				{
-					case 1:
-						FunkinSound.playMusic(Paths.music('freakyMenu'), 0);
-						
-						FlxG.sound.music.fadeIn(4, 0, 0.7);
-					case 2:
-						createCoolText(['ninjamuffin99', 'phantomArcade', 'kawaisprite', 'evilsk8er']);
-					case 4:
-						addMoreText('present');
-					case 5:
-						deleteCoolText();
-					case 6:
-						createCoolText(['In association', 'with'], -40);
-					case 8:
-						addMoreText('newgrounds', -40);
-						if (ngSpr != null) ngSpr.visible = true;
-					case 9:
-						deleteCoolText();
-						if (ngSpr != null) ngSpr.visible = false;
-					case 10:
-						if (randomIntroText[0] != null) createCoolText([randomIntroText[0]]);
-					case 12:
-						if (randomIntroText[1] != null) addMoreText(randomIntroText[1]);
-					case 13:
-						deleteCoolText();
-					case 14:
-						if (introEndingText[0] != null) addMoreText(introEndingText[0]);
-					case 15:
-						if (introEndingText[1] != null) addMoreText(introEndingText[1]);
-					case 16:
-						if (introEndingText[2] != null) addMoreText(introEndingText[2]);
-					case 17:
-						skipIntro();
-				}
+				case 1:
+					FunkinSound.playMusic(Paths.music('freakyMenu'), 0);
+					
+					FlxG.sound.music.fadeIn(4, 0, 0.7);
+				case 2:
+					createCoolText(['ninjamuffin99', 'phantomArcade', 'kawaisprite', 'evilsk8er']);
+				case 4:
+					addMoreText('present');
+				case 5:
+					deleteCoolText();
+				case 6:
+					createCoolText(['In association', 'with'], -40);
+				case 8:
+					addMoreText('newgrounds', -40);
+					if (ngSpr != null) ngSpr.visible = true;
+				case 9:
+					deleteCoolText();
+					if (ngSpr != null) ngSpr.visible = false;
+				case 10:
+					if (randomIntroText[0] != null) createCoolText([randomIntroText[0]]);
+				case 12:
+					if (randomIntroText[1] != null) addMoreText(randomIntroText[1]);
+				case 13:
+					deleteCoolText();
+				case 14:
+					if (introEndingText[0] != null) addMoreText(introEndingText[0]);
+				case 15:
+					if (introEndingText[1] != null) addMoreText(introEndingText[1]);
+				case 16:
+					if (introEndingText[2] != null) addMoreText(introEndingText[2]);
+				case 17:
+					skipIntro();
 			}
 		}
 	}
 	
 	public function skipIntro():Void
 	{
-		if (scriptGroup.call('onSkipIntro', []) != ScriptConstants.Function_Stop && !skippedIntro)
+		if (scriptGroup.call('onSkipIntro', []) != ScriptConstants.STOP_FUNC && !skippedIntro)
 		{
 			ngSpr?.kill();
 			textGroup?.kill();

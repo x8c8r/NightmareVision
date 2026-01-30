@@ -56,12 +56,7 @@ class Main extends Sprite
 		ClientPrefs.loadDefaultKeys();
 		ClientPrefs.tryBindingSave('funkin');
 		
-		final game = new funkin.backend.FunkinGame(startMeta.width, startMeta.height, Init, startMeta.fps, startMeta.fps, true, startMeta.startFullScreen);
-		
-		// btw game has to be a variable for this to work ig - Orbyy
-		@:privateAccess
-		game._customSoundTray = funkin.objects.FunkinSoundTray;
-		addChild(game);
+		addChild(new funkin.backend.FunkinGame(startMeta.width, startMeta.height, Init, startMeta.fps, startMeta.fps, true, startMeta.startFullScreen));
 		
 		// prevent accept button when alt+enter is pressed
 		FlxG.stage.addEventListener(openfl.events.KeyboardEvent.KEY_DOWN, (e) -> {

@@ -83,7 +83,7 @@ class ScriptGroup implements IFlxDestroyable
 	public function call(event:String, ?args:Array<Dynamic>, ignoreStops:Bool = false, ?exclusions:Array<String>):Dynamic
 	{
 		exclusions ??= [];
-		var returnVal:Dynamic = ScriptConstants.Function_Continue;
+		var returnVal:Dynamic = ScriptConstants.CONTINUE_FUNC;
 		for (i in members)
 		{
 			if (i == null || !i.exists(event) || exclusions.contains(i.name))
@@ -94,13 +94,13 @@ class ScriptGroup implements IFlxDestroyable
 			var ret:Dynamic = i.call(event, args)?.returnValue;
 			if (ret != null)
 			{
-				if (ret == ScriptConstants.Function_Halt)
+				if (ret == ScriptConstants.HALT_FUNC)
 				{
 					ret = returnVal;
 					if (!ignoreStops) return returnVal;
 				};
 				
-				if (ret != ScriptConstants.Function_Continue) returnVal = ret;
+				if (ret != ScriptConstants.CONTINUE_FUNC) returnVal = ret;
 			}
 		}
 		

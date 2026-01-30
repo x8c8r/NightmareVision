@@ -38,6 +38,8 @@ class HotReloadPlugin extends FlxBasic
 		{
 			FlxTransitionableState.skipNextTransIn = FlxTransitionableState.skipNextTransOut = true;
 			FlxG.resetState();
+			
+			Mods.applyModConfig();
 		}
 		
 		if (FlxG.keys.justPressed.F6)
@@ -50,6 +52,8 @@ class HotReloadPlugin extends FlxBasic
 			
 			FlxTransitionableState.skipNextTransIn = FlxTransitionableState.skipNextTransOut = true;
 			FlxG.resetState();
+			
+			Mods.applyModConfig();
 		}
 	}
 }

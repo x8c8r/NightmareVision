@@ -44,7 +44,7 @@ class DiscordClient
 	 * Only used for gags in individual mods, it serves no real purpose.
 	 */
 	public static var username:String = 'Unknown';
-
+	
 	/**
 	 * Initiates the discord thread and hooks to `rpcId`
 	 */
@@ -113,11 +113,10 @@ class DiscordClient
 	{
 		final user:String = cast request[0].username;
 		final discriminator:String = cast request[0].discriminator;
-
-		username = discriminator != '0' ? '$user#$discriminator' : '$user';		
+		
+		username = discriminator != '0' ? '$user#$discriminator' : '$user';
 		var discordUser = '[$username]';
 		
-
 		Logger.log('Successfully connect to user $discordUser', NOTICE);
 		
 		changePresence();
@@ -180,7 +179,7 @@ class DiscordClient
  */
 class DiscordClient
 {
-	public static final NMV_ID:String = '1252033037680513115';
+	public static final NMV_ID:String = '';
 	
 	public static var rpcId(default, set):String = '';
 	

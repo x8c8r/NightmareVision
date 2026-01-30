@@ -1,15 +1,22 @@
 package funkin.backend;
 
-import flixel.math.FlxRandom;
+import openfl.events.Event;
 
-import funkin.backend.MusicBeatState;
 import funkin.scripting.ScriptedState;
-import funkin.states.TitleState;
-import funkin.states.MainMenuState;
-import funkin.states.CreditsState;
+import funkin.scripts.FunkinScript;
 
+/**
+ * Modified FlxGame to support switching to mod states and to load our custom sound tray.
+ */
 class FunkinGame extends flixel.FlxGame
 {
+	override function create(_:Event)
+	{
+		_customSoundTray = funkin.objects.FunkinSoundTray;
+		
+		super.create(_);
+	}
+	
 	override function switchState():Void
 	{
 		// Basic reset stuff
@@ -35,18 +42,25 @@ class FunkinGame extends flixel.FlxGame
 		_state = _nextState.createInstance();
 		
 		#if MODS_ALLOWED
-		if (Mods.currentMod != null && Mods.currentMod.stateRedirects != null)
+		if (Mods.currentModConfig != null && Mods.currentModConfig.stateRedirects != null)
 		{
 			// before we progress the intended behavior we need to check if the mod has a custom one
 			var stateName = Type.getClassName(Type.getClass(_state)).split('.').pop();
 			
-			for (key in Mods.currentMod.stateRedirects.keys())
+			for (key in Mods.currentModConfig.stateRedirects.keys())
 			{
 				if (key == stateName)
 				{
+					final scriptName = Mods.currentModConfig.stateRedirects.get(stateName);
+					if (!FunkinAssets.exists(FunkinScript.getPath('scripts/states/$scriptName')))
+					{
+						Logger.log('Could not override "$stateName" to script "$scriptName". Does the file exist?', WARN, true);
+						break;
+					}
+					
 					_state = FlxDestroyUtil.destroy(_state);
 					
-					_nextState = () -> new ScriptedState(Mods.currentMod.stateRedirects.get(stateName));
+					_nextState = () -> new ScriptedState(scriptName);
 					
 					_state = _nextState.createInstance();
 					

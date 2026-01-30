@@ -14,38 +14,87 @@ import funkin.states.transitions.*;
 // modified from modern psych
 // much love okay
 
+/**
+ * Struct defining a mod
+ */
 typedef ModMeta =
 {
+	/**
+	 * The displayed name of the mod
+	 */
 	var name:String;
+	
+	/**
+	 * If true, this mod will be enabled along side the current loaded mod
+	 */
 	var global:Bool;
+	
+	/**
+	 * The description of the credit
+	 */
 	var description:String;
 	
+	/**
+	 * Optional custom discord ID
+	 */
 	var ?discordClientID:String;
+	
+	/**
+	 * Optional custom title for the application
+	 */
 	var ?windowTitle:String;
+	
+	/**
+	 * Optional path to a icon to be used for the application
+	 */
 	var ?iconFile:String;
 	
-	var ?defaultTransition:String;
+	/**
+	 * Optional path to a transition state to be used by default
+	 */
+	var ?defaultTransition:String; // 50 / 50 on this idunno
 	
+	/**
+	 * Optional map of state overrides.
+	 * 
+	 * Any state added here will be redirected to your custom state
+	 * 
+	 * Usage:
+	 * ```json
+	 *     "stateRedirects": 
+	 *      {
+	 *          "TitleState": "myCustomState"
+	 *      }
+	 * ```
+	 */
 	var ?stateRedirects:DynamicAccess<String>;
 	
+	/**
+	 * Optional font that will replace most seen text in the game.
+	 */
 	var ?defaultFont:String;
 }
 
 typedef ModsList =
 {
-	enabled:Array<String>,
-	disabled:Array<String>,
-	all:Array<String>
+	var enabled:Array<String>;
+	var disabled:Array<String>;
+	var all:Array<String>;
 }
+
+// add docs later
 
 class Mods
 {
 	/**
-	 * The current primary loaded mod
+	 * The primary loaded mod's directory
 	 */
 	public static var currentModDirectory:Null<String> = '';
 	
-	public static var currentMod:Null<ModMeta> = null;
+	/**
+	 * The primary loaded mod's config data
+	 */
+	public static var currentModConfig:Null<ModMeta> = null;
 	
 	public static final ignoreModFolders:Array<String> = [
 		'characters',
@@ -169,20 +218,20 @@ class Mods
 		return foldersToCheck;
 	}
 	
-	public static function getPack(?folder:String):ModMeta
+	public static function getPack(?folder:String):Null<ModMeta>
 	{
 		#if MODS_ALLOWED
 		if (folder == null) folder = Mods.currentModDirectory;
 		
 		var path = Paths.mods(folder + '/meta.json');
-		if (FileSystem.exists(path))
+		if (FunkinAssets.exists(path))
 		{
-			try
+			final raw = FunkinAssets.getContent(path);
+			if (raw != null && raw.length > 0)
 			{
-				final json = FunkinAssets.getContent(path);
-				if (json != null && json.length > 0) return Json.parse(json);
+				final json:Null<ModMeta> = FunkinAssets.parseJson5(raw);
+				if (json != null) return json;
 			}
-			catch (e) {}
 		}
 		#end
 		return null;
@@ -276,14 +325,16 @@ class Mods
 		#if MODS_ALLOWED
 		var list:Array<String> = Mods.parseList().enabled;
 		if (list != null && list[0] != null) Mods.currentModDirectory = list[0];
-		currentMod = loadTopModConfig();
+		applyModConfig();
 		#end
 	}
 	
-	public static function loadTopModConfig():Null<ModMeta>
+	public static function applyModConfig(?directory:String):Void
 	{
-		var pack = getPack();
-		if (pack == null) return null;
+		var pack = getPack(directory);
+		if (pack == null) return;
+		
+		currentModConfig = pack;
 		
 		WindowUtil.setTitle(pack.windowTitle ?? 'Friday Night Funkin');
 		
@@ -330,21 +381,7 @@ class Mods
 		if (pack.discordClientID != null) funkin.api.DiscordClient.rpcId = pack.discordClientID;
 		else funkin.api.DiscordClient.rpcId = DiscordClient.NMV_ID;
 		
-		if (pack.defaultFont != null)
-		{
-			if (FunkinAssets.exists(Paths.font(pack.defaultFont)))
-			{
-				Paths.DEFAULT_FONT = Paths.font(pack.defaultFont);
-			}
-			else
-			{
-				Paths.DEFAULT_FONT = Paths.font('vcr.ttf');
-				Logger.log('Issue with loading ${Paths.font(pack.defaultFont)}, does it exist?', ERROR);
-			}
-		}
-		else Paths.DEFAULT_FONT = Paths.font('vcr.ttf');
-		// if (pack.stateRedirects.TitleState != null) TitleState.init();
-		return pack;
+		Paths.DEFAULT_FONT = pack.defaultFont != null && FunkinAssets.exists(Paths.font(pack.defaultFont)) ? Paths.font(pack.defaultFont) : Paths.font('vcr.ttf');
 	}
 	
 	public static function getModIcon(mod:String):String
