@@ -11,6 +11,7 @@ class ScriptedSubstate extends funkin.backend.MusicBeatSubstate
 		
 		initStateScript(scriptName, false);
 		scriptGroup.parent = this;
+		scriptGroup.call('onLoad');
 	}
 	
 	override function create()
@@ -23,6 +24,6 @@ class ScriptedSubstate extends funkin.backend.MusicBeatSubstate
 			return;
 		}
 		
-		scriptGroup.call('onLoad', []);
+		scriptGroup.call('onCreate');
 	}
 }
