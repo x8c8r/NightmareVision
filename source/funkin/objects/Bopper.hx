@@ -114,7 +114,7 @@ class Bopper extends FlxSprite
 				animateAtlas.animation.onLoop.add((anim) -> onAnimationLoop.dispatch(__prevPlayedAnimation));
 			}
 			
-			animateAtlas.frames = FlxAnimateFrames.fromAnimate((Paths.getPath('images/$path', null, true)));
+			animateAtlas.frames = FlxAnimateFrames.fromAnimate(Paths.getPath('images/$path', null, true), null, null, null, false, {cacheOnLoad: true});
 		}
 		else
 		{
