@@ -1982,17 +1982,16 @@ class PlayState extends MusicBeatState
 		}
 		else
 		{
-			var soundTime:Float = FlxG.sound.music.time;
-			if (soundTime == Conductor.lastSongPos) {
+			if (audio.time == Conductor.lastSongPos) {
 				Conductor.songPosition += elapsed;
 			} else {
-				if (Math.abs(soundTime - Conductor.songPosition) >= elapsed) {
+				if (Math.abs(audio.time - Conductor.songPosition) >= elapsed) {
 					Conductor.songPosition = soundTime;
 				} else {
 					COnductor.songPosition += elapsed;
 				}
 	
-				Conductor.lastSongPos = soundTime;
+				Conductor.lastSongPos = audio.time;
 			}
 		}
 		
