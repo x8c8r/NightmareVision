@@ -3017,9 +3017,6 @@ class PlayState extends MusicBeatState
 		{
 			if (!boyfriend.stunned && generatedMusic && !endingSong)
 			{
-				// more accurate hit time for the ratings?
-				var lastTime:Float = Conductor.songPosition;
-				Conductor.songPosition = audio.time;
 				
 				var canMiss:Bool = !ClientPrefs.ghostTapping;
 				
@@ -3050,9 +3047,6 @@ class PlayState extends MusicBeatState
 						scripts.call('noteMissPress', [key]);
 					}
 				}
-				
-				// more accurate hit time for the ratings? part 2 (Now that the calculations are done, go back to the time it was before for not causing a note stutter)
-				Conductor.songPosition = lastTime;
 			}
 			
 			for (field in playFields.members)
