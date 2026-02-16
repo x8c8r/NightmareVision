@@ -1982,19 +1982,17 @@ class PlayState extends MusicBeatState
 		}
 		else
 		{
-			Conductor.songPosition += FlxG.elapsed * 1000 * playbackRate;
-			
-			if (!paused)
-			{
-				songTime += FlxG.game.ticks - previousFrameTime;
-				previousFrameTime = FlxG.game.ticks;
-				
-				// Interpolation type beat
-				if (Conductor.lastSongPos != Conductor.songPosition)
-				{
-					songTime = (songTime + Conductor.songPosition) / 2;
-					Conductor.lastSongPos = Conductor.songPosition;
+			var soundTime:Float = FlxG.sound.music.time;
+			if (soundTime == Conductor.lastSongPos) {
+				Conductor.songPosition += elapsed;
+			} else {
+				if (Math.abs(soundTime - Conductor.songPosition) >= elapsed) {
+					Conductor.songPosition = soundTime;
+				} else {
+					COnductor.songPosition += elapsed;
 				}
+	
+				Conductor.lastSongPos = soundTime;
 			}
 		}
 		
