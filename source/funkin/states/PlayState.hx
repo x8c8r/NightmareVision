@@ -1986,7 +1986,7 @@ class PlayState extends MusicBeatState
 				Conductor.songPosition += elapsed;
 			} else {
 				if (Math.abs(audio.time - Conductor.songPosition) >= elapsed) {
-					Conductor.songPosition = soundTime;
+					Conductor.songPosition = audio.time;
 				} else {
 					COnductor.songPosition += elapsed;
 				}
