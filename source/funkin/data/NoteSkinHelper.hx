@@ -10,7 +10,8 @@ typedef Animation =
 	?anim:String,
 	?xmlName:String,
 	?offsets:Array<Float>,
-	?looping:Bool
+	?looping:Bool,
+	?fps:Int
 }
 
 typedef ColorList =
@@ -127,19 +128,22 @@ class NoteSkinHelper implements IFlxDestroyable
 				anim: "scroll",
 				xmlName: "purple",
 				offsets: [0, 0],
-				looping: true
+				looping: true,
+				fps: 24
 			},
 			{
 				anim: "hold",
 				xmlName: "purple hold piece",
 				offsets: [0, 0],
-				looping: true
+				looping: true,
+				fps: 24
 			},
 			{
 				anim: 'holdend',
 				xmlName: 'pruple end hold',
 				offsets: [0, 0],
-				looping: true
+				looping: true,
+				fps: 24
 			}
 		],
 		[
@@ -147,19 +151,22 @@ class NoteSkinHelper implements IFlxDestroyable
 				anim: "scroll",
 				xmlName: "blue",
 				offsets: [0, 0],
-				looping: true
+				looping: true,
+				fps: 24
 			},
 			{
 				anim: "hold",
 				xmlName: "blue hold piece",
 				offsets: [0, 0],
-				looping: true
+				looping: true,
+				fps: 24
 			},
 			{
 				anim: "holdend",
 				xmlName: "blue hold end",
 				offsets: [0, 0],
-				looping: true
+				looping: true,
+				fps: 24
 			}
 		],
 		[
@@ -167,19 +174,22 @@ class NoteSkinHelper implements IFlxDestroyable
 				anim: "scroll",
 				xmlName: "green",
 				offsets: [0, 0],
-				looping: true
+				looping: true,
+				fps: 24
 			},
 			{
 				anim: "hold",
 				xmlName: "green hold piece",
 				offsets: [0, 0],
-				looping: true
+				looping: true,
+				fps: 24
 			},
 			{
 				anim: "holdend",
 				xmlName: "green hold end",
 				offsets: [0, 0],
-				looping: true
+				looping: true,
+				fps: 24
 			}
 		],
 		[
@@ -187,19 +197,22 @@ class NoteSkinHelper implements IFlxDestroyable
 				anim: "scroll",
 				xmlName: "red",
 				offsets: [0, 0],
-				looping: true
+				looping: true,
+				fps: 24
 			},
 			{
 				anim: "hold",
 				xmlName: "red hold piece",
 				offsets: [0, 0],
-				looping: true
+				looping: true,
+				fps: 24
 			},
 			{
 				anim: "holdend",
 				xmlName: "red hold end",
 				offsets: [0, 0],
-				looping: true
+				looping: true,
+				fps: 24
 			}
 		]
 	];
@@ -209,19 +222,22 @@ class NoteSkinHelper implements IFlxDestroyable
 				anim: 'static',
 				xmlName: "arrowLEFT",
 				offsets: [0, 0],
-				looping: false
+				looping: false,
+				fps: 24
 			},
 			{
 				anim: "pressed",
 				xmlName: "left press",
 				offsets: [0, 0],
-				looping: false
+				looping: false,
+				fps: 24
 			},
 			{
 				anim: "confirm",
 				xmlName: "left confirm",
 				offsets: [0, 0],
-				looping: false
+				looping: false,
+				fps: 24
 			}
 		],
 		[
@@ -229,19 +245,22 @@ class NoteSkinHelper implements IFlxDestroyable
 				anim: "static",
 				xmlName: "arrowDOWN",
 				offsets: [0, 0],
-				looping: false
+				looping: false,
+				fps: 24
 			},
 			{
 				anim: "pressed",
 				xmlName: "down press",
 				offsets: [0, 0],
-				looping: false
+				looping: false,
+				fps: 24
 			},
 			{
 				anim: "confirm",
 				xmlName: "down confirm",
 				offsets: [0, 0],
-				looping: false
+				looping: false,
+				fps: 24
 			}
 		],
 		[
@@ -249,19 +268,22 @@ class NoteSkinHelper implements IFlxDestroyable
 				anim: "static",
 				xmlName: "arrowUP",
 				offsets: [0, 0],
-				looping: false
+				looping: false,
+				fps: 24
 			},
 			{
 				anim: "pressed",
 				xmlName: "up press",
 				offsets: [0, 0],
-				looping: false
+				looping: false,
+				fps: 24
 			},
 			{
 				anim: "confirm",
 				xmlName: "up confirm",
 				offsets: [0, 0],
-				looping: false
+				looping: false,
+				fps: 24
 			}
 		],
 		[
@@ -269,19 +291,22 @@ class NoteSkinHelper implements IFlxDestroyable
 				anim: "static",
 				xmlName: "arrowRIGHT",
 				offsets: [0, 0],
-				looping: false
+				looping: false,
+				fps: 24
 			},
 			{
 				anim: "pressed",
 				xmlName: "right press",
 				offsets: [0, 0],
-				looping: false
+				looping: false,
+				fps: 24
 			},
 			{
 				anim: "confirm",
 				xmlName: "right confirm",
 				offsets: [0, 0],
-				looping: false
+				looping: false,
+				fps: 24
 			}
 		]
 	];
@@ -400,11 +425,20 @@ class NoteSkinHelper implements IFlxDestroyable
 		data.noteAnimations ??= DEFAULT_NOTE_ANIMATIONS;
 		data.receptorAnimations ??= DEFAULT_RECEPTOR_ANIMATIONS;
 		data.noteSplashAnimations ??= DEFAULT_NOTESPLASH_ANIMATIONS;
+		
+		// correcting note animation data that might have missing fields
 		for (j in [data.noteAnimations, data.receptorAnimations])
+		{
 			for (i in j)
+			{
 				for (k in i)
+				{
 					k.looping ??= false;
-					
+					k.fps ??= 24;
+				}
+			}
+		}
+		
 		data.singAnimations ??= defaultSingAnimations;
 		data.scale ??= 0.7;
 		data.splashesEnabled ??= true;

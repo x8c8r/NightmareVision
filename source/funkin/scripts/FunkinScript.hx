@@ -249,6 +249,10 @@ class FunkinScript extends IrisEx implements IFlxDestroyable
 		set("FlxTiledSprite", flixel.addons.display.FlxTiledSprite);
 		set('FlxPoint', flixel.math.FlxPoint.FlxBasePoint);
 		
+		set("FlxAnimate", animate.FlxAnimate);
+		set("FlxAnimateFrames", animate.FlxAnimateFrames);
+		set("FlxSpriteElement", animate.internal.elements.FlxSpriteElement);
+		
 		set('Controls', funkin.backend.PlayerSettings.player1.controls);
 		
 		set('FlxCameraFollowStyle', flixel.FlxCamera.FlxCameraFollowStyle);
@@ -260,6 +264,13 @@ class FunkinScript extends IrisEx implements IFlxDestroyable
 		set('FlxAxes', funkin.utils.MacroUtil.buildAbstract(flixel.util.FlxAxes));
 		set("FlxKey", funkin.utils.MacroUtil.buildAbstract(flixel.input.keyboard.FlxKey));
 		set('BlendMode', funkin.utils.MacroUtil.buildAbstract(openfl.display.BlendMode));
+
+		set("keyToString", (key:Int)->{
+			return flixel.input.keyboard.FlxKey.toStringMap.get(key);
+		});
+		set("keyFromString", (str:String)->{
+			return flixel.input.keyboard.FlxKey.fromStringMap.get(str);
+		});
 		
 		// modchart related
 		set("ModManager", funkin.game.modchart.ModManager);

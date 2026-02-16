@@ -24,15 +24,25 @@ import funkin.states.editors.ui.DebugBounds;
 import funkin.data.*;
 import funkin.objects.*;
 import funkin.objects.note.*;
+import funkin.data.NoteSkinHelper.Animation;
 import funkin.data.NoteSkinHelper.ColorList;
 
 using funkin.states.editors.ui.ToolKitUtils;
+
+enum abstract Mode(Int)
+{
+	var RECEPTORS;
+	var SPLASHES;
+	var NOTES;
+}
 
 class WIPNoteSkinEditor extends UIState
 {
 	var isCameraDragging:Bool = false;
 	var camHUD:FlxCamera;
 	var camBG:FlxCamera;
+	
+	var mode:Mode;
 	
 	var bg:FlxSprite;
 	var scrollingBG:FlxBackdrop;
@@ -53,6 +63,12 @@ class WIPNoteSkinEditor extends UIState
 	var curColorString:String = "Red";
 	var curSelectedNote:Dynamic;
 	
+	function setMode(_mode:Mode)
+	{
+		mode = _mode;
+		// ui switching stuff will go here i promise
+	}
+	
 	public function new(file:String = 'default', ?t_helper:NoteSkinHelper = null)
 	{
 		super();
@@ -70,6 +86,8 @@ class WIPNoteSkinEditor extends UIState
 		FlxG.cameras.insert(camBG = new FlxCamera(), 0, false);
 		FlxG.camera.bgColor = 0x0;
 		camHUD.bgColor = 0x0;
+		
+		setMode(RECEPTORS);
 		
 		bg = new FlxSprite().loadGraphic(Paths.image('editors/notesbg'));
 		bg.setGraphicSize(1280);
@@ -238,7 +256,12 @@ class WIPNoteSkinEditor extends UIState
 		}
 		
 		uiElements.settingsBox.animationsDropdown.onChange = (ui) -> {
-			refreshAnimDropdown('receptors');
+			refreshAnimFields(uiElements.settingsBox.animationsDropdown.selectedIndex);
+			// trace(ui.value);
+		}
+		
+		uiElements.settingsBox.addAnimationButton.onClick = (ui) -> {
+			addAnim();
 		}
 		
 		uiElements.settingsBox.reloadTextures.onClick = (ui) -> {
@@ -528,23 +551,82 @@ class WIPNoteSkinEditor extends UIState
 		curSelectedNote = playfields.members[0].members[0];
 	}
 	
-	function refreshAnimDropdown(current:String = 'receptors')
+	function refreshAnimDropdown()
 	{
-		switch (current)
+		switch (mode)
 		{
-			case 'receptors':
-				final receptorAnimArray = [];
+			case RECEPTORS:
+				final tempAnimArray = [];
 				final data = curSelectedNote != null ? curSelectedNote.noteData ?? 0 : 0;
+				
+				receptorAnimArray = helper.data.receptorAnimations[data];
 				
 				for (anim in helper.data.receptorAnimations[data])
 				{
-					receptorAnimArray.push(ToolKitUtils.makeSimpleDropDownItem(anim.anim));
+					tempAnimArray.push(ToolKitUtils.makeSimpleDropDownItem(anim.anim));
 				}
-				uiElements.settingsBox.animationsDropdown.populateList(receptorAnimArray);
+				uiElements.settingsBox.animationsDropdown.populateList(tempAnimArray);
 				
 				uiElements.settingsBox.playerTexture.value = helper.data.playerSkin;
 				uiElements.settingsBox.opponentTexture.value = helper.data.opponentSkin;
 				uiElements.settingsBox.extraTexture.value = helper.data.extraSkin;
+				
+				refreshAnimFields(0);
+			default:
+				// lol
+		}
+	}
+	
+	function refreshAnimFields(data:Int = 0)
+	{
+		switch (mode)
+		{
+			case RECEPTORS:
+				final anim = receptorAnimArray[data];
+				
+				if (anim != null)
+				{
+					uiElements.settingsBox.animationNameTextField.value = anim.anim;
+					uiElements.settingsBox.animationPrefixTextField.value = anim.xmlName;
+					uiElements.settingsBox.animationFramerateStepper.value = anim.fps;
+				}
+				else refreshAnimDropdown();
+				
+			default:
+				// lol
+		}
+	}
+	
+	function addAnim()
+	{
+		switch (mode)
+		{
+			case RECEPTORS:
+				final data = uiElements?.settingsBox?.animationsDropdown?.selectedIndex ?? 0;
+				final tempAnim = receptorAnimArray[data] ?? NoteSkinHelper.fallbackReceptorAnims[0];
+				
+				final animName = uiElements?.settingsBox?.animationNameTextField?.value ?? tempAnim.anim;
+				final anim:Animation =
+					{
+						anim: animName,
+						xmlName: uiElements?.settingsBox?.animationPrefixTextField?.value ?? tempAnim.xmlName,
+						offsets: getOffsetFromAnim(animName, data),
+						looping: uiElements?.settingsBox?.animationLoopCheckbox?.value ?? false,
+						fps: uiElements?.settingsBox?.animationFramerateStepper?.value ?? 24
+					}
+					
+				final hadAnim = curSelectedNote.hasAnim(anim.anim);
+				
+				if (hadAnim)
+				{
+					curSelectedNote.animation._curAnim = null;
+					curSelectedNote.removeAnim(animName);
+				}
+				curSelectedNote.addAnim(anim);
+				curSelectedNote.playAnim(animName, true, null);
+				
+				FlxG.sound.play(Paths.sound('ui/success'));
+				ToolKitUtils.makeNotification('Animation Addition', 'Successfully ${hadAnim ? 'updated' : 'added'} "$animName" to note skin.', Success);
 				
 			default:
 				// lol
@@ -600,7 +682,7 @@ class WIPNoteSkinEditor extends UIState
 		if (curSelectedNote != null)
 		{
 			final animName = curSelectedNote.getAnimName();
-			final baseOffset = getOffsetFromAnim('receptor', animName, curSelectedNote.noteData);
+			final baseOffset = getOffsetFromAnim(animName, curSelectedNote.noteData);
 			final bounds = fieldBounds[curSelectedNote.noteData];
 			
 			// moving offsets with ur mouse
@@ -631,13 +713,20 @@ class WIPNoteSkinEditor extends UIState
 					final note = field.members[i];
 					final bounds = fieldBounds[i];
 					
-					if (FlxG.mouse.overlaps(bounds.middle) && note != curSelectedNote)
+					if (FlxG.mouse.overlaps(bounds.middle))
 					{
-						note.alpha = 0.9;
-						if (FlxG.mouse.justPressed)
+						if (note != curSelectedNote)
 						{
-							curSelectedNote = note;
-							refreshAnimDropdown('receptors');
+							note.alpha = 0.9;
+							if (FlxG.mouse.justPressed)
+							{
+								curSelectedNote = note;
+								refreshAnimDropdown();
+							}
+						}
+						else
+						{
+							if (FlxG.mouse.justPressed) shuffleThroughAnims(note);
 						}
 					}
 					else note.alpha = (note == curSelectedNote) ? 1 : 0.6;
@@ -842,13 +931,13 @@ class WIPNoteSkinEditor extends UIState
 	}
 	
 	// quick handler to get offsets quickly from an animation
-	function getOffsetFromAnim(type:String = 'receptors', anim:String = 'static', data:Int)
+	function getOffsetFromAnim(anim:String = 'static', data:Int)
 	{
-		var offset:Null<Array<Float>> = switch (type)
+		var offset:Null<Array<Float>> = switch (mode)
 		{
 			default:
 				[0, 0];
-			case 'receptor':
+			case RECEPTORS:
 				final animIndex = getAnimIndex(anim);
 				
 				helper.data.receptorAnimations[data][animIndex].offsets;

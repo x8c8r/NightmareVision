@@ -97,8 +97,7 @@ class StrumNote extends FlxSprite
 		if (!NoteSkinHelper.shaderEnabled) return;
 		
 		var arr:Array<FlxColor> = note?.rgbShader?.colorArray ?? [];
-		if(arr == null || arr.length <= 0)
-			arr = NoteSkinHelper.getCurColors(noteData, (isQuant && note != null) ? note.quant : 4);
+		if (arr == null || arr.length <= 0) arr = NoteSkinHelper.getCurColors(noteData, (isQuant && note != null) ? note.quant : 4);
 		
 		if (isQuant && anim == 'pressed') arr = ClientPrefs.arrowRGBquant[0];
 		
@@ -153,9 +152,7 @@ class StrumNote extends FlxSprite
 		for (i in 0...NoteSkinHelper.instance.data.receptorAnimations[noteData].length)
 		{
 			var anim = NoteSkinHelper.instance.data.receptorAnimations[noteData][i];
-			
-			animation.addByPrefix(anim.anim, anim.xmlName, 24, anim.looping);
-			addOffset(anim.anim, anim.offsets[0], anim.offsets[1]);
+			addAnim(anim);
 		}
 	}
 	
@@ -169,6 +166,31 @@ class StrumNote extends FlxSprite
 		animation.add('static', [noteData]);
 		animation.add('pressed', [noteData + 4, noteData + 8], 12, false);
 		animation.add('confirm', [noteData + 12, noteData + 16], 24, false);
+	}
+	
+	public function hasAnim(anim:String)
+	{
+		return animation.exists(anim) && animOffsets.exists(anim);
+	}
+	
+	function addAnim(_anim:funkin.data.NoteSkinHelper.Animation)
+	{
+		final anim = _anim ?? NoteSkinHelper.fallbackReceptorAnims[0];
+		
+		if (!hasAnim(anim.anim))
+		{
+			animation.addByPrefix(anim.anim, anim.xmlName, anim.fps, anim.looping);
+			addOffset(anim.anim, anim.offsets[0], anim.offsets[1]);
+		}
+	}
+	
+	function removeAnim(anim:String)
+	{
+		if (hasAnim(anim))
+		{
+			animation.remove(anim);
+			animOffsets.remove(anim);
+		}
 	}
 	
 	public function postAddedToGroup()

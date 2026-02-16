@@ -454,7 +454,7 @@ class Note extends FlxSprite
 		for (i in 0...NoteSkinHelper.instance.data.noteAnimations[noteData].length)
 		{
 			var anim = NoteSkinHelper.instance.data.noteAnimations[noteData][i];
-			animation.addByPrefix(anim.anim, '${anim.xmlName}0', 24, true);
+			animation.addByPrefix(anim.anim, '${anim.xmlName}0', anim.fps, true);
 		}
 		
 		setGraphicSize(Std.int(width * NoteSkinHelper.instance.data.scale));

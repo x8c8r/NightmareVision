@@ -280,6 +280,8 @@ class PlayableSong extends VocalGroup
 	override public function play(forceRestart:Bool = false, startTime:Float = 0.0, ?endTime:Null<Float>)
 	{
 		if (trackSwap && inst != null) inst.volume = 0;
+		if (endTime == null || endTime == 0)
+			endTime = songLength;
 		
 		super.play(forceRestart, startTime, endTime);
 	}
