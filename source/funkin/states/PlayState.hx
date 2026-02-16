@@ -1982,19 +1982,17 @@ class PlayState extends MusicBeatState
 		}
 		else
 		{
-			Conductor.songPosition += FlxG.elapsed * 1000 * playbackRate;
-			
-			if (!paused)
-			{
-				songTime += FlxG.game.ticks - previousFrameTime;
-				previousFrameTime = FlxG.game.ticks;
-				
-				// Interpolation type beat
-				if (Conductor.lastSongPos != Conductor.songPosition)
-				{
-					songTime = (songTime + Conductor.songPosition) / 2;
-					Conductor.lastSongPos = Conductor.songPosition;
+			var deltaTime:Float = elapsed * 1000;
+			if (audio.time == Conductor.lastSongPos) {
+				Conductor.songPosition += deltaTime;
+			} else {
+				if (Math.abs(audio.time - Conductor.songPosition) >= deltaTime) {
+					Conductor.songPosition = audio.time;
+				} else {
+					Conductor.songPosition += deltaTime;
 				}
+	
+				Conductor.lastSongPos = audio.time;
 			}
 		}
 		
@@ -3019,9 +3017,6 @@ class PlayState extends MusicBeatState
 		{
 			if (!boyfriend.stunned && generatedMusic && !endingSong)
 			{
-				// more accurate hit time for the ratings?
-				var lastTime:Float = Conductor.songPosition;
-				Conductor.songPosition = audio.time;
 				
 				var canMiss:Bool = !ClientPrefs.ghostTapping;
 				
@@ -3052,9 +3047,6 @@ class PlayState extends MusicBeatState
 						scripts.call('noteMissPress', [key]);
 					}
 				}
-				
-				// more accurate hit time for the ratings? part 2 (Now that the calculations are done, go back to the time it was before for not causing a note stutter)
-				Conductor.songPosition = lastTime;
 			}
 			
 			for (field in playFields.members)
