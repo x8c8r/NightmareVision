@@ -1984,7 +1984,7 @@ class PlayState extends MusicBeatState
 		{
 			var deltaTime:Float = elapsed * 1000;
 			if (audio.time == Conductor.lastSongPos) {
-				Conductor.songPosition += deltatime;
+				Conductor.songPosition += deltaTime;
 			} else {
 				if (Math.abs(audio.time - Conductor.songPosition) >= deltaTime) {
 					Conductor.songPosition = audio.time;
