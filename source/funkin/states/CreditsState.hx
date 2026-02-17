@@ -173,7 +173,7 @@ class CreditsState extends MusicBeatState
 		add(descBox);
 		
 		descText = new FlxText(50, FlxG.height + descYOffset - 25, 1180, "", 32);
-		descText.setFormat(Paths.font("vcr"), 32, FlxColor.WHITE, CENTER);
+		descText.setFormat(Paths.DEFAULT_FONT, 32, FlxColor.WHITE, CENTER);
 		descText.scrollFactor.set();
 		descBox.sprTracker = descText;
 		add(descText);

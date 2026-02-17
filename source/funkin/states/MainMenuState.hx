@@ -101,7 +101,7 @@ class MainMenuState extends MusicBeatState
 		final ver = "Nightmare Vision Engine v" + Main.NMV_VERSION + gitHash + '\nPsych Engine v' + Main.PSYCH_VERSION + "\nFriday Night Funkin' v" + Main.FUNKIN_VERSION;
 		
 		final verionDesc:FlxText = new FlxText(12, 0, 0, ver, 16);
-		verionDesc.setFormat(Paths.font('vcr'), 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		verionDesc.setFormat(Paths.DEFAULT_FONT, 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		verionDesc.borderSize = 1.5;
 		verionDesc.y = FlxG.height - verionDesc.height - 12;
 		verionDesc.scrollFactor.set();
