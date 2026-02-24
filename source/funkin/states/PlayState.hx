@@ -1190,17 +1190,10 @@ class PlayState extends MusicBeatState
 			
 			strums.noteHitCallback.add(noteHit);
 			
-			if (lane == 0){
+			if (lane == 0)
+			{
 				strums.showRatings = true;
 				strums.noteMissCallback.add(noteMiss);
-				strums.noteHitCallback.add((note, field) ->{
-					if (!note.isSustainNote)
-					{
-						combo += 1;
-						if (combo > 9999) combo = 9999;
-						popUpScore(note);
-					}
-				});				
 			}
 			else if (lane == 1)
 			{
@@ -1994,15 +1987,12 @@ class PlayState extends MusicBeatState
 		else
 		{
 			var deltaTime:Float = elapsed * 1000;
-			if (audio.time == Conductor.lastSongPos) {
-				Conductor.songPosition += deltaTime;
-			} else {
-				if (Math.abs(audio.time - Conductor.songPosition) >= deltaTime) {
-					Conductor.songPosition = audio.time;
-				} else {
-					Conductor.songPosition += deltaTime;
-				}
-	
+			if (audio.time == Conductor.lastSongPos) Conductor.songPosition += deltaTime;
+			else
+			{
+				if (Math.abs(audio.time - Conductor.songPosition) >= deltaTime) Conductor.songPosition = audio.time;
+				else Conductor.songPosition += deltaTime;
+				
 				Conductor.lastSongPos = audio.time;
 			}
 		}
@@ -3028,7 +3018,6 @@ class PlayState extends MusicBeatState
 		{
 			if (!boyfriend.stunned && generatedMusic && !endingSong)
 			{
-				
 				var canMiss:Bool = !ClientPrefs.ghostTapping;
 				
 				var pressNotes:Array<Note> = [];
@@ -3320,6 +3309,13 @@ class PlayState extends MusicBeatState
 			default:
 				// change the vocals in the script if u want to add extra vocal tracks
 				scripts.call('extraNoteHitPre', [note, field.ID]);
+		}
+		
+		if (field.playerControls && field.showRatings && !note.isSustainNote)
+		{
+			combo += 1;
+			if (combo > 9999) combo = 9999;
+			popUpScore(note);
 		}
 		
 		// final char:Null<Character> = note.gfNote ? gf : note.owner ?? field.owner;
