@@ -58,6 +58,8 @@ class PlayField extends FlxTypedContainer<StrumNote>
 	public var keyCount(default, set):Int = 0;
 	
 	public var swagWidth(get, never):Float;
+
+	public var showRatings:Bool = false;
 	
 	public function get_swagWidth()
 	{

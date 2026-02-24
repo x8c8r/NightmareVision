@@ -1190,7 +1190,18 @@ class PlayState extends MusicBeatState
 			
 			strums.noteHitCallback.add(noteHit);
 			
-			if (lane == 0) strums.noteMissCallback.add(noteMiss);
+			if (lane == 0){
+				strums.showRatings = true;
+				strums.noteMissCallback.add(noteMiss);
+				strums.noteHitCallback.add((note, field) ->{
+					if (!note.isSustainNote)
+					{
+						combo += 1;
+						if (combo > 9999) combo = 9999;
+						popUpScore(note);
+					}
+				});				
+			}
 			else if (lane == 1)
 			{
 				if (!ClientPrefs.opponentStrums) strums.baseAlpha = 0;
@@ -2285,7 +2296,7 @@ class PlayState extends MusicBeatState
 	
 	function doDeathCheck(?skipHealthCheck:Bool = false):Bool
 	{
-		if (((skipHealthCheck && instakillOnMiss) || health <= 0) && !practiceMode && !isDead)
+		if (((skipHealthCheck && instakillOnMiss) || health <= healthBounds.min) && !practiceMode && !isDead)
 		{
 			final ret:Dynamic = scripts.call('onGameOver', []);
 			if (ret != ScriptConstants.STOP_FUNC)
@@ -3302,12 +3313,6 @@ class PlayState extends MusicBeatState
 					if (!note.isSustainNote) disposeNote(note);
 				}
 				
-				if (!note.isSustainNote)
-				{
-					combo += 1;
-					if (combo > 9999) combo = 9999;
-					popUpScore(note);
-				}
 				health += note.hitHealth * healthGain;
 			case 1:
 				camZooming = true;
