@@ -636,6 +636,8 @@ class PlayState extends MusicBeatState
 	// null checking
 	function callHUDFunc(hud:BaseHUD->Void):Void if (playHUD != null) hud(playHUD);
 	
+	var input:funkin.backend.InputSystem;
+	
 	override public function create():Void
 	{
 		FunkinAssets.cache.clearStoredMemory();
@@ -900,10 +902,14 @@ class PlayState extends MusicBeatState
 		// Updating Discord Rich Presence.
 		resetDiscordRPC();
 		
+		input = new funkin.backend.InputSystem();
+		input.justPressedCallback.add(onKeyPress);
+		input.releasedCallback.add(onKeyRelease);
+		
 		if (!ClientPrefs.controllerMode)
 		{
-			FlxG.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyPress);
-			FlxG.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyRelease);
+			// FlxG.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyPress);
+			// FlxG.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyRelease);
 		}
 		
 		Conductor.safeZoneOffset = (ClientPrefs.safeFrames / 60) * 1000;
@@ -1955,6 +1961,7 @@ class PlayState extends MusicBeatState
 		scripts.call('onUpdate', [elapsed]);
 		
 		super.update(elapsed);
+		input.update(elapsed);
 		
 		currentSV = getSV(Conductor.songPosition);
 		Conductor.visualPosition = getVisualPosition();
@@ -3008,10 +3015,10 @@ class PlayState extends MusicBeatState
 		scripts.call('onPopUpScorePost', [note, daRating]);
 	}
 	
-	function onKeyPress(event:KeyboardEvent):Void
+	function onKeyPress(_key:FlxKey)
 	{
-		var eventKey:FlxKey = event.keyCode;
-		var key:Int = getKeyFromEvent(eventKey);
+		var eventKey:FlxKey = _key;
+		var key:Int = getBindFromKey(eventKey);
 		if (cpuControlled || paused || !startedCountdown) return;
 		
 		if (key > -1 && (FlxG.keys.checkStatus(eventKey, JUST_PRESSED) || ClientPrefs.controllerMode))
@@ -3066,10 +3073,10 @@ class PlayState extends MusicBeatState
 		}
 	}
 	
-	function onKeyRelease(event:KeyboardEvent):Void
+	function onKeyRelease(_key:FlxKey):Void
 	{
-		var eventKey:FlxKey = event.keyCode;
-		var key:Int = getKeyFromEvent(eventKey);
+		var eventKey:FlxKey = _key;
+		var key:Int = getBindFromKey(eventKey);
 		if (startedCountdown && !paused && key > -1)
 		{
 			for (field in playFields.members)
@@ -3088,7 +3095,7 @@ class PlayState extends MusicBeatState
 		}
 	}
 	
-	function getKeyFromEvent(key:FlxKey):Int
+	function getBindFromKey(key:FlxKey):Int
 	{
 		if (key != NONE)
 		{
@@ -3112,17 +3119,17 @@ class PlayState extends MusicBeatState
 		var dodge = controls.NOTE_DODGE;
 		
 		// TO DO: Find a better way to handle controller inputs, this should work for now
-		if (ClientPrefs.controllerMode)
-		{
-			var controlArray:Array<Bool> = [
-				controls.NOTE_LEFT_P,
-				controls.NOTE_DOWN_P,
-				controls.NOTE_UP_P,
-				controls.NOTE_RIGHT_P
-			];
-			if (controlArray.contains(true)) for (i in 0...controlArray.length)
-				if (controlArray[i]) onKeyPress(new KeyboardEvent(KeyboardEvent.KEY_DOWN, true, true, -1, keysArray[i][0]));
-		}
+		// if (ClientPrefs.controllerMode)
+		// {
+		// 	var controlArray:Array<Bool> = [
+		// 		controls.NOTE_LEFT_P,
+		// 		controls.NOTE_DOWN_P,
+		// 		controls.NOTE_UP_P,
+		// 		controls.NOTE_RIGHT_P
+		// 	];
+		// 	if (controlArray.contains(true)) for (i in 0...controlArray.length)
+		// 		if (controlArray[i]) onKeyPress(new KeyboardEvent(KeyboardEvent.KEY_DOWN, true, true, -1, keysArray[i][0]));
+		// }
 		
 		if (startedCountdown && !boyfriend.stunned && generatedMusic)
 		{
@@ -3165,20 +3172,20 @@ class PlayState extends MusicBeatState
 		}
 		
 		// TO DO: Find a better way to handle controller inputs, this should work for now
-		if (ClientPrefs.controllerMode)
-		{
-			var controlArray:Array<Bool> = [
-				controls.NOTE_LEFT_R,
-				controls.NOTE_DOWN_R,
-				controls.NOTE_UP_R,
-				controls.NOTE_RIGHT_R
-			];
-			if (controlArray.contains(true))
-			{
-				for (i in 0...controlArray.length)
-					if (controlArray[i]) onKeyRelease(new KeyboardEvent(KeyboardEvent.KEY_UP, true, true, -1, keysArray[i][0]));
-			}
-		}
+		// if (ClientPrefs.controllerMode)
+		// {
+		// 	var controlArray:Array<Bool> = [
+		// 		controls.NOTE_LEFT_R,
+		// 		controls.NOTE_DOWN_R,
+		// 		controls.NOTE_UP_R,
+		// 		controls.NOTE_RIGHT_R
+		// 	];
+		// 	if (controlArray.contains(true))
+		// 	{
+		// 		for (i in 0...controlArray.length)
+		// 			if (controlArray[i]) onKeyRelease(new KeyboardEvent(KeyboardEvent.KEY_UP, true, true, -1, keysArray[i][0]));
+		// 	}
+		// }
 	}
 	
 	function noteMiss(daNote:Note, field:PlayField):Void
@@ -3492,8 +3499,8 @@ class PlayState extends MusicBeatState
 		
 		if (!ClientPrefs.controllerMode)
 		{
-			FlxG.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyPress);
-			FlxG.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyRelease);
+			// FlxG.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyPress);
+			// FlxG.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyRelease);
 		}
 		super.destroy();
 	}
