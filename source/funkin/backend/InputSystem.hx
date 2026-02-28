@@ -1,61 +1,76 @@
 package funkin.backend;
 
-import flixel.input.actions.FlxAction.FlxActionDigital;
-import flixel.input.actions.FlxActionInputDigital;
-import flixel.util.FlxSignal.FlxTypedSignal;
-import flixel.input.FlxInput.FlxInputState;
 import flixel.input.keyboard.FlxKey;
 
+import openfl.events.KeyboardEvent;
+
+import funkin.backend.PlayerSettings;
+
 @:nullSafety
-class InputSystem
+class InputSystem implements flixel.util.IFlxDestroyable
 {
-	public var justPressed:FlxActionDigital;
-	public var pressed:FlxActionDigital;
-	public var released:FlxActionDigital;
+	public var _pressCallback:KeyboardEvent->Void;
+	public var _releaseCallback:KeyboardEvent->Void;
+	public var keys:Array<Dynamic> = [];
 	
-	public final justPressedCallback = new FlxTypedSignal<(FlxKey) -> Void>();
-	public final pressedCallback = new FlxTypedSignal<(FlxKey) -> Void>();
-	public final releasedCallback = new FlxTypedSignal<(FlxKey) -> Void>();
+	private var controls:funkin.data.Controls;
 	
-	public function new()
+	public function new(press:KeyboardEvent->Void, release:KeyboardEvent->Void, keys:Array<Dynamic>)
 	{
-		trace("created input system");
-		
-		justPressed = new FlxActionDigital("key_just_pressed");
-		pressed = new FlxActionDigital("key_pressed");
-		released = new FlxActionDigital("key_released");
-		
-		for (group in ClientPrefs.keyBinds)
+		_pressCallback = press;
+		_releaseCallback = release;
+		if (!ClientPrefs.controllerMode)
 		{
-			if (group == null) continue;
-			
-			for (key in group)
+			FlxG.stage.addEventListener(KeyboardEvent.KEY_DOWN, press);
+			FlxG.stage.addEventListener(KeyboardEvent.KEY_UP, release);
+		}
+		controls = PlayerSettings.player1.controls;
+		
+		this.keys = keys;
+	}
+	
+	public function destroy():Void
+	{
+		if (!ClientPrefs.controllerMode)
+		{
+			FlxG.stage.removeEventListener(KeyboardEvent.KEY_DOWN, _pressCallback);
+			FlxG.stage.removeEventListener(KeyboardEvent.KEY_UP, _releaseCallback);
+		}
+	}
+	
+	public function update(elapsed:Float = 0.0):Void
+	{
+		if (_pressCallback == null || _releaseCallback == null || !ClientPrefs.controllerMode) return;
+		
+		controlEventStuff('keyDown', [controls.NOTE_LEFT, controls.NOTE_DOWN, controls.NOTE_UP, controls.NOTE_RIGHT]);
+		controlEventStuff('keyDown', [controls.NOTE_LEFT_P, controls.NOTE_DOWN_P, controls.NOTE_UP_P, controls.NOTE_RIGHT_P]);
+		controlEventStuff('keyUp', [controls.NOTE_LEFT_R, controls.NOTE_DOWN_R, controls.NOTE_UP_R, controls.NOTE_RIGHT_R]);
+	}
+	
+	public function controlEventStuff(direction:String = 'up', controls:Array<Bool> = null)
+	{
+		if (controls == null) controls = [false, false, false, false];
+		var callback:KeyboardEvent->Void = direction == 'up' ? _releaseCallback : _pressCallback;
+		
+		if (controls.contains(true))
+		{
+			for (i in 0...controls.length)
 			{
-				justPressed.addKey(key, FlxInputState.JUST_PRESSED);
-				pressed.addKey(key, FlxInputState.PRESSED);
-				released.addKey(key, FlxInputState.JUST_RELEASED);
+				if (controls[i]) callback(new KeyboardEvent(direction, true, true, -1, keys[i][0]));
 			}
 		}
 	}
 	
-	public function update(elapsed:Float):Void
+	public function getKeyFromEvent(key:FlxKey):Int
 	{
-		checkAction(justPressed, justPressedCallback);
-		checkAction(pressed, pressedCallback);
-		checkAction(released, releasedCallback);
-	}
-	
-	function checkAction(action:FlxActionDigital, signal:FlxTypedSignal<(FlxKey) -> Void>):Void
-	{
-		for (input in action.inputs)
+		if (key != NONE)
 		{
-			var digital:FlxActionInputDigital = cast input;
-			
-			if (digital.check(action))
+			for (i in 0...keys.length)
 			{
-				var key:FlxKey = cast digital.inputID;
-				signal.dispatch(key);
+				for (j in 0...keys[i].length)
+					if (key == keys[i][j]) return i;
 			}
 		}
+		return -1;
 	}
 }

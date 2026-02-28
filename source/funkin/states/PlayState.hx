@@ -44,6 +44,7 @@ import funkin.states.editors.*;
 import funkin.game.modchart.*;
 import funkin.game.StoryMeta;
 import funkin.game.Countdown;
+import funkin.backend.InputSystem;
 import funkin.audio.SyncedFlxSoundGroup;
 #if VIDEOS_ALLOWED
 import funkin.video.FunkinVideoSprite;
@@ -636,7 +637,7 @@ class PlayState extends MusicBeatState
 	// null checking
 	function callHUDFunc(hud:BaseHUD->Void):Void if (playHUD != null) hud(playHUD);
 	
-	var input:funkin.backend.InputSystem;
+	var input:InputSystem;
 	
 	override public function create():Void
 	{
@@ -902,15 +903,9 @@ class PlayState extends MusicBeatState
 		// Updating Discord Rich Presence.
 		resetDiscordRPC();
 		
-		input = new funkin.backend.InputSystem();
-		input.justPressedCallback.add(onKeyPress);
-		input.releasedCallback.add(onKeyRelease);
+		input = new InputSystem(onKeyPress, onKeyRelease, keysArray);
 		
-		if (!ClientPrefs.controllerMode)
-		{
-			// FlxG.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyPress);
-			// FlxG.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyRelease);
-		}
+		if (!ClientPrefs.controllerMode) {}
 		
 		Conductor.safeZoneOffset = (ClientPrefs.safeFrames / 60) * 1000;
 		
@@ -3015,10 +3010,10 @@ class PlayState extends MusicBeatState
 		scripts.call('onPopUpScorePost', [note, daRating]);
 	}
 	
-	function onKeyPress(_key:FlxKey)
+	function onKeyPress(event:KeyboardEvent):Void
 	{
-		var eventKey:FlxKey = _key;
-		var key:Int = getBindFromKey(eventKey);
+		var eventKey:FlxKey = event.keyCode;
+		var key:Int = input.getKeyFromEvent(eventKey);
 		if (cpuControlled || paused || !startedCountdown) return;
 		
 		if (key > -1 && (FlxG.keys.checkStatus(eventKey, JUST_PRESSED) || ClientPrefs.controllerMode))
@@ -3073,10 +3068,10 @@ class PlayState extends MusicBeatState
 		}
 	}
 	
-	function onKeyRelease(_key:FlxKey):Void
+	function onKeyRelease(event:KeyboardEvent):Void
 	{
-		var eventKey:FlxKey = _key;
-		var key:Int = getBindFromKey(eventKey);
+		var eventKey:FlxKey = event.keyCode;
+		var key:Int = input.getKeyFromEvent(eventKey);
 		if (startedCountdown && !paused && key > -1)
 		{
 			for (field in playFields.members)
@@ -3095,19 +3090,6 @@ class PlayState extends MusicBeatState
 		}
 	}
 	
-	function getBindFromKey(key:FlxKey):Int
-	{
-		if (key != NONE)
-		{
-			for (i in 0...keysArray.length)
-			{
-				for (j in 0...keysArray[i].length)
-					if (key == keysArray[i][j]) return i;
-			}
-		}
-		return -1;
-	}
-	
 	// Hold notes
 	function keyShit():Void
 	{
@@ -3117,19 +3099,6 @@ class PlayState extends MusicBeatState
 		var down = controls.NOTE_DOWN;
 		var left = controls.NOTE_LEFT;
 		var dodge = controls.NOTE_DODGE;
-		
-		// TO DO: Find a better way to handle controller inputs, this should work for now
-		// if (ClientPrefs.controllerMode)
-		// {
-		// 	var controlArray:Array<Bool> = [
-		// 		controls.NOTE_LEFT_P,
-		// 		controls.NOTE_DOWN_P,
-		// 		controls.NOTE_UP_P,
-		// 		controls.NOTE_RIGHT_P
-		// 	];
-		// 	if (controlArray.contains(true)) for (i in 0...controlArray.length)
-		// 		if (controlArray[i]) onKeyPress(new KeyboardEvent(KeyboardEvent.KEY_DOWN, true, true, -1, keysArray[i][0]));
-		// }
 		
 		if (startedCountdown && !boyfriend.stunned && generatedMusic)
 		{
@@ -3172,20 +3141,6 @@ class PlayState extends MusicBeatState
 		}
 		
 		// TO DO: Find a better way to handle controller inputs, this should work for now
-		// if (ClientPrefs.controllerMode)
-		// {
-		// 	var controlArray:Array<Bool> = [
-		// 		controls.NOTE_LEFT_R,
-		// 		controls.NOTE_DOWN_R,
-		// 		controls.NOTE_UP_R,
-		// 		controls.NOTE_RIGHT_R
-		// 	];
-		// 	if (controlArray.contains(true))
-		// 	{
-		// 		for (i in 0...controlArray.length)
-		// 			if (controlArray[i]) onKeyRelease(new KeyboardEvent(KeyboardEvent.KEY_UP, true, true, -1, keysArray[i][0]));
-		// 	}
-		// }
 	}
 	
 	function noteMiss(daNote:Note, field:PlayField):Void
@@ -3497,11 +3452,9 @@ class PlayState extends MusicBeatState
 		eventScripts = FlxDestroyUtil.destroy(eventScripts);
 		noteTypeScripts = FlxDestroyUtil.destroy(noteTypeScripts);
 		
-		if (!ClientPrefs.controllerMode)
-		{
-			// FlxG.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyPress);
-			// FlxG.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyRelease);
-		}
+		input.destroy();
+		input = FlxDestroyUtil.destroy(input);
+		
 		super.destroy();
 	}
 	
