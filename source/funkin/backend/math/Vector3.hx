@@ -1,4 +1,8 @@
-package math;
+package funkin.backend.math;
+
+import flixel.util.FlxPool;
+
+import funkin.backend.math.Vector3Factory;
 
 // modified from lime.math.Vector4
 /**
@@ -9,8 +13,29 @@ package math;
 @:fileXml('tags="haxe,release"')
 @:noDebug
 #end
-class Vector3
+class Vector3 implements IFlxDestroyable
 {
+	private static var _pool:FlxPool<Vector3> = new FlxPool<Vector3>(cast new Vector3Factory());
+	
+	public static inline function recycle(x:Float = 0., y:Float = 0., z:Float = 0.):Vector3
+	{
+		var v = _pool.get();
+		v.x = x;
+		v.y = y;
+		v.z = z;
+		return v;
+	}
+	
+	public inline function put():Void
+	{
+		_pool.put(this);
+	}
+	
+	public function destroy():Void
+	{
+		// required by IFlxDestroyable, leave empty
+	}
+	
 	/**
 		A constant representing the x axis (1, 0, 0)
 	**/

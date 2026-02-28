@@ -1,7 +1,7 @@
 // @author Nebula_Zorua
 package funkin.game.modchart;
 
-import math.Vector3;
+import funkin.backend.math.Vector3;
 
 import flixel.FlxSprite;
 

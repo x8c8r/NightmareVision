@@ -7,6 +7,8 @@ import flixel.FlxState;
 import flixel.FlxG;
 import flixel.input.keyboard.FlxKey;
 
+import funkin.backend.math.Vector3;
+
 /**
  * Initiation state that prepares backend classes and returns to menus when finished
  * 

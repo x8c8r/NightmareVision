@@ -1,7 +1,7 @@
 // @author Nebula_Zorua
 package funkin.game.modchart;
 
-import math.Vector3;
+import funkin.backend.math.Vector3;
 
 import flixel.FlxSprite;
 import flixel.FlxG;
@@ -52,7 +52,7 @@ class ModManager
 			quickRegister(Type.createInstance(mod, [this]));
 			
 		quickRegister(new RotateModifier(this));
-		quickRegister(new RotateModifier(this, 'center', new Vector3((FlxG.width * 0.5) - (Note.swagWidth / 2), (FlxG.height * 0.5) - Note.swagWidth / 2)));
+		quickRegister(new RotateModifier(this, 'center', Vector3.recycle((FlxG.width * 0.5) - (Note.swagWidth / 2), (FlxG.height * 0.5) - Note.swagWidth / 2)));
 		quickRegister(new LocalRotateModifier(this, 'local'));
 		quickRegister(new SubModifier("noteSpawnTime", this));
 		setValue("noteSpawnTime", 2000);
@@ -223,7 +223,8 @@ class ModManager
 	
 	public function updateObject(beat:Float, obj:FlxSprite, pos:Vector3, player:Int)
 	{
-		if(activeMods[player] != null){
+		if (activeMods[player] != null)
+		{
 			for (name in activeMods[player])
 			{
 				var mod:Modifier = notemodRegister.get(name);
@@ -239,9 +240,8 @@ class ModManager
 					mod.updateReceptor(beat, o, pos, player);
 				}
 			}
-		
 		}
-	
+		
 		if ((obj is Note)) obj.updateHitbox();
 		
 		obj.centerOrigin();
@@ -280,14 +280,15 @@ class ModManager
 	public function getPos(time:Float, diff:Float, tDiff:Float, beat:Float, data:Int, player:Int, obj:FlxSprite, ?exclusions:Array<String>, ?pos:Vector3):Vector3
 	{
 		if (exclusions == null) exclusions = []; // since [] cant be a default value for.. some reason?? "its not constant!!" kys haxe
-		if (pos == null) pos = new Vector3();
+		if (pos == null) pos = Vector3.recycle();
 		
 		if (!obj.active) return pos;
 		
 		pos.x = getBaseX(data, player);
 		pos.y = 50 + diff;
 		pos.z = 0;
-		if(activeMods[player] != null){
+		if (activeMods[player] != null)
+		{
 			for (name in activeMods[player])
 			{
 				if (exclusions.contains(name)) continue; // because some modifiers may want the path without reverse, for example. (which is actually more common than you'd think!)

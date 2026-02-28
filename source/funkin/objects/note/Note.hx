@@ -1,6 +1,6 @@
 package funkin.objects.note;
 
-import math.Vector3;
+import funkin.backend.math.Vector3;
 
 import flixel.FlxSprite;
 import flixel.math.FlxPoint;

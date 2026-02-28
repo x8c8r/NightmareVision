@@ -1,7 +1,6 @@
 package funkin.game.modchart.modifiers;
 
-import math.Vector3;
-
+import funkin.backend.math.Vector3;
 import funkin.game.modchart.*;
 import funkin.states.*;
 import funkin.objects.note.*;

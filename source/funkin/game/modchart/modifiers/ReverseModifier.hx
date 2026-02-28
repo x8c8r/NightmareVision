@@ -1,6 +1,6 @@
 package funkin.game.modchart.modifiers;
 
-import math.Vector3;
+import funkin.backend.math.Vector3;
 
 import flixel.math.FlxRect;
 import flixel.FlxSprite;
