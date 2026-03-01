@@ -123,7 +123,7 @@ class Vector3 implements IFlxDestroyable
 	**/
 	public inline function clone():Vector3
 	{
-		return new Vector3(x, y, z);
+		return Vector3.recycle(x, y, z);
 	}
 	
 	/**
