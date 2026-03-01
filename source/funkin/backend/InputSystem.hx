@@ -42,7 +42,7 @@ class InputSystem implements flixel.util.IFlxDestroyable
 	{
 		if (_pressCallback == null || _releaseCallback == null || !ClientPrefs.controllerMode) return;
 		
-		controlEventStuff('keyDown', [controls.NOTE_LEFT, controls.NOTE_DOWN, controls.NOTE_UP, controls.NOTE_RIGHT]);
+		// controlEventStuff('keyDown', [controls.NOTE_LEFT, controls.NOTE_DOWN, controls.NOTE_UP, controls.NOTE_RIGHT]);
 		controlEventStuff('keyDown', [controls.NOTE_LEFT_P, controls.NOTE_DOWN_P, controls.NOTE_UP_P, controls.NOTE_RIGHT_P]);
 		controlEventStuff('keyUp', [controls.NOTE_LEFT_R, controls.NOTE_DOWN_R, controls.NOTE_UP_R, controls.NOTE_RIGHT_R]);
 	}
