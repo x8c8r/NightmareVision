@@ -24,7 +24,7 @@ class InfinitePathModifier extends PathModifier
 			for (data in 0...infPath.length)
 			{
 				var rad = r * Math.PI / 180;
-				infPath[data].push(new Vector3(FlxG.width * 0.5 + (FlxMath.fastSin(rad)) * 600, FlxG.height * 0.5 + (FlxMath.fastSin(rad) * FlxMath.fastCos(rad)) * 600, 0));
+				infPath[data].push(Vector3.recycle(FlxG.width * 0.5 + (FlxMath.fastSin(rad)) * 600, FlxG.height * 0.5 + (FlxMath.fastSin(rad) * FlxMath.fastCos(rad)) * 600, 0));
 			}
 			r += 15;
 		}

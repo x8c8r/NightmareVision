@@ -33,13 +33,13 @@ class RotateModifier extends NoteModifier
 	function rotateV3(vec:Vector3, xA:Float, yA:Float, zA:Float):Vector3
 	{
 		var rotateZ = MathUtil.rotate(vec.x, vec.y, zA);
-		var offZ = new Vector3(rotateZ.x, rotateZ.y, vec.z);
+		var offZ = Vector3.recycle(rotateZ.x, rotateZ.y, vec.z);
 		
 		var rotateX = MathUtil.rotate(offZ.z, offZ.y, xA);
-		var offX = new Vector3(offZ.x, rotateX.y, rotateX.x);
+		var offX = Vector3.recycle(offZ.x, rotateX.y, rotateX.x);
 		
 		var rotateY = MathUtil.rotate(offX.x, offX.z, yA);
-		var offY = new Vector3(rotateY.x, offX.y, rotateY.y);
+		var offY = Vector3.recycle(rotateY.x, offX.y, rotateY.y);
 		
 		rotateZ.putWeak();
 		rotateX.putWeak();
@@ -50,7 +50,7 @@ class RotateModifier extends NoteModifier
 	
 	override function getPos(time:Float, visualDiff:Float, timeDiff:Float, beat:Float, pos:Vector3, data:Int, player:Int, obj:FlxSprite)
 	{
-		var origin:Vector3 = new Vector3(modMgr.getBaseX(data, player), FlxG.height * 0.5 - Note.swagWidth * 0.5);
+		var origin:Vector3 = Vector3.recycle(modMgr.getBaseX(data, player), FlxG.height * 0.5 - Note.swagWidth * 0.5);
 		if (daOrigin != null) origin = daOrigin;
 		
 		var diff = pos.subtract(origin);

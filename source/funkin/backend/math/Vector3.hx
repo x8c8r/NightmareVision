@@ -2,8 +2,6 @@ package funkin.backend.math;
 
 import flixel.util.FlxPool;
 
-import funkin.backend.math.Vector3Factory;
-
 // modified from lime.math.Vector4
 /**
 	`Vector3` is a vector suitable for three-dimensional
@@ -15,19 +13,18 @@ import funkin.backend.math.Vector3Factory;
 #end
 class Vector3 implements IFlxDestroyable
 {
-	private static var _pool:FlxPool<Vector3> = new FlxPool<Vector3>(cast new Vector3Factory());
+	private static var _pool = new FlxPool<Vector3>(() -> new Vector3());
 	
-	public static inline function recycle(x:Float = 0., y:Float = 0., z:Float = 0.):Vector3
+	public static inline function recycle(x:Float = 0, y:Float = 0, z:Float = 0):Vector3
 	{
 		var v = _pool.get();
-		v.x = x;
-		v.y = y;
-		v.z = z;
+		v.setTo(x, y, z);
 		return v;
 	}
 	
 	public inline function put():Void
 	{
+		setTo(0, 0, 0);
 		_pool.put(this);
 	}
 	
@@ -99,7 +96,7 @@ class Vector3 implements IFlxDestroyable
 	**/
 	public inline function add(a:Vector3, result:Vector3 = null):Vector3
 	{
-		if (result == null) result = new Vector3();
+		if (result == null) result = Vector3.recycle();
 		result.setTo(this.x + a.x, this.y + a.y, this.z + a.z);
 		return result;
 	}
@@ -138,7 +135,7 @@ class Vector3 implements IFlxDestroyable
 	// https://gamedev.stackexchange.com/questions/18615/how-do-i-linearly-interpolate-between-two-vectors
 	public function lerp(goal:Vector3, alpha:Float):Vector3
 	{
-		return new Vector3(alpha * goal.x + x * (1 - alpha), alpha * goal.y + y * (1 - alpha), alpha * goal.z + z * (1 - alpha));
+		return Vector3.recycle(alpha * goal.x + x * (1 - alpha), alpha * goal.y + y * (1 - alpha), alpha * goal.z + z * (1 - alpha));
 	}
 	
 	/**
@@ -160,7 +157,7 @@ class Vector3 implements IFlxDestroyable
 	**/
 	public inline function crossProduct(a:Vector3, result:Vector3 = null):Vector3
 	{
-		if (result == null) result = new Vector3();
+		if (result == null) result = Vector3.recycle();
 		result.setTo(y * a.z - z * a.y, z * a.x - x * a.z, x * a.y - y * a.x);
 		return result;
 	}
@@ -314,7 +311,7 @@ class Vector3 implements IFlxDestroyable
 	**/
 	public inline function subtract(a:Vector3, result:Vector3 = null):Vector3
 	{
-		if (result == null) result = new Vector3();
+		if (result == null) result = Vector3.recycle();
 		result.setTo(x - a.x, y - a.y, z - a.z);
 		return result;
 	}
@@ -337,16 +334,16 @@ class Vector3 implements IFlxDestroyable
 	
 	private inline static function get_X_AXIS():Vector3
 	{
-		return new Vector3(1, 0, 0);
+		return Vector3.recycle(1, 0, 0);
 	}
 	
 	private inline static function get_Y_AXIS():Vector3
 	{
-		return new Vector3(0, 1, 0);
+		return Vector3.recycle(0, 1, 0);
 	}
 	
 	private inline static function get_Z_AXIS():Vector3
 	{
-		return new Vector3(0, 0, 1);
+		return Vector3.recycle(0, 0, 1);
 	}
 }
