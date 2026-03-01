@@ -1194,6 +1194,7 @@ class PlayState extends MusicBeatState
 			if (lane == 0)
 			{
 				strums.showRatings = true;
+				strums.noteSplashes = true;
 				strums.noteMissCallback.add(noteMiss);
 			}
 			else if (lane == 1)
@@ -2988,11 +2989,6 @@ class PlayState extends MusicBeatState
 		if (!note.ratingDisabled) daRating.increase();
 		note.rating = daRating.name;
 		
-		if (daRating.noteSplash && !note.noteSplashDisabled && noteSkin.data.splashesEnabled)
-		{
-			spawnNoteSplashOnNote(note);
-		}
-		
 		var field:PlayField = note.playField;
 		
 		if (!practiceMode && !field.autoPlayed)
@@ -3258,7 +3254,6 @@ class PlayState extends MusicBeatState
 				if (note.hitCausesMiss)
 				{
 					field.noteMissCallback.dispatch(note, field);
-					if (!note.noteSplashDisabled && !note.isSustainNote && field.playerControls) spawnNoteSplashOnNote(note);
 					
 					note.wasGoodHit = true;
 					if (!note.isSustainNote) disposeNote(note);
@@ -3273,6 +3268,8 @@ class PlayState extends MusicBeatState
 				scripts.call('extraNoteHitPre', [note, field.ID]);
 		}
 		
+		if (!note.noteSplashDisabled && !note.isSustainNote && field.noteSplashes && noteSkin.data.splashesEnabled) spawnNoteSplashOnNote(note);
+
 		if (field.playerControls && field.showRatings && !note.isSustainNote)
 		{
 			combo += 1;
@@ -3427,9 +3424,10 @@ class PlayState extends MusicBeatState
 	{
 		var skin:String = noteSplashSkin;
 		var q:Int = note == null ? 4 : note.quant;
+		final colors = [note.rgbShader.r, note.rgbShader.g, note.rgbShader.b];
 		
 		var splash:NoteSplash = grpNoteSplashes.recycle(NoteSplash);
-		splash.setupNoteSplash(x + script_SPLASHOffsets[data].x, y + script_SPLASHOffsets[data].y, data, skin, q, note.playField);
+		splash.setupNoteSplash(x + script_SPLASHOffsets[data].x, y + script_SPLASHOffsets[data].y, data, skin, colors, note.playField);
 		grpNoteSplashes.add(splash);
 		
 		scripts.call('onSpawnNoteSplash', [splash, note]);

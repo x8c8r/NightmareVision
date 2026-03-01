@@ -33,12 +33,13 @@ class NoteSplash extends FlxSprite
 		setupNoteSplash(x, y, noteData);
 	}
 	
-	public function setupNoteSplash(x:Float = 0, y:Float = 0, note:Int = 0, ?texture:String, ?quantIdx:Int, ?field:PlayField)
+	public function setupNoteSplash(x:Float = 0, y:Float = 0, note:Int = 0, ?texture:String, ?_color:Null<Array<FlxColor>> = null, ?field:PlayField)
 	{
 		final swagWidth = field?.members[note].swagWidth ?? Note.swagWidth;
 		setPosition(x - swagWidth * 0.95, y - swagWidth);
 		
-		final quant = quantIdx ?? 4;
+		final whatever = [NoteSkinHelper.defaultColors[note].r, NoteSkinHelper.defaultColors[note].g, NoteSkinHelper.defaultColors[note].b];
+		final color = _color ?? whatever;
 		
 		texture ??= getPlayStateSplash('noteSplashes');
 		
@@ -64,7 +65,7 @@ class NoteSplash extends FlxSprite
 				offset.set(-20, -20);
 		}
 		
-		if (NoteSkinHelper.shaderEnabled) rgbShader.setColors(NoteSkinHelper.getCurColors(note, quant));
+		if (NoteSkinHelper.shaderEnabled) rgbShader.setColors(color);
 	}
 	
 	public function playAnim()

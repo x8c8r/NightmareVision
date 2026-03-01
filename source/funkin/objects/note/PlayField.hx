@@ -49,6 +49,7 @@ class PlayField extends FlxTypedContainer<StrumNote>
 	public var noteHitCallback:NoteSignal = new NoteSignal();
 	public var noteMissCallback:NoteSignal = new NoteSignal();
 	public var playAnims:Bool = true;
+	public var noteSplashes:Bool = false;
 	public var autoPlayed:Bool = false;
 	public var isPlayer:Bool = false;
 	public var playerControls:Bool = false;
