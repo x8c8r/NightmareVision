@@ -5,7 +5,7 @@ typedef SwagSection =
 	var sectionNotes:Array<Dynamic>;
 	var mustHitSection:Bool;
 	
-	var ?sectionBeats:Float;
+	var ?sectionBeats:Int;
 	var gfSection:Bool;
 	var bpm:Float;
 	var changeBPM:Bool;
@@ -32,4 +32,6 @@ typedef SwagSong =
 	
 	var arrowSkin:String;
 	var splashSkin:String;
+	
+	var ?format:String;
 }

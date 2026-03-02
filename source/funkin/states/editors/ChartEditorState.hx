@@ -283,6 +283,7 @@ class ChartEditorState extends MusicBeatState
 	
 	var leftIcon:HealthIcon;
 	var rightIcon:HealthIcon;
+	var cameraIcon:FlxSprite;
 	
 	var value1InputText:FlxUIInputText;
 	var value2InputText:FlxUIInputText;
@@ -415,16 +416,14 @@ class ChartEditorState extends MusicBeatState
 		// var eventIcon:FlxSprite = new FlxSprite(-GRID_SIZE - 5, -90).loadGraphic(Paths.image('eventArrow'));
 		leftIcon = new HealthIcon(bfIcon);
 		rightIcon = new HealthIcon(dadIcon);
-		
-		// eventIcon.scrollFactor.set(1, 1);
-		leftIcon.scrollFactor.set(1, 1);
-		rightIcon.scrollFactor.set(1, 1);
+		cameraIcon = new FlxSprite().loadGraphic(Paths.image('editors/camera'));
 		
 		// eventIcon.setGraphicSize(30, 30);
 		
 		// add(eventIcon);
 		add(leftIcon);
 		add(rightIcon);
+		add(cameraIcon);
 		
 		curRenderedSustains = new FlxTypedGroup<FlxSprite>();
 		curRenderedNotes = new FlxTypedGroup<Note>();
@@ -1955,7 +1954,7 @@ class ChartEditorState extends MusicBeatState
 				case 'Must hit section':
 					_song.notes[curSec].mustHitSection = check.checked;
 					
-					updateGrid();
+					reloadGridLayer();
 					updateHeads();
 					
 				case 'GF section':
@@ -2807,12 +2806,63 @@ class ChartEditorState extends MusicBeatState
 		
 		strumLine.makeGraphic(Std.int(GRID_SIZE * ((_song.keys * _song.lanes) + 1)), 4);
 		
-		gridBG = FlxGridOverlay.create(1, 1, ((_song.keys * _song.lanes) + 1), Std.int(getSectionBeats() * 4 * zoomList[curZoom]), true,
-			ClientPrefs.editorBoxColors[0], ClientPrefs.editorBoxColors[1]);
-		gridBG.antialiasing = false;
+		// this is all kind of cringe but its okay
+		final rowsPerBeat:Int = Std.int(4 * zoomList[curZoom]);
 		
-		gridBG.setGraphicSize(gridBG.width * GRID_SIZE, gridBG.height * GRID_SIZE);
-		gridBG.updateHitbox();
+		final prevRows:Int = ((getSectionBeats(curSec - 1) ?? 0) * rowsPerBeat);
+		final curRows:Int = ((getSectionBeats() ?? 0) * rowsPerBeat);
+		final nextRows:Int = ((getSectionBeats(curSec + 1) ?? 0) * rowsPerBeat);
+		
+		final columns:Int = Std.int((_song.keys * _song.lanes) + 1);
+		
+		var light = ClientPrefs.editorBoxColors[0], dark = ClientPrefs.editorBoxColors[1];
+		
+		inline function prepareGrid(sprite:FlxSprite, columns:Int, rows:Int, key:String, ?sub:Int, alpha:Int = 255):FlxSprite {
+			sprite.makeGraphic(columns, rows, key);
+			
+			sprite.antialiasing = false;
+			sprite.setGraphicSize(sprite.width * GRID_SIZE, sprite.height * GRID_SIZE);
+			sprite.updateHitbox();
+			
+			var bm = sprite.graphic.bitmap;
+			
+			for (y in 0 ... bm.height) {
+				for (x in 0 ... bm.width) {
+					var checker:Bool = ((x + y) % 2 == 0);
+					
+					var alpha:Int = alpha;
+					var sub:Null<Int> = sub;
+					
+					if ((!_song.notes[curSec].mustHitSection && (x < (_song.keys + 1) || x >= (_song.keys * 2 + 1))) ||
+						(_song.notes[curSec].mustHitSection && (x < 1 || x >= (_song.keys + 1))))
+						sub ??= 50;
+					
+					sub ??= 0;
+					
+					var lightColor:FlxColor = FlxColor.fromRGB(light.red - sub, light.green - sub, light.blue - sub, alpha);
+					var darkColor:FlxColor = FlxColor.fromRGB(dark.red - sub, dark.green - sub, dark.blue - sub, alpha);
+					
+					bm.setPixel32(x, y, checker ? lightColor : darkColor);
+				}
+			}
+			
+			return sprite;
+		}
+		
+		gridBG = gridLayer.add(prepareGrid(new FlxSprite(), columns, curRows, 'charterGrid'));
+		prevGridBG = nextGridBG = null;
+		
+		if (curSec > 0)
+		{
+			prevGridBG = gridLayer.add(prepareGrid(new FlxSprite(), columns, prevRows, 'charterPrevGrid', 50, 128));
+			prevGridBG.y -= prevGridBG.height;
+		}
+		
+		if (curSec < _song.notes.length)
+		{
+			nextGridBG = gridLayer.add(prepareGrid(new FlxSprite(), columns, nextRows, 'charterNextGrid', 50, 128));
+			nextGridBG.y += gridBG.height;
+		}
 		
 		#if desktop
 		if (FlxG.save.data.chart_waveformInst || FlxG.save.data.chart_waveformVoices)
@@ -2824,53 +2874,18 @@ class ChartEditorState extends MusicBeatState
 		updateGrid();
 		
 		// events -> strum1 seperator
-		
-		var leHeight:Int = Std.int(gridBG.height) * -1;
-		var foundPrevSec:Bool = false;
-		if (sectionStartTime(-1) >= 0)
-		{
-			prevGridBG = FlxGridOverlay.create(1, 1, ((_song.keys * _song.lanes) + 1), Std.int(getSectionBeats(curSec - 1) * 4 * zoomList[curZoom]), true,
-				FlxColor.fromRGB(ClientPrefs.editorBoxColors[0].red - 40, ClientPrefs.editorBoxColors[0].green - 40, ClientPrefs.editorBoxColors[0].blue - 40),
-				FlxColor.fromRGB(ClientPrefs.editorBoxColors[1].red - 40, ClientPrefs.editorBoxColors[1].green - 40, ClientPrefs.editorBoxColors[1].blue - 40));
-			prevGridBG.antialiasing = false;
-			
-			prevGridBG.setGraphicSize(prevGridBG.width * GRID_SIZE, prevGridBG.height * GRID_SIZE);
-			prevGridBG.updateHitbox();
-			
-			leHeight = Std.int(gridBG.y - prevGridBG.height);
-			foundPrevSec = true;
-		}
-		else prevGridBG = new FlxSprite().makeGraphic(1, 1, FlxColor.TRANSPARENT);
-		prevGridBG.y = gridBG.y - prevGridBG.height;
-		
-		var leHeight2:Int = Std.int(gridBG.height);
-		var foundNextSec:Bool = false;
-		if (sectionStartTime(1) <= FlxG.sound.music.length)
-		{
-			nextGridBG = FlxGridOverlay.create(1, 1, ((_song.keys * _song.lanes) + 1), Std.int(getSectionBeats(curSec + 1) * 4 * zoomList[curZoom]), true,
-				FlxColor.fromRGB(ClientPrefs.editorBoxColors[0].red - 40, ClientPrefs.editorBoxColors[0].green - 40, ClientPrefs.editorBoxColors[0].blue - 40),
-				FlxColor.fromRGB(ClientPrefs.editorBoxColors[1].red - 40, ClientPrefs.editorBoxColors[1].green - 40, ClientPrefs.editorBoxColors[1].blue - 40));
-			nextGridBG.antialiasing = false;
-			
-			nextGridBG.setGraphicSize(nextGridBG.width * GRID_SIZE, nextGridBG.height * GRID_SIZE);
-			nextGridBG.updateHitbox();
-			
-			leHeight2 = Std.int(gridBG.height + nextGridBG.height);
-			foundNextSec = true;
-		}
-		else nextGridBG = new FlxSprite().makeGraphic(1, 1, FlxColor.TRANSPARENT);
-		nextGridBG.y = gridBG.height;
-		
-		gridLayer.add(prevGridBG);
-		gridLayer.add(nextGridBG);
 		gridLayer.add(gridBG);
 		
 		for (i in 0...lanes)
 		{
-			var line = new FlxSprite().makeGraphic(1, FlxG.height, FlxColor.WHITE);
-			line.x = (gridBG.x + (i * _song.keys + 1) * GRID_SIZE - 1);
-			line.scrollFactor.set(1, 0);
-			line.scale.set(4, 4);
+			var line = new FlxSprite().makeGraphic(1, 1, FlxColor.WHITE);
+			
+			line.x = (gridBG.x + (i * _song.keys + 1) * GRID_SIZE - 2);
+			line.y = (prevGridBG?.y ?? gridBG.y);
+			
+			line.scale.set(4, (prevGridBG?.height ?? 0) + gridBG.height + (nextGridBG?.height ?? 0));
+			line.updateHitbox();
+			
 			gridLayer.add(line);
 		}
 		
@@ -3237,8 +3252,8 @@ class ChartEditorState extends MusicBeatState
 		
 		leftIcon.updateOffset = rightIcon.updateOffset = false;
 		
-		leftIcon.changeIcon(isGF ? gfIcon : (mustHit ? bfIcon : dadIcon));
-		rightIcon.changeIcon(mustHit ? dadIcon : bfIcon);
+		leftIcon.changeIcon((isGF && mustHit) ? gfIcon : bfIcon);
+		rightIcon.changeIcon((isGF && !mustHit) ? gfIcon : dadIcon);
 		
 		leftIcon.setGraphicSize(0, 45); leftIcon.updateHitbox(); // absolute duct tape
 		rightIcon.setGraphicSize(0, 45); rightIcon.updateHitbox();
@@ -3248,6 +3263,12 @@ class ChartEditorState extends MusicBeatState
 		
 		leftIcon.y = (-leftIcon.height);
 		rightIcon.y = (-rightIcon.height);
+		
+		
+		var focusedIcon:HealthIcon = (mustHit ? leftIcon : rightIcon);
+		
+		cameraIcon.scale.copyFrom(leftIcon.scale); cameraIcon.updateHitbox();
+		cameraIcon.setPosition(focusedIcon.x - 20, focusedIcon.y - 20);
 	}
 	
 	function updateNoteUI():Void
@@ -3368,8 +3389,7 @@ class ChartEditorState extends MusicBeatState
 				daText.sprTracker = note;
 			}
 			
-			note.mustPress = _song.notes[curSec].mustHitSection;
-			if (i[1] > (_song.keys - 1)) note.mustPress = !note.mustPress;
+			note.mustPress = (note.lane == 0);
 			
 			note.player = note.mustPress ? 0 : 1;
 		}
@@ -3416,7 +3436,7 @@ class ChartEditorState extends MusicBeatState
 		
 		// PREV SECTION
 		var beats:Float = getSectionBeats(-1);
-		if (curSec > 1)
+		if (curSec > 0)
 		{
 			for (i in _song.notes[curSec - 1].sectionNotes)
 			{
@@ -3516,19 +3536,6 @@ class ChartEditorState extends MusicBeatState
 		note.setGraphicSize(GRID_SIZE, GRID_SIZE);
 		note.updateHitbox();
 		note.x = Math.floor(intendedData * GRID_SIZE) + GRID_SIZE;
-		if (note.lane <= 1
-			&& (isNextSection && _song.notes[curSec].mustHitSection != _song.notes[curSec + 1].mustHitSection)
-			|| (isPrevSection && _song.notes[curSec].mustHitSection != _song.notes[curSec - 1].mustHitSection))
-		{
-			if (intendedData > (_song.keys - 1))
-			{
-				note.x -= GRID_SIZE * _song.keys;
-			}
-			else if (daSus != null)
-			{
-				note.x += GRID_SIZE * _song.keys;
-			}
-		}
 		
 		var num:Int = 0;
 		if (isNextSection) num = 1;
@@ -3566,7 +3573,7 @@ class ChartEditorState extends MusicBeatState
 		return spr;
 	}
 	
-	private function addSection(sectionBeats:Float = 4):Void
+	private function addSection(sectionBeats:Int = 4):Void
 	{
 		var sec:SwagSection =
 			{
@@ -3910,10 +3917,10 @@ class ChartEditorState extends MusicBeatState
 		FlxG.log.error("Problem saving Level data");
 	}
 	
-	function getSectionBeats(?section:Null<Int> = null)
+	function getSectionBeats(?section:Null<Int> = null):Null<Int>
 	{
 		if (section == null) section = curSec;
-		var val:Null<Float> = null;
+		var val:Null<Int> = null;
 		
 		if (_song.notes[section] != null) val = _song.notes[section].sectionBeats;
 		return val != null ? val : 4;

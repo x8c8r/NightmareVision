@@ -75,7 +75,6 @@ class HealthIcon extends FlxSprite implements IUiSprite
 		super();
 		this.isPlayer = isPlayer;
 		changeIcon(char);
-		scrollFactor.set();
 	}
 	
 	override function update(elapsed:Float):Void
