@@ -1273,9 +1273,9 @@ class ChartEditorState extends MusicBeatState
 			for (i in 0..._song.notes[curSec].sectionNotes.length)
 			{
 				var note:Array<Dynamic> = _song.notes[curSec].sectionNotes[i];
-				if (7 >= note[1])
+				if (note[1] < (_song.keys * 2))
 				{
-					note[1] = (note[1] + 4) % 8;
+					note[1] = ((note[1] + _song.keys) % (_song.keys * 2));
 					_song.notes[curSec].sectionNotes[i] = note;
 				}
 			}
@@ -1286,9 +1286,7 @@ class ChartEditorState extends MusicBeatState
 			for (i in 0..._song.notes[curSec].sectionNotes.length)
 			{
 				var note:Array<Dynamic> = _song.notes[curSec].sectionNotes[i];
-				note[1] = (note[1] + 4);
-				if (note[1] >= (lanes + 1) * 4) note[1] = (note[1] % 4);
-				_song.notes[curSec].sectionNotes[i] = note;
+				note[1] = ((note[1] + _song.keys) % (lanes * _song.keys));
 			}
 			updateGrid();
 		});
@@ -1333,29 +1331,31 @@ class ChartEditorState extends MusicBeatState
 		stepperCopy = new FlxUINumericStepper(copyLastButton.x + 100, copyLastButton.y, 1, 1, -999, 999, 0, 1, new FlxUIInputTextEx(0, 0, 25));
 		blockPressWhileTypingOnStepper.push(stepperCopy);
 		
-		var duetButton:FlxButton = new FlxButton(10, copyLastButton.y + 45, "Duet Notes", function() {
-			var duetNotes:Array<Array<Dynamic>> = [];
-			for (note in _song.notes[curSec].sectionNotes)
+		var duetButton:FlxButton = new FlxButton(10, copyLastButton.y + 45, "Choir Notes", function() {
+			var notes:Array<Dynamic> = _song.notes[curSec].sectionNotes;
+			var dupeNotes:Array<Array<Dynamic>> = [];
+			
+			for (note in notes)
 			{
-				var boob = note[1];
-				if (boob > 3)
+				for (i in 0 ... _song.lanes)
 				{
-					boob -= 4;
+					var newData:Int = Std.int((note[1] % _song.keys) + i * _song.keys);
+					var ghost:Bool = false;
+					
+					for (otherNote in notes)
+					{
+						if (Math.abs(otherNote[0] - note[0]) < 3 && otherNote[1] == newData)
+						{
+							ghost = true;
+							break;
+						}
+					}
+					
+					if (!ghost) dupeNotes.push([note[0], newData, note[2], note[3]]);
 				}
-				else
-				{
-					boob += 4;
-				}
-				
-				var copiedNote:Array<Dynamic> = [note[0], boob, note[2], note[3]];
-				if (note[4] != null) copiedNote.push(note[4]);
-				duetNotes.push(copiedNote);
 			}
 			
-			for (i in duetNotes)
-			{
-				_song.notes[curSec].sectionNotes.push(i);
-			}
+			for (note in dupeNotes) notes.push(note);
 			
 			updateGrid();
 		});
@@ -1363,25 +1363,7 @@ class ChartEditorState extends MusicBeatState
 			var duetNotes:Array<Array<Dynamic>> = [];
 			for (note in _song.notes[curSec].sectionNotes)
 			{
-				var boob = note[1] % _song.keys;
-				boob = 3 - boob;
-				if (note[1] > (_song.keys - 1)) boob += 4;
-				
-				note[1] = boob;
-				var copiedNote:Array<Dynamic> = [note[0], boob, note[2], note[3]];
-				if (_song.keys == 7)
-				{
-					for (i in 4...7)
-					{
-						copiedNote.push(note[i]);
-					}
-				}
-				// duetNotes.push(copiedNote);
-			}
-			
-			for (i in duetNotes)
-			{
-				// _song.notes[curSec].sectionNotes.push(i);
+				note[1] = ((_song.keys - (note[1] % _song.keys) - 1) + Std.int(note[1] / _song.keys) * _song.keys);
 			}
 			
 			updateGrid();
@@ -3393,12 +3375,10 @@ class ChartEditorState extends MusicBeatState
 		{
 			var note:Note = setupNoteData(i, false);
 			curRenderedNotes.add(note);
-			if (note.sustainLength > 0)
-			{
-				curRenderedSustains.add(setupSusNote(note, beats));
-			}
 			
-			if (i[3] != null && note.noteType != null && note.noteType.length > 0)
+			if (note.sustainLength > 0) curRenderedSustains.add(setupSusNote(note, beats));
+			
+			if (note.noteType != null && note.noteType.length > 0)
 			{
 				var typeInt:Null<Int> = noteTypeMap.get(i[3]);
 				var theType:String = '' + typeInt;
@@ -3412,6 +3392,7 @@ class ChartEditorState extends MusicBeatState
 				curRenderedNoteType.add(daText);
 				daText.sprTracker = note;
 			}
+			
 			note.mustPress = _song.notes[curSec].mustHitSection;
 			if (i[1] > (_song.keys - 1)) note.mustPress = !note.mustPress;
 			
