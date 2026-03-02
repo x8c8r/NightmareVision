@@ -1332,30 +1332,7 @@ class ChartEditorState extends MusicBeatState
 		blockPressWhileTypingOnStepper.push(stepperCopy);
 		
 		var duetButton:FlxButton = new FlxButton(10, copyLastButton.y + 45, "Choir Notes", function() {
-			var notes:Array<Dynamic> = _song.notes[curSec].sectionNotes;
-			var dupeNotes:Array<Array<Dynamic>> = [];
-			
-			for (note in notes)
-			{
-				for (i in 0 ... _song.lanes)
-				{
-					var newData:Int = Std.int((note[1] % _song.keys) + i * _song.keys);
-					var ghost:Bool = false;
-					
-					for (otherNote in notes)
-					{
-						if (Math.abs(otherNote[0] - note[0]) < 3 && otherNote[1] == newData)
-						{
-							ghost = true;
-							break;
-						}
-					}
-					
-					if (!ghost) dupeNotes.push([note[0], newData, note[2], note[3]]);
-				}
-			}
-			
-			for (note in dupeNotes) notes.push(note);
+			choirNotes(_song.notes[curSec].sectionNotes);
 			
 			updateGrid();
 		});
@@ -2614,8 +2591,7 @@ class ChartEditorState extends MusicBeatState
 			note.alpha = 1;
 			if (curSelectedNote != null)
 			{
-				var noteDataToCheck:Int = note.noteData;
-				if (noteDataToCheck > -1 && note.mustPress != _song.notes[curSec].mustHitSection) noteDataToCheck += _song.keys;
+				var noteDataToCheck:Int = (note.noteData + note.lane * _song.keys);
 				
 				if (curSelectedNote[0] == note.strumTime
 					&& ((curSelectedNote[2] == null && noteDataToCheck < 0)
@@ -3609,11 +3585,10 @@ class ChartEditorState extends MusicBeatState
 	
 	function selectNote(note:Note):Void
 	{
-		var noteDataToCheck:Int = note.noteData;
-		
-		if (noteDataToCheck > -1)
+		if (note.noteData >= 0)
 		{
-			if (note.mustPress != _song.notes[curSec].mustHitSection) noteDataToCheck += _song.keys;
+			var noteDataToCheck:Int = (note.noteData + note.lane * _song.keys);
+			
 			for (i in _song.notes[curSec].sectionNotes)
 			{
 				if (i != curSelectedNote && i.length > 2 && i[0] == note.strumTime && i[1] == noteDataToCheck)
@@ -3644,15 +3619,11 @@ class ChartEditorState extends MusicBeatState
 	function deleteNote(note:Note):Void
 	{
 		var noteDataToCheck:Int = note.noteData;
-		if (noteDataToCheck > -1)
-		{
-			if (note.mustPress != _song.notes[curSec].mustHitSection) noteDataToCheck += _song.keys;
-			
-			if (note.lane > 1) noteDataToCheck += _song.keys * (note.lane - 1);
-		}
 		
 		if (note.noteData > -1) // Normal Notes
 		{
+			noteDataToCheck = (note.noteData + note.lane * _song.keys);
+			
 			for (i in _song.notes[curSec].sectionNotes)
 			{
 				if (i[0] == note.strumTime && i[1] == noteDataToCheck)
@@ -3685,26 +3656,16 @@ class ChartEditorState extends MusicBeatState
 		updateGrid();
 	}
 	
-	public function doANoteThing(cs, d, style)
+	public function doANoteThing(cs:Float, d:Int, style:Int)
 	{
-		var delnote = false;
-		if (strumLineNotes.members[d].overlaps(curRenderedNotes))
+		for (note in curRenderedNotes)
 		{
-			curRenderedNotes.forEachAlive(function(note:Note) {
-				if (note.overlapsPoint(new FlxPoint(strumLineNotes.members[d].x + 1, strumLine.y + 1)) && note.noteData == d % _song.keys)
-				{
-					// trace('tryin to delete note...');
-					if (!delnote) deleteNote(note);
-					delnote = true;
-				}
-			});
+			if (Math.abs(cs - quantize(note.strumTime)) < 3 && d == (note.noteData + note.lane * _song.keys))
+				return deleteNote(note);
 		}
 		
-		if (!delnote)
-		{
-			addNote(cs, d, style);
-			holdingNotes[d] = curSelectedNote;
-		}
+		addNote(cs, d, style);
+		holdingNotes[d] = curSelectedNote;
 	}
 	
 	function clearSong():Void
@@ -3736,6 +3697,8 @@ class ChartEditorState extends MusicBeatState
 		{
 			_song.notes[curSec].sectionNotes.push([noteStrum, noteData, noteSus, noteTypeIntMap.get(daType), true]);
 			curSelectedNote = _song.notes[curSec].sectionNotes[_song.notes[curSec].sectionNotes.length - 1];
+			
+			if (FlxG.keys.pressed.CONTROL) choirNotes([curSelectedNote]);
 		}
 		else
 		{
@@ -3748,16 +3711,40 @@ class ChartEditorState extends MusicBeatState
 		}
 		changeEventSelected();
 		
-		if (FlxG.keys.pressed.CONTROL && noteData > -1)
-		{
-			_song.notes[curSec].sectionNotes.push([noteStrum, (noteData + 4) % 8, noteSus, noteTypeIntMap.get(daType), true]);
-		}
-		
 		// trace(noteData + ', ' + noteStrum + ', ' + curSec);
 		strumTimeInputText.text = '' + curSelectedNote[0];
 		
 		updateGrid();
 		updateNoteUI();
+	}
+	
+	function choirNotes(notesArray:Array<Dynamic>) {
+		var notes:Array<Dynamic> = _song.notes[curSec].sectionNotes;
+		var duetNotes:Array<Array<Dynamic>> = [];
+		
+		for (note in notesArray)
+		{
+			if (note[1] < 0) continue;
+			
+			for (i in 0 ... _song.lanes)
+			{
+				var newData:Int = Std.int((note[1] % _song.keys) + i * _song.keys);
+				var overlap:Bool = false;
+				
+				for (otherNote in notes)
+				{
+					if (Math.abs(otherNote[0] - note[0]) < 3 && otherNote[1] == newData)
+					{
+						overlap = true;
+						break;
+					}
+				}
+				
+				if (!overlap) duetNotes.push([note[0], newData, note[2], note[3]]);
+			}
+		}
+		
+		for (note in duetNotes) notes.push(note);
 	}
 	
 	// will figure this out l8r
