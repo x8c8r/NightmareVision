@@ -1,17 +1,12 @@
 // @author Nebula_Zorua
 package funkin.game.modchart;
 
-import funkin.backend.math.Vector3;
-
 import flixel.FlxSprite;
 import flixel.FlxG;
 
-import funkin.game.modchart.Modifier.ModifierType;
 import funkin.game.modchart.modifiers.*;
 import funkin.game.modchart.events.*;
-import funkin.states.*;
 import funkin.objects.*;
-import funkin.objects.note.*;
 
 // Weird amalgamation of Schmovin' modifier system, Andromeda modifier system and my own new shit -neb
 // todo more safety this crashes too easily //still to do aha..

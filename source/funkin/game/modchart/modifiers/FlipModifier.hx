@@ -1,11 +1,5 @@
 package funkin.game.modchart.modifiers;
 
-import funkin.backend.math.Vector3;
-
-import flixel.FlxSprite;
-
-import funkin.objects.note.*;
-
 class FlipModifier extends NoteModifier
 {
 	override function getName() return 'flip';

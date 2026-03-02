@@ -1,12 +1,5 @@
 package funkin.game.modchart.modifiers;
 
-import funkin.backend.math.Vector3;
-
-import flixel.FlxSprite;
-
-import funkin.game.modchart.*;
-import funkin.objects.note.*;
-
 @:structInit
 class PathInfo
 {

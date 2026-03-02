@@ -1,11 +1,5 @@
 package funkin.game.modchart.modifiers;
 
-import funkin.backend.math.Vector3;
-
-import flixel.FlxSprite;
-
-import funkin.game.modchart.*;
-
 class OpponentModifier extends NoteModifier
 {
 	override function getName() return 'opponentSwap';

@@ -1,12 +1,7 @@
 // @author Nebula_Zorua
 package funkin.game.modchart;
 
-import funkin.backend.math.Vector3;
-
-import flixel.FlxSprite;
-
 import funkin.objects.*;
-import funkin.objects.note.*;
 
 // Based on Schmovin' and Andromeda's modifier systems
 
