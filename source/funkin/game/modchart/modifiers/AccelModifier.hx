@@ -1,12 +1,5 @@
 package funkin.game.modchart.modifiers;
 
-import funkin.backend.math.Vector3;
-
-import flixel.FlxSprite;
-import flixel.math.FlxMath;
-
-import funkin.game.modchart.*;
-
 class AccelModifier extends NoteModifier
 { // this'll be boost in ModManager
 	inline function lerp(a:Float, b:Float, c:Float)

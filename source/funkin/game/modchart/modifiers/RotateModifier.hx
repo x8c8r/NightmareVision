@@ -1,13 +1,5 @@
 package funkin.game.modchart.modifiers;
 
-import funkin.backend.math.Vector3;
-
-import flixel.FlxSprite;
-import flixel.FlxG;
-
-import funkin.objects.note.*;
-import funkin.game.modchart.*;
-
 class RotateModifier extends NoteModifier
 { // this'll be rotateX in ModManager
 	override function getName() return '${prefix}rotateX';

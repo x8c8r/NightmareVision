@@ -1,13 +1,5 @@
 package funkin.game.modchart.modifiers;
 
-import funkin.backend.math.Vector3;
-
-import flixel.FlxSprite;
-import flixel.FlxG;
-
-import funkin.objects.note.*;
-import funkin.game.modchart.*;
-
 class LocalRotateModifier extends NoteModifier
 { // this'll be rotateX in ModManager
 	override function getName() return '${prefix}rotateX';
@@ -66,6 +58,7 @@ class LocalRotateModifier extends NoteModifier
 		diff.z *= scale;
 		var out = rotateV3(diff, getValue(player), getSubmodValue('${prefix}rotateY', player), getSubmodValue('${prefix}rotateZ', player));
 		out.z /= scale;
+		
 		return origin.add(out);
 	}
 	

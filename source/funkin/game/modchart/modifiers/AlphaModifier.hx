@@ -1,14 +1,5 @@
 package funkin.game.modchart.modifiers;
 
-import funkin.backend.math.Vector3;
-
-import flixel.math.FlxMath;
-import flixel.FlxG;
-
-import funkin.states.*;
-import funkin.objects.note.*;
-import funkin.game.modchart.*;
-
 class AlphaModifier extends NoteModifier
 {
 	override function getName() return 'stealth';

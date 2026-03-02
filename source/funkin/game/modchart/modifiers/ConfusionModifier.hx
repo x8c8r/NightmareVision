@@ -1,9 +1,6 @@
 package funkin.game.modchart.modifiers;
 
-import funkin.backend.math.Vector3;
-import funkin.game.modchart.*;
 import funkin.states.*;
-import funkin.objects.note.*;
 
 class ConfusionModifier extends NoteModifier
 {
