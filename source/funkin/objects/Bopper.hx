@@ -1,8 +1,7 @@
 package funkin.objects;
 
-import flash.display.BlendMode;
-
 import openfl.display.Graphics;
+import openfl.display.BlendMode;
 
 import flixel.math.FlxRect;
 import flixel.util.FlxDirectionFlags;
@@ -14,6 +13,7 @@ import flixel.util.FlxSignal.FlxTypedSignal;
 
 // highly based of base games bopper class
 // i liked it alot
+// later rewrite this to extend directly from flxanimate
 class Bopper extends FlxSprite
 {
 	@:inheritDoc(flixel.animation.FlxAnimationController.onFinish)
@@ -279,7 +279,7 @@ class Bopper extends FlxSprite
 		animateAtlas.alpha = alpha;
 		animateAtlas.visible = visible;
 		animateAtlas.angle = angle;
-		animateAtlas.blend = blend ?? BlendMode.NORMAL; // oh my fucking god duskie bro.
+		animateAtlas.blend = blend;
 		animateAtlas.antialiasing = antialiasing;
 		animateAtlas.colorTransform = colorTransform;
 		animateAtlas.color = color;
