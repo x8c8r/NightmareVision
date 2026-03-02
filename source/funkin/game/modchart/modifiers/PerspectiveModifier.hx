@@ -52,7 +52,6 @@ class PerspectiveModifier extends NoteModifier
 		// trace(shit, curZ, z, x/z, y/z);
 		var returnedVector = Vector3.recycle(x / z, y / z, z).add(halfOffset);
 		
-		halfOffset.put();
 		return returnedVector;
 	}
 	

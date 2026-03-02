@@ -59,7 +59,6 @@ class LocalRotateModifier extends NoteModifier
 		var out = rotateV3(diff, getValue(player), getSubmodValue('${prefix}rotateY', player), getSubmodValue('${prefix}rotateZ', player));
 		out.z /= scale;
 		
-		origin.put();
 		return origin.add(out);
 	}
 	
