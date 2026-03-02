@@ -1175,8 +1175,8 @@ class PlayState extends MusicBeatState
 		
 		for (lane in 0...SONG.lanes)
 		{
-			final character = lane == 1 ? dad : boyfriend;
-			final isPlayer = lane != 1;
+			final character = (lane == 1 ? dad : boyfriend);
+			final isPlayer = (lane != 1);
 			
 			final auto = (lane != 0 || cpuControlled);
 			
@@ -1190,14 +1190,12 @@ class PlayState extends MusicBeatState
 			playFields.add(strums);
 			
 			strums.noteHitCallback.add(noteHit);
+			strums.noteMissCallback.add(noteMiss);
 			
-			if (lane == 0)
-			{
-				strums.showRatings = true;
-				strums.noteSplashes = true;
-				strums.noteMissCallback.add(noteMiss);
-			}
-			else if (lane == 1)
+			strums.showRatings = true;
+			strums.noteSplashes = (lane == 0);
+			
+			if (lane == 1)
 			{
 				if (!ClientPrefs.opponentStrums) strums.baseAlpha = 0;
 				else if (ClientPrefs.middleScroll) strums.baseAlpha = 0.35;
@@ -2168,7 +2166,7 @@ class PlayState extends MusicBeatState
 				if (Conductor.songPosition > noteKillOffset + daNote.strumTime)
 				{
 					daNote.garbage = true;
-					if (daNote.playField != null && daNote.playField.playerControls && !daNote.playField.autoPlayed && !daNote.ignoreNote && !endingSong && (daNote.tooLate || !daNote.wasGoodHit))
+					if (daNote.playField != null && daNote.playField.playerControls && !daNote.playField.autoPlayed && !daNote.ignoreNote && !endingSong && !daNote.wasGoodHit)
 						if (field.playerControls
 						&& !field.autoPlayed) field.noteMissCallback.dispatch(daNote, field);
 				}
@@ -3041,7 +3039,7 @@ class PlayState extends MusicBeatState
 			
 			for (field in playFields.members)
 			{
-				if (field.inControl && !field.autoPlayed && field.playerControls)
+				if (field.inControl && !field.autoPlayed && field.playerControls && field.playAnims)
 				{
 					var spr:StrumNote = field.members[key];
 					if (spr != null && spr.animation.curAnim != null && spr.animation.curAnim.name != 'confirm')
@@ -3154,7 +3152,7 @@ class PlayState extends MusicBeatState
 		if (!practiceMode) songScore -= 10;
 		
 		totalPlayed++;
-		RecalculateRating(field.playerControls);
+		RecalculateRating(true);
 		
 		for (owner in field.singers)
 		{
@@ -3174,8 +3172,10 @@ class PlayState extends MusicBeatState
 			}
 		}
 		
-		final noteScriptRet = callNoteTypeScript(daNote.noteType, 'noteMiss', [daNote]);
-		if (noteScriptRet != ScriptConstants.STOP_FUNC) scripts.call('noteMiss', [daNote], false, [daNote.noteType]);
+		final scriptArgs:Array<Dynamic> = [daNote, field.ID];
+		
+		final noteScriptRet = callNoteTypeScript(daNote.noteType, 'noteMiss', scriptArgs);
+		if (noteScriptRet != ScriptConstants.STOP_FUNC) scripts.call('noteMiss', scriptArgs, false, [daNote.noteType]);
 		
 		if (ClientPrefs.guitarHeroSustains)
 		{
@@ -3234,30 +3234,34 @@ class PlayState extends MusicBeatState
 	
 	function noteHit(note:Note, field:PlayField):Void
 	{
-		switch (field.ID)
+		if (field.ID == 1)
+			camZooming = true;
+		
+		if (field.playerControls)
 		{
-			case 0:
-				scripts.call('goodNoteHitPre', [note]);
+			scripts.call('goodNoteHitPre', [note, field.ID]);
+			
+			if (note.wasGoodHit || field.autoPlayed && (note.ignoreNote || note.hitCausesMiss)) return;
+			
+			if (ClientPrefs.hitsoundVolume > 0 && !note.hitsoundDisabled) FlxG.sound.play(Paths.sound('hitsound'), ClientPrefs.hitsoundVolume);
+			
+			if (note.hitCausesMiss)
+			{
+				field.noteMissCallback.dispatch(note, field);
 				
-				if (note.wasGoodHit || field.autoPlayed && (note.ignoreNote || note.hitCausesMiss)) return;
-				
-				if (ClientPrefs.hitsoundVolume > 0 && !note.hitsoundDisabled) FlxG.sound.play(Paths.sound('hitsound'), ClientPrefs.hitsoundVolume);
-				
-				if (note.hitCausesMiss)
-				{
-					field.noteMissCallback.dispatch(note, field);
-					
-					note.wasGoodHit = true;
-					if (!note.isSustainNote) disposeNote(note);
-				}
-				
-				health += note.hitHealth * healthGain;
-			case 1:
-				camZooming = true;
-				scripts.call('opponentNoteHitPre', [note]);
-			default:
-				// change the vocals in the script if u want to add extra vocal tracks
-				scripts.call('extraNoteHitPre', [note, field.ID]);
+				note.wasGoodHit = true;
+				if (!note.isSustainNote) disposeNote(note);
+			}
+			
+			health += note.hitHealth * healthGain;
+		}
+		else if (field.ID == 1)
+		{
+			scripts.call('opponentNoteHitPre', [note, field.ID]);
+		}
+		else
+		{
+			scripts.call('extraNoteHitPre', [note, field.ID]);
 		}
 		
 		if (!note.noteSplashDisabled && !note.isSustainNote && field.noteSplashes && noteSkin.data.splashesEnabled) spawnNoteSplashOnNote(note);
@@ -3358,7 +3362,7 @@ class PlayState extends MusicBeatState
 			time /= playbackRate;
 			if (field.playAnims) strumPlayAnim(field, Std.int(Math.abs(note.noteData)) % SONG.keys, time, note);
 		}
-		else
+		else if (field.playAnims)
 		{
 			field.forEach(function(spr:StrumNote) {
 				if (Math.abs(note.noteData) == spr.ID) spr.playAnim('confirm', true, note);
@@ -3376,19 +3380,20 @@ class PlayState extends MusicBeatState
 			}
 		}
 		
-		final scriptArgs = [note];
+		note.wasGoodHit = true;
 		
-		final funcToCall = switch (field.ID)
+		final scriptArgs:Array<Dynamic> = [note, field.ID];
+		
+		final funcToCall = switch (field)
 		{
-			case 0:
-				note.wasGoodHit = true;
+			case (_.playerControls => true):
 				'goodNoteHit';
 				
-			case 1:
+			case (_.ID => 1):
 				note.hitByOpponent = true;
 				'opponentNoteHit';
+				
 			default:
-				note.wasGoodHit = true;
 				'extraNoteHit';
 		}
 		
