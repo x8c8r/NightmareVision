@@ -1575,9 +1575,8 @@ class PlayState extends MusicBeatState
 		
 		speedChanges.sort(SortUtil.svSort);
 		
-		var lastBFNotes:Array<Note> = [for (i in 0...songData.keys) null];
-		var lastDadNotes:Array<Note> = [for (i in 0...songData.keys) null];
-		// Should populate these w/ nulls depending on keycount -neb
+		var lastPlayfieldNotes:Array<Array<Note>> = [for (i in 0...songData.lanes) [for (i in 0...songData.keys) null]];
+		noteRows = [for (i in 0...songData.lanes) []];
 		
 		#if debug
 		var cpuTime = Sys.time();
@@ -1589,22 +1588,27 @@ class PlayState extends MusicBeatState
 			{
 				var daStrumTime:Float = songNotes[0];
 				var daNoteData:Int = Std.int(songNotes[1] % SONG.keys);
+				var gottaHitNote:Bool = (section.mustHitSection == (songNotes[1] < SONG.keys));
+				var playfield:Int = 0;
 				
-				var gottaHitNote:Bool = section.mustHitSection;
-				
-				if (songNotes[1] > (SONG.keys - 1)) gottaHitNote = !section.mustHitSection;
+				if (songData.lanes > 1)
 				{
-					var realTime = daStrumTime + ClientPrefs.noteOffset;
-					
-					var last = (gottaHitNote ? lastBFNotes : lastDadNotes)[daNoteData];
-					if (last != null)
+					var data:Int = songNotes[1];
+					if (data >= Std.int(SONG.keys * 2))
 					{
-						if (Math.abs(realTime - last.strumTime) <= 3)
-						{
-							continue;
-						}
+						playfield = Std.int(Math.max(Math.floor(data / SONG.keys), -1));
+						
+						if (playfield >= SONG.lanes) continue;
+					}
+					else
+					{
+						playfield = (gottaHitNote ? 0 : 1);
 					}
 				}
+				
+				var realTime = daStrumTime + ClientPrefs.noteOffset,
+					last:Note = lastPlayfieldNotes[playfield][daNoteData];
+				if (last != null && Math.abs(realTime - last.strumTime) <= 3) continue;
 				
 				var oldNote:Note = null;
 				
@@ -1616,27 +1620,16 @@ class PlayState extends MusicBeatState
 				
 				var swagNote:Note = new Note(daStrumTime, daNoteData, oldNote, false, false, gottaHitNote ? 0 : 1);
 				swagNote.row = Conductor.secsToRow(daStrumTime);
-				var rowArray = noteRows[gottaHitNote ? 0 : 1];
-				if (rowArray[swagNote.row] == null) rowArray[swagNote.row] = [];
-				rowArray[swagNote.row].push(swagNote);
 				swagNote.mustPress = gottaHitNote;
 				swagNote.sustainLength = songNotes[2];
 				
-				final isAltNote:Bool = section.altAnim && !gottaHitNote;
-				if (isAltNote) swagNote.animSuffix = '-alt';
+				var rowArray = noteRows[playfield];
+				rowArray[swagNote.row] ??= [];
+				rowArray[swagNote.row].push(swagNote);
 				
-				if (gottaHitNote) lastBFNotes[daNoteData] = swagNote;
-				else lastDadNotes[daNoteData] = swagNote;
+				lastPlayfieldNotes[playfield][daNoteData] = swagNote;
 				
-				var dataToCheck:Int = songNotes[1];
-				if (songData.lanes > 1)
-				{
-					if (gottaHitNote) swagNote.lane = 0;
-					if (!gottaHitNote) swagNote.lane = 1;
-					
-					if (dataToCheck > Std.int((SONG.keys * 2) - 1)) swagNote.lane = Std.int(Math.max(Math.floor(dataToCheck / SONG.keys), -1));
-				}
-				else swagNote.lane = 0;
+				swagNote.lane = playfield;
 				
 				swagNote.gfNote = (section.gfSection && (songNotes[1] < SONG.keys));
 				
@@ -1689,8 +1682,7 @@ class PlayState extends MusicBeatState
 		trace('loadingChart took: ' + (Sys.time() - cpuTime));
 		#end
 		
-		lastDadNotes = null;
-		lastBFNotes = null;
+		lastPlayfieldNotes = null;
 		
 		unspawnNotes.sort(SortUtil.sortByStrumTime);
 		
@@ -3294,7 +3286,7 @@ class PlayState extends MusicBeatState
 						char.holdTimer = 0;
 						
 						// ghost stuff
-						final chord = noteRows[note.mustPress ? 0 : 1][note.row];
+						final chord = noteRows[field.ID][note.row];
 						
 						if (!(char.vSliceSustains && note.isSustainNote))
 						{
