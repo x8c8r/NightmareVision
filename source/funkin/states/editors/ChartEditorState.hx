@@ -102,7 +102,7 @@ class OurLittleFriend extends FlxSprite
 	
 	public function sing(dir:Int)
 	{
-		animation.play(_dances[dir]);
+		animation.play(_dances[dir], true);
 		
 		color = _colors[dir];
 		
@@ -272,6 +272,7 @@ class ChartEditorState extends MusicBeatState
 	 * WILL BE THE CURRENT / LAST PLACED NOTE
 	**/
 	var curSelectedNote:Array<Dynamic> = null;
+	var holdingNotes:Array<Array<Dynamic>> = [null, null, null, null, null, null, null, null];
 	
 	var tempBpm:Float = 0;
 	var playbackSpeed:Float = 1;
@@ -315,6 +316,8 @@ class ChartEditorState extends MusicBeatState
 	public static var clickForInfo:FlxText;
 	public static var bPos:FlxPoint;
 	public static var vortex:Bool = false;
+	
+	var vortexControlArray:Array<Bool>;
 	
 	public var mouseQuant:Bool = false;
 	
@@ -1766,7 +1769,7 @@ class ChartEditorState extends MusicBeatState
 		};
 		mouseScrollingQuant = new FlxUICheckBox(10, 200, null, null, "Mouse Scrolling Quantization", 100);
 		if (FlxG.save.data.mouseScrollingQuant == null) FlxG.save.data.mouseScrollingQuant = false;
-		mouseScrollingQuant.checked = FlxG.save.data.mouseScrollingQuant;
+		mouseQuant = mouseScrollingQuant.checked = FlxG.save.data.mouseScrollingQuant;
 		
 		mouseScrollingQuant.callback = function() {
 			FlxG.save.data.mouseScrollingQuant = mouseScrollingQuant.checked;
@@ -2322,6 +2325,15 @@ class ChartEditorState extends MusicBeatState
 		
 		if (!blockInput)
 		{
+			var prevControlArray:Array<Dynamic> = vortexControlArray;
+			if (vortex)
+			{
+				vortexControlArray = [
+					 FlxG.keys.pressed.ONE, FlxG.keys.pressed.TWO, FlxG.keys.pressed.THREE, FlxG.keys.pressed.FOUR,
+					FlxG.keys.pressed.FIVE, FlxG.keys.pressed.SIX, FlxG.keys.pressed.SEVEN, FlxG.keys.pressed.EIGHT
+				];
+			}
+			
 			if (FlxG.keys.justPressed.ENTER)
 			{
 				enterSong();
@@ -2407,31 +2419,7 @@ class ChartEditorState extends MusicBeatState
 				resetLittleFriends();
 				FlxG.sound.music.pause();
 				if (!mouseQuant) FlxG.sound.music.time -= (FlxG.mouse.wheel * Conductor.stepCrotchet * 0.8);
-				else
-				{
-					var time:Float = FlxG.sound.music.time;
-					var beat:Float = curDecBeat;
-					var snap:Float = quantization / 4;
-					var increase:Float = 1 / snap;
-					if (FlxG.mouse.wheel > 0)
-					{
-						var fuck:Float = MathUtil.quantize(beat, snap) - increase;
-						FlxG.sound.music.time = Conductor.beatToSeconds(fuck);
-					}
-					else
-					{
-						var fuck:Float = MathUtil.quantize(beat, snap) + increase;
-						FlxG.sound.music.time = Conductor.beatToSeconds(fuck);
-					}
-				}
-				for (m in [vocals, opponentVocals])
-				{
-					if (m != null)
-					{
-						m.pause();
-						m.time = FlxG.sound.music.time;
-					}
-				}
+				else scrollQuantized(FlxG.mouse.wheel > 0);
 			}
 			
 			// ARROW VORTEX SHIT NO DEADASS
@@ -2464,41 +2452,6 @@ class ChartEditorState extends MusicBeatState
 				}
 			}
 			
-			if (!vortex)
-			{
-				if (FlxG.keys.justPressed.UP || FlxG.keys.justPressed.DOWN)
-				{
-					FlxG.sound.music.pause();
-					
-					updateCurStep();
-					var time:Float = FlxG.sound.music.time;
-					var beat:Float = curDecBeat;
-					var snap:Float = quantization / 4;
-					var increase:Float = 1 / snap;
-					if (FlxG.keys.pressed.UP)
-					{
-						var fuck:Float = MathUtil.quantize(beat, snap) - increase; // (Math.floor((beat+snap) / snap) * snap);
-						FlxG.sound.music.time = Conductor.beatToSeconds(fuck);
-					}
-					else
-					{
-						var fuck:Float = MathUtil.quantize(beat, snap) + increase; // (Math.floor((beat+snap) / snap) * snap);
-						FlxG.sound.music.time = Conductor.beatToSeconds(fuck);
-					}
-				}
-			}
-			
-			var style = currentType;
-			
-			if (FlxG.keys.pressed.SHIFT)
-			{
-				style = 3;
-			}
-			
-			var conductorTime = Conductor.songPosition; // + sectionStartTime();Conductor.songPosition / Conductor.stepCrotchet;
-			
-			// AWW YOU MADE IT SEXY <3333 THX SHADMAR
-			
 			if (!blockInput)
 			{
 				if (FlxG.keys.justPressed.RIGHT)
@@ -2518,85 +2471,16 @@ class ChartEditorState extends MusicBeatState
 				}
 				quant.animation.play('q', true, false, curQuant);
 			}
-			if (vortex && !blockInput)
+			
+			if (FlxG.keys.justPressed.UP || FlxG.keys.justPressed.DOWN) scrollQuantized(FlxG.keys.justPressed.UP);
+			
+			var style = currentType;
+			
+			if (FlxG.keys.pressed.SHIFT)
 			{
-				var controlArray:Array<Bool> = [
-					 FlxG.keys.justPressed.ONE, FlxG.keys.justPressed.TWO, FlxG.keys.justPressed.THREE, FlxG.keys.justPressed.FOUR,
-					FlxG.keys.justPressed.FIVE, FlxG.keys.justPressed.SIX, FlxG.keys.justPressed.SEVEN, FlxG.keys.justPressed.EIGHT
-				];
-				
-				if (controlArray.contains(true))
-				{
-					var shit = (_song.keys * _song.lanes) + 1;
-					
-					for (i in 0...shit)
-					{
-						// if(controlArray[i])
-						doANoteThing(conductorTime, i, style);
-					}
-				}
-				
-				var feces:Float;
-				if (FlxG.keys.justPressed.UP || FlxG.keys.justPressed.DOWN)
-				{
-					FlxG.sound.music.pause();
-					
-					updateCurStep();
-					// FlxG.sound.music.time = (Math.round(curStep/quants[curQuant])*quants[curQuant]) * Conductor.stepCrotchet;
-					
-					// (Math.floor((curStep+quants[curQuant]*1.5/(quants[curQuant]/2))/quants[curQuant])*quants[curQuant]) * Conductor.stepCrotchet;//snap into quantization
-					var time:Float = FlxG.sound.music.time;
-					var beat:Float = curDecBeat;
-					var snap:Float = quantization / 4;
-					var increase:Float = 1 / snap;
-					if (FlxG.keys.pressed.UP)
-					{
-						var fuck:Float = MathUtil.quantize(beat, snap) - increase;
-						feces = Conductor.beatToSeconds(fuck);
-					}
-					else
-					{
-						var fuck:Float = MathUtil.quantize(beat, snap) + increase; // (Math.floor((beat+snap) / snap) * snap);
-						feces = Conductor.beatToSeconds(fuck);
-					}
-					FlxTween.tween(FlxG.sound.music, {time: feces}, 0.1, {ease: FlxEase.circOut});
-					for (m in [vocals, opponentVocals])
-					{
-						if (m != null)
-						{
-							m.pause();
-							m.time = FlxG.sound.music.time;
-						}
-					}
-					
-					var dastrum = 0;
-					
-					if (curSelectedNote != null)
-					{
-						dastrum = curSelectedNote[0];
-					}
-					
-					var secStart:Float = sectionStartTime();
-					var datime = (feces - secStart) - (dastrum - secStart); // idk math find out why it doesn't work on any other section other than 0
-					if (curSelectedNote != null)
-					{
-						var controlArray:Array<Bool> = [
-							 FlxG.keys.pressed.ONE, FlxG.keys.pressed.TWO, FlxG.keys.pressed.THREE, FlxG.keys.pressed.FOUR,
-							FlxG.keys.pressed.FIVE, FlxG.keys.pressed.SIX, FlxG.keys.pressed.SEVEN, FlxG.keys.pressed.EIGHT
-						];
-						
-						if (controlArray.contains(true))
-						{
-							for (i in 0...controlArray.length)
-							{
-								if (controlArray[i]) if (curSelectedNote[1] == i) curSelectedNote[2] += datime - curSelectedNote[2] - Conductor.stepCrotchet;
-							}
-							updateGrid();
-							updateNoteUI();
-						}
-					}
-				}
+				style = 3;
 			}
+			
 			var shiftThing:Int = 1;
 			if (FlxG.keys.pressed.SHIFT) shiftThing = 4;
 			
@@ -2611,6 +2495,23 @@ class ChartEditorState extends MusicBeatState
 				{
 					changeSection(curSec - shiftThing);
 				}
+			}
+			
+			if (vortex && !blockInput)
+			{
+				for (i in 0...vortexControlArray.length)
+				{
+					if (!vortexControlArray[i])
+					{
+						holdingNotes[i] = null;
+					}
+					else if (prevControlArray != null && vortexControlArray[i] != prevControlArray[i])
+					{
+						doANoteThing(quantize(FlxG.sound.music.time), i, style);
+					}
+				}
+				
+				stretchNotes();
 			}
 		}
 		else if (FlxG.keys.justPressed.ENTER)
@@ -2658,8 +2559,9 @@ class ChartEditorState extends MusicBeatState
 		curRenderedNotes.forEach((note) -> {
 			if (note.strumTime <= Conductor.songPosition)
 			{
+				var time:Float = (note.strumTime + 1.6);
 				var data:Int = note.noteData % _song.keys;
-				if (note.strumTime >= lastConductorPos - 100 && FlxG.sound.music.playing && note.noteData > -1)
+				if (Conductor.songPosition > time && lastConductorPos <= time && FlxG.sound.music.playing && note.noteData > -1)
 				{
 					var char:OurLittleFriend = note.mustPress ? littleBF : littleDad;
 					char.sing(data);
@@ -2790,6 +2692,72 @@ class ChartEditorState extends MusicBeatState
 		}
 		lastConductorPos = Conductor.songPosition;
 		super.update(elapsed);
+	}
+	
+	public function scrollQuantized(up:Bool):Void
+	{
+		final leniency:Float = 1.25;
+		
+		FlxG.sound.music.pause();
+		opponentVocals?.pause();
+		vocals?.pause();
+		
+		Conductor.songPosition = FlxG.sound.music.time;
+		
+		if (vortex && vortexControlArray != null) {
+			for (i in 0...vortexControlArray.length)
+			{
+				var note:Array<Dynamic> = holdingNotes[i];
+				
+				if (vortexControlArray[i] && holdingNotes[i] == null) doANoteThing(quantize(FlxG.sound.music.time), i, FlxG.keys.pressed.SHIFT ? 3 : currentType);
+			}
+		}
+		
+		updateCurStep();
+		var beat:Float = (curDecStep / 4);
+		var increase:Float = (1 / (quantization / 4));
+		
+		var time:Float = Conductor.beatToSeconds((up ? Math.ceil : Math.floor)((beat + (increase * leniency) * (up ? -1 : 1)) / increase) * increase);
+		
+		if (!vortex)
+		{
+			FlxG.sound.music.time = time;
+		}
+		else
+		{
+			FlxTween.cancelTweensOf(FlxG.sound.music, ['time']);
+			FlxTween.tween(FlxG.sound.music, {time: time}, 0.07, {ease: FlxEase.circOut});
+		}
+	}
+	
+	function stretchNotes():Void
+	{
+		if (holdingNotes == null)
+		{
+			return trace('what');
+		}
+		
+		var changed:Bool = false;
+		
+		for (note in holdingNotes)
+		{
+			if (note == null) continue;
+			
+			var newLength:Float = Math.max(quantize(FlxG.sound.music.time) - note[0], 0);
+			changed = (changed || note[2] != newLength);
+			note[2] = newLength;
+		}
+		
+		if (changed) {
+			updateGrid();
+			updateNoteUI();
+		}
+	}
+	
+	public static function quantize(time:Float, ?quant:Int):Float
+	{
+		var q:Float = (1 / ((quant ?? quantization) / 4));
+		return Conductor.beatToSeconds(MathUtil.quantize(Conductor.getBeat(time), q));
 	}
 	
 	function updateZoom()
@@ -3592,18 +3560,9 @@ class ChartEditorState extends MusicBeatState
 		note.setGraphicSize(GRID_SIZE, GRID_SIZE);
 		note.updateHitbox();
 		note.x = Math.floor(intendedData * GRID_SIZE) + GRID_SIZE;
-		if (isNextSection && _song.notes[curSec].mustHitSection != _song.notes[curSec + 1].mustHitSection)
-		{
-			if (intendedData > (_song.keys - 1))
-			{
-				note.x -= GRID_SIZE * _song.keys;
-			}
-			else if (daSus != null)
-			{
-				note.x += GRID_SIZE * _song.keys;
-			}
-		}
-		if (isPrevSection && _song.notes[curSec].mustHitSection != _song.notes[curSec - 1].mustHitSection)
+		if (note.lane <= 1
+			&& (isNextSection && _song.notes[curSec].mustHitSection != _song.notes[curSec + 1].mustHitSection)
+			|| (isPrevSection && _song.notes[curSec].mustHitSection != _song.notes[curSec - 1].mustHitSection))
 		{
 			if (intendedData > (_song.keys - 1))
 			{
@@ -3763,6 +3722,7 @@ class ChartEditorState extends MusicBeatState
 		if (!delnote)
 		{
 			addNote(cs, d, style);
+			holdingNotes[d] = curSelectedNote;
 		}
 	}
 	
