@@ -613,9 +613,9 @@ class PlayState extends MusicBeatState
 		
 		girlfriendCameraOffset = file.camera_girlfriend ?? [0, 0];
 		
-		boyfriendGroup ??= new CharacterGroup(BF_X, BF_Y, 0);
-		dadGroup ??= new CharacterGroup(DAD_X, DAD_Y, 1);
-		gfGroup ??= new CharacterGroup(GF_X, GF_Y, 2);
+		boyfriendGroup ??= new CharacterGroup(BF_X, BF_Y, BF);
+		dadGroup ??= new CharacterGroup(DAD_X, DAD_Y, DAD);
+		gfGroup ??= new CharacterGroup(GF_X, GF_Y, GF);
 		
 		boyfriendGroup.zIndex = file.bfZIndex ?? 0;
 		dadGroup.zIndex = file.dadZIndex ?? 0;

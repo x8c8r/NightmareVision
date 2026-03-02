@@ -2,17 +2,24 @@ package funkin.objects;
 
 import flixel.group.FlxSpriteGroup;
 
+enum abstract CharacterType(Int) to Int
+{
+	var BF = 0;
+	var DAD = 1;
+	var GF = 2;
+}
+
 class CharacterGroup extends FlxSpriteGroup
 {
 	public var parent:Null<Character>;
-	public var type:Int = 0;
+	public var type:CharacterType;
 	public var gfCheck:Bool = false;
 	public var map:Map<String, Character> = new Map();
 	
-	public function new(x:Float = 0, y:Float = 0, _type:Int = 0)
+	public function new(x:Float = 0, y:Float = 0, _type:CharacterType)
 	{
 		this.type = _type;
-		this.gfCheck = (_type == 1);
+		this.gfCheck = (_type == DAD);
 		
 		super(x, y);
 	}
@@ -31,7 +38,7 @@ class CharacterGroup extends FlxSpriteGroup
 		var existing = map.get(newCharacter);
 		if (existing != null) return existing; // compiler now knows it's non-null
 		
-		var newChar = new Character(0, 0, newCharacter, type == 0);
+		var newChar = new Character(0, 0, newCharacter, type == BF);
 		newChar.alpha = 0.00001;
 		addChar(newChar);
 		
