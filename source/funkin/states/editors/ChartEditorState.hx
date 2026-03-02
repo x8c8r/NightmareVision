@@ -243,7 +243,7 @@ class ChartEditorState extends MusicBeatState
 	
 	public static var GRID_SIZE:Int = 40;
 	
-	public var CAM_OFFSET:Int = 80;
+	public var CAM_OFFSET:Float = 0;
 	
 	var dummyArrow:FlxSprite;
 	
@@ -375,7 +375,8 @@ class ChartEditorState extends MusicBeatState
 		camHUD.bgColor = 0x0;
 		FlxG.cameras.add(camHUD, false);
 		
-		CAM_OFFSET = 65;
+		camPos = new FlxObject(0, 0, 1, 1);
+		FlxG.camera.follow(camPos);
 		
 		vortex = FlxG.save.data.chart_vortex;
 		ignoreWarnings = FlxG.save.data.ignoreWarnings;
@@ -421,8 +422,8 @@ class ChartEditorState extends MusicBeatState
 		add(leftIcon);
 		add(rightIcon);
 		
-		leftIcon.setPosition(GRID_SIZE + 10, -100);
-		rightIcon.setPosition(GRID_SIZE * 5.2, -100);
+		leftIcon.setPosition(0, -100);
+		rightIcon.setPosition(0, -100);
 		
 		curRenderedSustains = new FlxTypedGroup<FlxSprite>();
 		curRenderedNotes = new FlxTypedGroup<Note>();
@@ -449,6 +450,8 @@ class ChartEditorState extends MusicBeatState
 		reloadGridLayer();
 		Conductor.bpm = _song.bpm;
 		Conductor.mapBPMChanges(_song);
+		
+		gridZoom(true);
 		
 		bpmTxt = new FlxText(10, 30, 0, "", 16);
 		bpmTxt.scrollFactor.set();
@@ -479,8 +482,6 @@ class ChartEditorState extends MusicBeatState
 			note.scrollFactor.set(1, 1);
 		}
 		add(strumLineNotes);
-		
-		camPos = new FlxObject(0, 0, 1, 1);
 		
 		dummyArrow = new FlxSprite().makeGraphic(GRID_SIZE, GRID_SIZE);
 		add(dummyArrow);
@@ -542,7 +543,6 @@ class ChartEditorState extends MusicBeatState
 		addEventsUI();
 		addChartingUI();
 		addVisualsUI();
-		updateHeads();
 		updateWaveform();
 		// UI_box.selected_tab = 4;
 		
@@ -707,7 +707,7 @@ class ChartEditorState extends MusicBeatState
 		stepperStrums.name = 'song_strums';
 		blockPressWhileTypingOnStepper.push(stepperStrums);
 		
-		var stepperKeys:FlxUINumericStepper = new FlxUINumericStepper(stepperBPM.x + (stepperBPM.width * 2), 100, 1, 2, 4, 9, 0, 1, new FlxUIInputTextEx(0, 0, 25));
+		var stepperKeys:FlxUINumericStepper = new FlxUINumericStepper(stepperBPM.x + (stepperBPM.width * 2), 100, 1, 2, 1, 9, 0, 1, new FlxUIInputTextEx(0, 0, 25));
 		stepperKeys.value = _song.keys;
 		stepperKeys.name = 'song_keys';
 		blockPressWhileTypingOnStepper.push(stepperKeys);
@@ -926,8 +926,6 @@ class ChartEditorState extends MusicBeatState
 		tab_group_song.add(stageDropDown);
 		
 		UI_box.addGroup(tab_group_song);
-		
-		FlxG.camera.follow(camPos);
 	}
 	
 	var grad1Colors:Array<Int> = [];
@@ -965,7 +963,7 @@ class ChartEditorState extends MusicBeatState
 			ClientPrefs.flush();
 			
 			gradient?.destroy();
-			remove(gradient);
+			remove(gradient, true);
 			gradient = FlxGradient.createGradientFlxSprite(1, FlxG.height * 8, [
 				0x0,
 				FlxColor.fromRGB(grad1Colors[0], grad1Colors[1], grad1Colors[2]),
@@ -1980,47 +1978,14 @@ class ChartEditorState extends MusicBeatState
 			}
 			else if (wname == 'song_strums')
 			{
-				var change = nums.value - lanes;
-				
 				_song.lanes = Std.int(nums.value);
 				lanes = Std.int(nums.value);
+				
 				reloadStrumShit();
 				updateGrid();
 				reloadGridLayer();
-				FlxTween.tween(this, {CAM_OFFSET: CAM_OFFSET + (50 * change)}, 0.325, {ease: FlxEase.quadOut});
-				if (lanes >= 6)
-				{
-					var newZ = FlxG.camera.zoom - (0.125 * change);
-					FlxTween.tween(FlxG.camera, {zoom: newZ}, 0.325, {ease: FlxEase.quadOut});
-					for (s in [bg, gradient])
-					{
-						final x = (s == gradient ? FlxG.width : 1);
-						FlxTween.tween(s.scale, {x: x / newZ, y: 1 / newZ}, 0.325,
-							{
-								onUpdate: (t) -> {
-									bg.screenCenter();
-								},
-								ease: FlxEase.quadOut
-							});
-					}
-				}
 				
-				if (lanes <= 5 && change == -1)
-				{
-					FlxTween.tween(FlxG.camera, {zoom: 1}, 0.325, {ease: FlxEase.quadOut});
-					for (s in [bg, gradient])
-					{
-						final x = (s == gradient ? FlxG.width : 1);
-						
-						FlxTween.tween(s.scale, {x: x, y: 1}, 0.325,
-							{
-								onUpdate: (t) -> {
-									bg.screenCenter();
-								},
-								ease: FlxEase.quadOut
-							});
-					}
-				}
+				gridZoom();
 			}
 			else if (wname == 'song_keys')
 			{
@@ -2028,6 +1993,8 @@ class ChartEditorState extends MusicBeatState
 				reloadStrumShit();
 				updateGrid();
 				reloadGridLayer();
+				
+				gridZoom();
 			}
 			else if (wname == 'note_susLength')
 			{
@@ -2100,6 +2067,30 @@ class ChartEditorState extends MusicBeatState
 		// FlxG.log.add(id + " WEED " + sender + " WEED " + data + " WEED " + params);
 	}
 	
+	function gridZoom(snap:Bool = false):Void {
+		final defaultGridWidth:Float = (GRID_SIZE * (4 * 2 + 1));
+		final maxWidth:Float = 840;
+		
+		final stupidCenter:Float = (defaultGridWidth * .5 + 5);
+		
+		FlxTween.cancelTweensOf(this, ['CAM_OFFSET']);
+		FlxTween.cancelTweensOf(FlxG.camera, ['zoom']);
+		
+		var nextZoom:Float = Math.min(maxWidth / gridBG.width, 1);
+		var nextOffset:Float = (gridBG.width * .5 - (stupidCenter / nextZoom));
+		
+		if (snap)
+		{
+			camPos.x = (strumLine.x + (CAM_OFFSET = nextOffset));
+			FlxG.camera.zoom = nextZoom;
+		}
+		else
+		{
+			FlxTween.tween(this, {CAM_OFFSET: nextOffset}, 0.325, {ease: FlxEase.quadOut});
+			FlxTween.tween(FlxG.camera, {zoom: nextZoom}, 0.325, {ease: FlxEase.quadOut});
+		}
+	}
+	
 	var updatedSection:Bool = false;
 	
 	function sectionStartTime(add:Int = 0):Float
@@ -2128,11 +2119,10 @@ class ChartEditorState extends MusicBeatState
 		curStep = recalculateSteps();
 		if (camPos != null) camPos.setPosition(strumLine.x + CAM_OFFSET, strumLine.y);
 		
-		if (gradient.y == (((FlxG.height * 8) * -1) - 300))
-		{
-			gradient.y = 100;
-		}
 		gradient.y = FlxMath.lerp(gradient.y, gradient.y - 10, 1 - Math.exp(-elapsed * 3));
+		if (gradient.y <= (FlxG.height * -8)) gradient.y = FlxG.height;
+		
+		bg.scale.x = bg.scale.y = gradient.scale.x = (1 / FlxG.camera.zoom);
 		
 		if (FlxG.sound.music.time < 0)
 		{
@@ -2200,26 +2190,25 @@ class ChartEditorState extends MusicBeatState
 			{
 				if (FlxG.mouse.overlaps(curRenderedNotes))
 				{
-					curRenderedNotes.forEachAlive(function(note:Note) {
-						if (FlxG.mouse.overlaps(note))
+					for (note in curRenderedNotes) {
+						if (!FlxG.mouse.overlaps(note)) continue;
+						
+						if (FlxG.keys.pressed.CONTROL || FlxG.mouse.justPressedRight)
 						{
-							if (FlxG.keys.pressed.CONTROL || FlxG.mouse.justPressedRight)
-							{
-								selectNote(note);
-							}
-							else if (FlxG.keys.pressed.ALT)
-							{
-								selectNote(note);
-								curSelectedNote[3] = noteTypeIntMap.get(currentType);
-								updateGrid();
-							}
-							else
-							{
-								// trace('tryin to delete note...');
-								deleteNote(note);
-							}
+							selectNote(note);
 						}
-					});
+						else if (FlxG.keys.pressed.ALT)
+						{
+							selectNote(note);
+							curSelectedNote[3] = noteTypeIntMap.get(currentType);
+							updateGrid();
+						}
+						else
+						{
+							deleteNote(note);
+							break;
+						}
+					}
 				}
 				else
 				{
@@ -2796,13 +2785,20 @@ class ChartEditorState extends MusicBeatState
 		
 		if (strumLine == null)
 		{
-			strumLine = new FlxSprite(0, 50).makeGraphic(Std.int(GRID_SIZE * ((_song.keys * _song.lanes) + 1)), 4);
+			strumLine = new FlxSprite(0, 50);
 			final idx = strumLineNotes != null ? members.indexOf(strumLineNotes) : 0;
 			insert(idx, strumLine);
 		}
 		
-		gridBG = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE * ((_song.keys * _song.lanes) + 1), Std.int(GRID_SIZE * getSectionBeats() * 4 * zoomList[curZoom]), true,
+		strumLine.makeGraphic(Std.int(GRID_SIZE * ((_song.keys * _song.lanes) + 1)), 4);
+		
+		gridBG = FlxGridOverlay.create(1, 1, ((_song.keys * _song.lanes) + 1), Std.int(getSectionBeats() * 4 * zoomList[curZoom]), true,
 			ClientPrefs.editorBoxColors[0], ClientPrefs.editorBoxColors[1]);
+		gridBG.antialiasing = false;
+		
+		gridBG.setGraphicSize(gridBG.width * GRID_SIZE, gridBG.height * GRID_SIZE);
+		gridBG.updateHitbox();
+		
 		#if desktop
 		if (FlxG.save.data.chart_waveformInst || FlxG.save.data.chart_waveformVoices)
 		{
@@ -2818,10 +2814,14 @@ class ChartEditorState extends MusicBeatState
 		var foundPrevSec:Bool = false;
 		if (sectionStartTime(-1) >= 0)
 		{
-			prevGridBG = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE * ((_song.keys * _song.lanes) + 1), Std.int(GRID_SIZE * getSectionBeats(curSec - 1) * 4 * zoomList[curZoom]), true,
+			prevGridBG = FlxGridOverlay.create(1, 1, ((_song.keys * _song.lanes) + 1), Std.int(getSectionBeats(curSec - 1) * 4 * zoomList[curZoom]), true,
 				FlxColor.fromRGB(ClientPrefs.editorBoxColors[0].red - 40, ClientPrefs.editorBoxColors[0].green - 40, ClientPrefs.editorBoxColors[0].blue - 40),
-				FlxColor.fromRGB(ClientPrefs.editorBoxColors[1].red - 40, ClientPrefs.editorBoxColors[1].green - 40, ClientPrefs.editorBoxColors[1].blue
-					- 40));
+				FlxColor.fromRGB(ClientPrefs.editorBoxColors[1].red - 40, ClientPrefs.editorBoxColors[1].green - 40, ClientPrefs.editorBoxColors[1].blue - 40));
+			prevGridBG.antialiasing = false;
+			
+			prevGridBG.setGraphicSize(prevGridBG.width * GRID_SIZE, prevGridBG.height * GRID_SIZE);
+			prevGridBG.updateHitbox();
+			
 			leHeight = Std.int(gridBG.y - prevGridBG.height);
 			foundPrevSec = true;
 		}
@@ -2832,10 +2832,14 @@ class ChartEditorState extends MusicBeatState
 		var foundNextSec:Bool = false;
 		if (sectionStartTime(1) <= FlxG.sound.music.length)
 		{
-			nextGridBG = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE * ((_song.keys * _song.lanes) + 1), Std.int(GRID_SIZE * getSectionBeats(curSec + 1) * 4 * zoomList[curZoom]), true,
+			nextGridBG = FlxGridOverlay.create(1, 1, ((_song.keys * _song.lanes) + 1), Std.int(getSectionBeats(curSec + 1) * 4 * zoomList[curZoom]), true,
 				FlxColor.fromRGB(ClientPrefs.editorBoxColors[0].red - 40, ClientPrefs.editorBoxColors[0].green - 40, ClientPrefs.editorBoxColors[0].blue - 40),
-				FlxColor.fromRGB(ClientPrefs.editorBoxColors[1].red - 40, ClientPrefs.editorBoxColors[1].green - 40, ClientPrefs.editorBoxColors[1].blue
-					- 40));
+				FlxColor.fromRGB(ClientPrefs.editorBoxColors[1].red - 40, ClientPrefs.editorBoxColors[1].green - 40, ClientPrefs.editorBoxColors[1].blue - 40));
+			nextGridBG.antialiasing = false;
+			
+			nextGridBG.setGraphicSize(nextGridBG.width * GRID_SIZE, nextGridBG.height * GRID_SIZE);
+			nextGridBG.updateHitbox();
+			
 			leHeight2 = Std.int(gridBG.height + nextGridBG.height);
 			foundNextSec = true;
 		}
@@ -2846,21 +2850,20 @@ class ChartEditorState extends MusicBeatState
 		gridLayer.add(nextGridBG);
 		gridLayer.add(gridBG);
 		
-		var line = new FlxSprite().makeGraphic(5, FlxG.height, FlxColor.WHITE);
-		line.setPosition(37.5, 0);
-		line.scrollFactor.set(1, 0);
-		gridLayer.add(line);
-		for (i in 0...(lanes - 1))
+		for (i in 0...lanes)
 		{
-			var line = new FlxSprite().makeGraphic(5, FlxG.height, FlxColor.WHITE);
-			line.setPosition(gridBG.x + ((((i + 1) * _song.keys) + 1) * GRID_SIZE), 0);
+			var line = new FlxSprite().makeGraphic(1, FlxG.height, FlxColor.WHITE);
+			line.x = (gridBG.x + (i * _song.keys + 1) * GRID_SIZE - 1);
 			line.scrollFactor.set(1, 0);
+			line.scale.set(4, 4);
 			gridLayer.add(line);
 		}
 		
 		lastSecBeats = getSectionBeats();
 		if (sectionStartTime(1) > FlxG.sound.music.length) lastSecBeatsNext = 0;
 		else getSectionBeats(curSec + 1);
+		
+		updateHeads();
 	}
 	
 	function strumLineUpdateY()
@@ -3227,6 +3230,11 @@ class ChartEditorState extends MusicBeatState
 			rightIcon.changeIcon(healthIconP1);
 			if (_song.notes[curSec].gfSection) leftIcon.changeIcon('gf');
 		}
+		
+		leftIcon.x = (GRID_SIZE * (_song.keys * .5 + 1) - leftIcon.width * .5);
+		rightIcon.x = (GRID_SIZE * (_song.keys * 1.5 + 1) - leftIcon.width * .5);
+		
+		rightIcon.visible = (_song.lanes > 1);
 	}
 	
 	// function loadHealthIconFromCharacter(char:String)
