@@ -37,6 +37,7 @@ import flixel.group.FlxGroup.FlxTypedGroup;
 
 import funkin.objects.Character;
 import funkin.data.StageData;
+import funkin.data.CharacterData;
 import funkin.data.NoteSkinHelper;
 import funkin.backend.Difficulty;
 import funkin.data.Song;
@@ -330,6 +331,10 @@ class ChartEditorState extends MusicBeatState
 	var littleDad:OurLittleFriend;
 	var littleStage:FlxSprite;
 	
+	var dadIcon:String = 'dad';
+	var bfIcon:String = 'bf';
+	var gfIcon:String = 'gf';
+	
 	override function create()
 	{
 		instance = this;
@@ -408,22 +413,18 @@ class ChartEditorState extends MusicBeatState
 		add(waveformSprite);
 		
 		// var eventIcon:FlxSprite = new FlxSprite(-GRID_SIZE - 5, -90).loadGraphic(Paths.image('eventArrow'));
-		leftIcon = new HealthIcon('bf');
-		rightIcon = new HealthIcon('dad');
+		leftIcon = new HealthIcon(bfIcon);
+		rightIcon = new HealthIcon(dadIcon);
+		
 		// eventIcon.scrollFactor.set(1, 1);
 		leftIcon.scrollFactor.set(1, 1);
 		rightIcon.scrollFactor.set(1, 1);
 		
 		// eventIcon.setGraphicSize(30, 30);
-		leftIcon.setGraphicSize(0, 45);
-		rightIcon.setGraphicSize(0, 45);
 		
 		// add(eventIcon);
 		add(leftIcon);
 		add(rightIcon);
-		
-		leftIcon.setPosition(0, -100);
-		rightIcon.setPosition(0, -100);
 		
 		curRenderedSustains = new FlxTypedGroup<FlxSprite>();
 		curRenderedNotes = new FlxTypedGroup<Note>();
@@ -444,6 +445,10 @@ class ChartEditorState extends MusicBeatState
 		addSection();
 		
 		// sections = _song.notes;
+		
+		bfIcon = CharacterParser.fetchInfo(_song.player1).healthicon;
+		dadIcon = CharacterParser.fetchInfo(_song.player2).healthicon;
+		gfIcon = CharacterParser.fetchInfo(_song.gfVersion).healthicon;
 		
 		currentSongName = Paths.sanitize(_song.song);
 		loadSong();
@@ -770,6 +775,9 @@ class ChartEditorState extends MusicBeatState
 		
 		var player1DropDown = new FlxUIDropDownMenuEx(10, stepperSpeed.y + 45, FlxUIDropDownMenu.makeStrIdLabelArray(characters, true), function(character:String) {
 			_song.player1 = characters[Std.parseInt(character)];
+			
+			bfIcon = CharacterParser.fetchInfo(_song.player1).healthicon;
+			
 			updateHeads();
 		});
 		player1DropDown.selectedLabel = _song.player1;
@@ -777,6 +785,9 @@ class ChartEditorState extends MusicBeatState
 		
 		var gfVersionDropDown = new FlxUIDropDownMenuEx(player1DropDown.x, player1DropDown.y + 40, FlxUIDropDownMenu.makeStrIdLabelArray(characters, true), function(character:String) {
 			_song.gfVersion = characters[Std.parseInt(character)];
+			
+			gfIcon = CharacterParser.fetchInfo(_song.gfVersion).healthicon;
+			
 			updateHeads();
 		});
 		gfVersionDropDown.selectedLabel = _song.gfVersion;
@@ -784,6 +795,10 @@ class ChartEditorState extends MusicBeatState
 		
 		var player2DropDown = new FlxUIDropDownMenuEx(player1DropDown.x, gfVersionDropDown.y + 40, FlxUIDropDownMenu.makeStrIdLabelArray(characters, true), function(character:String) {
 			_song.player2 = characters[Std.parseInt(character)];
+			
+			dadIcon = CharacterParser.fetchInfo(_song.player2).healthicon;
+			if (dadIcon == 'face') dadIcon = 'dad';
+			
 			updateHeads();
 		});
 		player2DropDown.selectedLabel = _song.player2;
@@ -3215,49 +3230,25 @@ class ChartEditorState extends MusicBeatState
 	
 	function updateHeads():Void
 	{
-		var healthIconP1:String = 'bf';
-		var healthIconP2:String = 'dad';
-		
-		if (_song.notes[curSec].mustHitSection)
-		{
-			leftIcon.changeIcon(healthIconP1);
-			rightIcon.changeIcon(healthIconP2);
-			if (_song.notes[curSec].gfSection) leftIcon.changeIcon('gf');
-		}
-		else
-		{
-			leftIcon.changeIcon(healthIconP2);
-			rightIcon.changeIcon(healthIconP1);
-			if (_song.notes[curSec].gfSection) leftIcon.changeIcon('gf');
-		}
-		
-		leftIcon.x = (GRID_SIZE * (_song.keys * .5 + 1) - leftIcon.width * .5);
-		rightIcon.x = (GRID_SIZE * (_song.keys * 1.5 + 1) - leftIcon.width * .5);
+		var mustHit:Bool = _song.notes[curSec].mustHitSection;
+		var isGF:Bool = _song.notes[curSec].gfSection;
 		
 		rightIcon.visible = (_song.lanes > 1);
+		
+		leftIcon.updateOffset = rightIcon.updateOffset = false;
+		
+		leftIcon.changeIcon(isGF ? gfIcon : (mustHit ? bfIcon : dadIcon));
+		rightIcon.changeIcon(mustHit ? dadIcon : bfIcon);
+		
+		leftIcon.setGraphicSize(0, 45); leftIcon.updateHitbox(); // absolute duct tape
+		rightIcon.setGraphicSize(0, 45); rightIcon.updateHitbox();
+		
+		leftIcon.x = (GRID_SIZE * (_song.keys * .5 + 1) - leftIcon.width * .5);
+		rightIcon.x = (GRID_SIZE * (_song.keys * 1.5 + 1) - rightIcon.width * .5);
+		
+		leftIcon.y = (-leftIcon.height);
+		rightIcon.y = (-rightIcon.height);
 	}
-	
-	// function loadHealthIconFromCharacter(char:String)
-	// {
-	// 	var characterPath:String = 'data/characters/' + char;
-	// 	if (!FunkinAssets.exists(Paths.json(characterPath))) characterPath = 'characters/$char';
-	// 	var path:String = Paths.json(characterPath);
-	// 	if (!FunkinAssets.exists(path))
-	// 	{
-	// 		path = Paths.getCorePath(characterPath);
-	// 	}
-	// 	if (!FunkinAssets.exists(path))
-	// 	{
-	// 		path = Paths.getCorePath('data/characters/' + Character.DEFAULT_CHARACTER + '.json'); // If a character couldn't be found, change him to BF just to prevent a crash
-	// 	}
-	// 	#if MODS_ALLOWED
-	// 	var rawJson = File.getContent(path);
-	// 	#else
-	// 	var rawJson = OpenFlAssets.getText(path);
-	// 	#end
-	// 	var json:Null<funkin.data.CharacterData.CharacterInfo> = cast FunkinAssets.parseJson(rawJson);
-	// 	return json.healthicon ?? 'face';
-	// }
 	
 	function updateNoteUI():Void
 	{

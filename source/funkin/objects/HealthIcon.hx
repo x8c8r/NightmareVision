@@ -26,6 +26,9 @@ class HealthIcon extends FlxSprite implements IUiSprite
 	 */
 	public var characterName(default, null):String = '';
 	
+	@:allow(funkin.states.editors.ChartEditorState)
+	var updateOffset:Bool = true;
+	
 	var iconOffsets:Array<Float> = [0, 0];
 	
 	/**
@@ -115,8 +118,11 @@ class HealthIcon extends FlxSprite implements IUiSprite
 	override function updateHitbox()
 	{
 		super.updateHitbox();
-		offset.x = iconOffsets[0];
-		offset.y = iconOffsets[1];
+		
+		if (updateOffset) {
+			offset.x = iconOffsets[0];
+			offset.y = iconOffsets[1];
+		}
 	}
 	
 	override function destroy()
