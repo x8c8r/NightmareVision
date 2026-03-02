@@ -125,7 +125,7 @@ function onCreatePost()
 		GameOverSubstate.characterName = 'bf-holding-gf-dead';
 		
 		gf.skipDance = true;
-		chart = Chart.fromPath(Paths.json('stress/picospeaker'));
+		chart = Chart.fromPath(Paths.json('stress/data/picospeaker'));
 		if (chart != null)
 		{
 			for (section in chart.notes)
