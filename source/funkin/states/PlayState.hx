@@ -195,30 +195,26 @@ class PlayState extends MusicBeatState
 	
 	public var cameraLerping:Bool = true;
 	
-	public var boyfriendMap:Map<String, Character> = new Map();
-	public var dadMap:Map<String, Character> = new Map();
-	public var gfMap:Map<String, Character> = new Map();
-	
 	/**
 	 * Container of all boyfriend's used in the state
 	 * 
 	 * Exists for the `Change Character` event.
 	 */
-	public var boyfriendGroup:FlxSpriteGroup;
+	public var boyfriendGroup:CharacterGroup;
 	
 	/**
 	 * Container of all dad's used in the state
 	 * 
 	 * Exists for the `Change Character` event.
 	 */
-	public var dadGroup:FlxSpriteGroup;
+	public var dadGroup:CharacterGroup;
 	
 	/**
 	 * Container of all gf's used in the state
 	 * 
 	 * Exists for the `Change Character` event.
 	 */
-	public var gfGroup:FlxSpriteGroup;
+	public var gfGroup:CharacterGroup;
 	
 	/**
 		Reference to the current dad
@@ -617,17 +613,9 @@ class PlayState extends MusicBeatState
 		
 		girlfriendCameraOffset = file.camera_girlfriend ?? [0, 0];
 		
-		boyfriendGroup ??= new FlxSpriteGroup();
-		boyfriendGroup.x = BF_X;
-		boyfriendGroup.y = BF_Y;
-		
-		dadGroup ??= new FlxSpriteGroup();
-		dadGroup.x = DAD_X;
-		dadGroup.y = DAD_Y;
-		
-		gfGroup ??= new FlxSpriteGroup();
-		gfGroup.x = GF_X;
-		gfGroup.y = GF_Y;
+		boyfriendGroup ??= new CharacterGroup(BF_X, BF_Y, 0);
+		dadGroup ??= new CharacterGroup(DAD_X, DAD_Y, 1);
+		gfGroup ??= new CharacterGroup(GF_X, GF_Y, 2);
 		
 		boyfriendGroup.zIndex = file.bfZIndex ?? 0;
 		dadGroup.zIndex = file.dadZIndex ?? 0;
@@ -753,9 +741,10 @@ class PlayState extends MusicBeatState
 		if (!stage.stageData.hide_girlfriend)
 		{
 			gf = new Character(gfVersion);
-			startCharacterPos(gf);
 			gf.scrollFactor.set(0.95, 0.95);
-			gfGroup.add(gf);
+			
+			gfGroup.addChar(gf);
+			gfGroup.parent = gf;
 			startCharacterScript(gf.curCharacter, gf);
 			
 			scripts.set('gf', gf);
@@ -763,16 +752,14 @@ class PlayState extends MusicBeatState
 		}
 		
 		dad = new Character(SONG.player2);
-		startCharacterPos(dad, true);
-		dadGroup.add(dad);
 		startCharacterScript(dad.curCharacter, dad);
-		dadMap.set(dad.curCharacter, dad);
+		dadGroup.addChar(dad);
+		dadGroup.parent = dad;
 		
 		boyfriend = new Character(SONG.player1, true);
-		startCharacterPos(boyfriend);
-		boyfriendGroup.add(boyfriend);
 		startCharacterScript(boyfriend.curCharacter, boyfriend);
-		boyfriendMap.set(boyfriend.curCharacter, boyfriend);
+		boyfriendGroup.addChar(boyfriend);
+		boyfriendGroup.parent = boyfriend;
 		
 		scripts.set('dad', dad);
 		scripts.set('dadGroup', dadGroup);
@@ -994,42 +981,17 @@ class PlayState extends MusicBeatState
 	
 	public function addCharacterToList(newCharacter:String, type:Int):Void
 	{
-		switch (type)
+		final group = switch (type)
 		{
-			case 0:
-				if (!boyfriendMap.exists(newCharacter))
-				{
-					var newBoyfriend:Character = new Character(0, 0, newCharacter, true);
-					boyfriendMap.set(newCharacter, newBoyfriend);
-					boyfriendGroup.add(newBoyfriend);
-					startCharacterPos(newBoyfriend);
-					newBoyfriend.alpha = 0.00001;
-					startCharacterScript(newBoyfriend.curCharacter, newBoyfriend);
-				}
-				
 			case 1:
-				if (!dadMap.exists(newCharacter))
-				{
-					var newDad:Character = new Character(0, 0, newCharacter);
-					dadMap.set(newCharacter, newDad);
-					dadGroup.add(newDad);
-					startCharacterPos(newDad, true);
-					newDad.alpha = 0.00001;
-					startCharacterScript(newDad.curCharacter, newDad);
-				}
-				
+				dadGroup;
 			case 2:
-				if (gf != null && !gfMap.exists(newCharacter))
-				{
-					var newGf:Character = new Character(0, 0, newCharacter);
-					newGf.scrollFactor.set(0.95, 0.95);
-					gfMap.set(newCharacter, newGf);
-					gfGroup.add(newGf);
-					startCharacterPos(newGf);
-					newGf.alpha = 0.00001;
-					startCharacterScript(newGf.curCharacter, newGf);
-				}
+				(gf != null) ? gfGroup : dadGroup;
+			default:
+				boyfriendGroup;
 		}
+		final newCharacter = group.addToList(newCharacter);
+		startCharacterScript(newCharacter.curCharacter, newCharacter);
 	}
 	
 	function startCharacterScript(name:String, char:Character):Void
@@ -1063,20 +1025,6 @@ class PlayState extends MusicBeatState
 		if (script.exists('onLoad')) script.call('onLoad');
 		scripts.addScript(script);
 		return script;
-	}
-	
-	function startCharacterPos(?char:Character, gfCheck:Bool = false):Void
-	{
-		if (char == null) return;
-		
-		if (gfCheck && char.curCharacter.startsWith('gf'))
-		{ // IF DAD IS GIRLFRIEND, HE GOES TO HER POSITION
-			char.setPosition(GF_X, GF_Y);
-			char.scrollFactor.set(0.95, 0.95);
-			char.danceEveryNumBeats = 2;
-		}
-		char.x += char.positionArray[0];
-		char.y += char.positionArray[1];
 	}
 	
 	public function startVideo(name:String):Void
@@ -2166,8 +2114,7 @@ class PlayState extends MusicBeatState
 				if (Conductor.songPosition > noteKillOffset + daNote.strumTime)
 				{
 					daNote.garbage = true;
-					if (daNote.playField != null && daNote.playField.playerControls && !daNote.playField.autoPlayed && !daNote.ignoreNote && !endingSong && !daNote.wasGoodHit)
-						if (field.playerControls
+					if (daNote.playField != null && daNote.playField.playerControls && !daNote.playField.autoPlayed && !daNote.ignoreNote && !endingSong && !daNote.wasGoodHit) if (field.playerControls
 						&& !field.autoPlayed) field.noteMissCallback.dispatch(daNote, field);
 				}
 				
@@ -2284,7 +2231,9 @@ class PlayState extends MusicBeatState
 			final ret:Dynamic = scripts.call('onGameOver', []);
 			if (ret != ScriptConstants.STOP_FUNC)
 			{
-				boyfriend.stunned = true;
+				final char = playerStrums.owner;
+				
+				char.stunned = true;
 				deathCounter++;
 				
 				paused = true;
@@ -2297,7 +2246,7 @@ class PlayState extends MusicBeatState
 				FlxTimer.globalManager.clear();
 				FlxTween.globalManager.clear();
 				
-				openSubState(new GameOverSubstate(boyfriend));
+				openSubState(new GameOverSubstate(char));
 				
 				// Game Over doesn't get his own variable because it's only used here
 				if (automatedDiscord) DiscordClient.changePresence("Game Over - " + rpcDescription, rpcSongName);
@@ -2331,60 +2280,24 @@ class PlayState extends MusicBeatState
 		switch (charType)
 		{
 			case 0:
-				if (boyfriend.curCharacter != name)
-				{
-					var oldChar = boyfriend;
-					if (!boyfriendMap.exists(name)) addCharacterToList(name, charType);
-					
-					var lastAlpha:Float = boyfriend.alpha;
-					boyfriend.alpha = 0.00001;
-					boyfriend = boyfriendMap.get(name);
-					boyfriend.alpha = lastAlpha;
-					for (field in playFields.members)
-						if (field.owner == oldChar) field.owner = boyfriend;
-				}
-				scripts.set('boyfriend', boyfriend);
-				scripts.set('boyfriendGroup', boyfriendGroup);
-				
+				boyfriend = boyfriendGroup.change(name);
 			case 1:
-				if (dad.curCharacter != name)
-				{
-					var oldChar = dad;
-					if (!dadMap.exists(name)) addCharacterToList(name, charType);
-					
-					var wasGf:Bool = dad.curCharacter.startsWith('gf');
-					var lastAlpha:Float = dad.alpha;
-					dad.alpha = 0.00001;
-					dad = dadMap.get(name);
-					
-					dad.alpha = lastAlpha;
-					for (field in playFields.members)
-						if (field.owner == oldChar) field.owner = dad;
-				}
-				scripts.set('dad', dad);
-				scripts.set('dadGroup', dadGroup);
-				
+				dad = dadGroup.change(name);
 			case 2:
-				if (gf != null)
-				{
-					if (gf.curCharacter != name)
-					{
-						var oldChar = gf;
-						if (!gfMap.exists(name)) addCharacterToList(name, charType);
-						
-						var lastAlpha:Float = gf.alpha;
-						gf.alpha = 0.00001;
-						gf = gfMap.get(name);
-						gf.alpha = lastAlpha;
-						for (field in playFields.members)
-							if (field.owner == oldChar) field.owner = gf;
-					}
-					scripts.set('gf', gf);
-					scripts.set('gfGroup', gfGroup);
-					
-					gf.danceEveryNumBeats *= gfSpeed;
-				}
+				gf = gfGroup.change(name);
 		}
+		
+		scripts.set('boyfriend', boyfriend);
+		scripts.set('boyfriendGroup', boyfriendGroup);
+		
+		scripts.set('dad', dad);
+		scripts.set('dadGroup', dadGroup);
+		
+		scripts.set('gf', gf);
+		scripts.set('gfGroup', gfGroup);
+		
+		gf.danceEveryNumBeats *= gfSpeed;
+		
 		callHUDFunc(hud -> hud.onCharacterChange());
 	}
 	
@@ -3000,11 +2913,13 @@ class PlayState extends MusicBeatState
 	{
 		var eventKey:FlxKey = event.keyCode;
 		var key:Int = input.getKeyFromEvent(eventKey);
+		final char = playerStrums?.owner ?? boyfriend;
+		
 		if (cpuControlled || paused || !startedCountdown) return;
 		
 		if (key > -1 && (FlxG.keys.checkStatus(eventKey, JUST_PRESSED) || ClientPrefs.controllerMode))
 		{
-			if (!boyfriend.stunned && generatedMusic && !endingSong)
+			if (!char.stunned && generatedMusic && !endingSong)
 			{
 				var canMiss:Bool = !ClientPrefs.ghostTapping;
 				
@@ -3209,7 +3124,9 @@ class PlayState extends MusicBeatState
 	{
 		if (ClientPrefs.ghostTapping) return; // fuck it
 		
-		if (!boyfriend.stunned)
+		final char = playerStrums?.owner ?? boyfriend;
+		
+		if (!char.stunned)
 		{
 			health -= 0.05 * healthLoss;
 			
@@ -3227,15 +3144,14 @@ class PlayState extends MusicBeatState
 			
 			FlxG.sound.play(Paths.soundRandom('missnote', 1, 3), FlxG.random.float(0.1, 0.2));
 			
-			if (anim) if (boyfriend.animTimer <= 0) boyfriend.playAnim(noteSkin.data.singAnimations[Std.int(Math.abs(direction))] + 'miss', true);
+			if (anim) if (char.animTimer <= 0) char.playAnim(noteSkin.data.singAnimations[Std.int(Math.abs(direction))] + 'miss', true);
 		}
 		scripts.call('noteMissPress', [direction]);
 	}
 	
 	function noteHit(note:Note, field:PlayField):Void
 	{
-		if (field.ID == 1)
-			camZooming = true;
+		if (field.ID == 1) camZooming = true;
 		
 		if (field.playerControls)
 		{
@@ -3265,7 +3181,7 @@ class PlayState extends MusicBeatState
 		}
 		
 		if (!note.noteSplashDisabled && !note.isSustainNote && field.noteSplashes && noteSkin.data.splashesEnabled) spawnNoteSplashOnNote(note);
-
+		
 		if (field.playerControls && field.showRatings && !note.isSustainNote)
 		{
 			combo += 1;
@@ -3386,10 +3302,10 @@ class PlayState extends MusicBeatState
 		
 		final funcToCall = switch (field)
 		{
-			case (_.playerControls => true):
+			case(_.playerControls => true):
 				'goodNoteHit';
 				
-			case (_.ID => 1):
+			case(_.ID => 1):
 				note.hitByOpponent = true;
 				'opponentNoteHit';
 				
