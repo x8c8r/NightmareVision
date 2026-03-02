@@ -1,14 +1,5 @@
 package funkin.game.modchart.modifiers;
 
-import funkin.backend.math.Vector3;
-
-import flixel.FlxSprite;
-import flixel.math.FlxMath;
-import flixel.FlxG;
-
-import funkin.objects.note.*;
-import funkin.game.modchart.*;
-
 // NOTE: THIS SHOULDNT HAVE ITS PERCENTAGE MODIFIED
 // THIS IS JUST HERE TO ALLOW OTHER MODIFIERS TO HAVE PERSPECTIVE
 // did my research
@@ -61,6 +52,7 @@ class PerspectiveModifier extends NoteModifier
 		// trace(shit, curZ, z, x/z, y/z);
 		var returnedVector = Vector3.recycle(x / z, y / z, z).add(halfOffset);
 		
+		halfOffset.put();
 		return returnedVector;
 	}
 	

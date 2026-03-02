@@ -1,10 +1,5 @@
 package funkin.game.modchart.modifiers;
 
-import funkin.backend.math.Vector3;
-
-import flixel.math.FlxMath;
-import flixel.FlxG;
-
 class InfinitePathModifier extends PathModifier
 {
 	override function getName() return 'infinite';

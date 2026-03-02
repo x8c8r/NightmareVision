@@ -1,9 +1,5 @@
 package funkin.game.modchart.modifiers;
 
-import funkin.backend.math.Vector3;
-import funkin.states.*;
-import funkin.objects.note.*;
-
 class XModifier extends NoteModifier
 {
 	override function getName() return 'xmod';
