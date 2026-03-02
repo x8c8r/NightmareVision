@@ -148,7 +148,24 @@ class Chart
 			songJson.events = events;
 		}
 		
-		if (sectionsData == null) return;
+		if (sectionsData == null)
+		{
+			songJson.notes = [];
+			return;
+		}
+		
+		if (songJson.format != 'psych_v1' && songJson.format != 'nmv2') {
+			songJson.format = 'nmv2';
+			
+			for (section in sectionsData) {
+				for (note in section.sectionNotes) {
+					if (note[1] >= 0 && note[1] < (songJson.keys * 2) && !section.mustHitSection)
+						note[1] = Std.int((note[1] + songJson.keys) % (songJson.keys * 2));
+				}
+			}
+			
+			trace('transformed the notes #awesome');
+		}
 		
 		for (section in sectionsData)
 		{

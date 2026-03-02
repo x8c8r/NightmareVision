@@ -1534,22 +1534,15 @@ class PlayState extends MusicBeatState
 			{
 				var daStrumTime:Float = songNotes[0];
 				var daNoteData:Int = Std.int(songNotes[1] % SONG.keys);
-				var gottaHitNote:Bool = (section.mustHitSection == (songNotes[1] < SONG.keys));
 				var playfield:Int = 0;
 				
 				if (songData.lanes > 1)
 				{
-					var data:Int = songNotes[1];
-					if (data >= Std.int(SONG.keys * 2))
-					{
-						playfield = Std.int(Math.max(Math.floor(data / SONG.keys), -1));
-						
-						if (playfield >= SONG.lanes) continue;
-					}
-					else
-					{
-						playfield = (gottaHitNote ? 0 : 1);
-					}
+					var row:Int = songNotes[1];
+					
+					playfield = Std.int(Math.max(Math.floor(row / SONG.keys), -1));
+					
+					if (playfield >= SONG.lanes) continue;
 				}
 				
 				var realTime = daStrumTime + ClientPrefs.noteOffset,
@@ -1564,9 +1557,9 @@ class PlayState extends MusicBeatState
 				// TODO: maybe make a checkNoteType n shit but idfk im lazy
 				// or maybe make a "Transform Notes" event which'll make notes which don't change texture change into the specified one
 				
-				var swagNote:Note = new Note(daStrumTime, daNoteData, oldNote, false, false, gottaHitNote ? 0 : 1);
+				var swagNote:Note = new Note(daStrumTime, daNoteData, oldNote, false, false, cast playfield == 0);
 				swagNote.row = Conductor.secsToRow(daStrumTime);
-				swagNote.mustPress = gottaHitNote;
+				swagNote.mustPress = (playfield == 0);
 				swagNote.sustainLength = songNotes[2];
 				
 				var rowArray = noteRows[playfield];
@@ -1577,7 +1570,7 @@ class PlayState extends MusicBeatState
 				
 				swagNote.lane = playfield;
 				
-				swagNote.gfNote = (section.gfSection && (songNotes[1] < SONG.keys));
+				swagNote.gfNote = ((section.gfSection == swagNote.mustPress) && (songNotes[1] < SONG.keys));
 				
 				swagNote.noteType = type;
 				
@@ -1603,8 +1596,8 @@ class PlayState extends MusicBeatState
 					var sustainNote:Note = new Note(daStrumTime
 						+ (Conductor.stepCrotchet * susNote)
 						+ (Conductor.stepCrotchet / FlxMath.roundDecimal(songSpeed, 2)), daNoteData, oldNote, true,
-						false, gottaHitNote ? 0 : 1);
-					sustainNote.mustPress = gottaHitNote;
+						false, cast playfield == 0);
+					sustainNote.mustPress = (playfield == 0);
 					sustainNote.gfNote = swagNote.gfNote;
 					sustainNote.noteType = type;
 					
