@@ -18,7 +18,7 @@ import flixel.FlxG;
 import flixel.FlxObject;
 import flixel.FlxSprite;
 import flixel.util.FlxTimer;
-import flixel.addons.display.FlxGridOverlay;
+import flixel.addons.display.FlxBackdrop;
 import flixel.addons.transition.FlxTransitionableState;
 import flixel.addons.ui.FlxUICheckBox;
 import flixel.addons.ui.FlxUIInputText;
@@ -324,8 +324,7 @@ class ChartEditorState extends MusicBeatState
 	public var mouseQuant:Bool = false;
 	
 	var bg:FlxSprite;
-	var gradient:FlxSprite;
-	var shit:FlxSprite;
+	var gradient:FlxBackdrop;
 	var canAddNotes:Bool = true;
 	
 	var littleBF:OurLittleFriend;
@@ -387,25 +386,13 @@ class ChartEditorState extends MusicBeatState
 		vortex = FlxG.save.data.chart_vortex;
 		ignoreWarnings = FlxG.save.data.ignoreWarnings;
 		
-		bg = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
-		bg.scrollFactor.set();
-		bg.color = 0xFF222222;
-		add(bg);
-		
-		gradient = FlxGradient.createGradientFlxSprite(1, FlxG.height * 8, [0x0, ClientPrefs.editorGradColors[0], ClientPrefs.editorGradColors[1], 0x0]);
-		// gradient.setPosition(0, ((FlxG.height * 4) * -1));
-		gradient.scrollFactor.set(0, 0);
-		gradient.scale.x = FlxG.width;
-		gradient.updateHitbox();
-		gradient.visible = ClientPrefs.editorGradVis;
-		// gradient.alpha = 1;
+		gradient = new FlxBackdrop(Y);
 		add(gradient);
 		
+		bg = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
+		bg.scrollFactor.set();
+		add(bg);
 		createFriends();
-		
-		shit = new FlxSprite();
-		shit.visible = false;
-		add(shit);
 		
 		gridLayer = new FlxTypedGroup<FlxSprite>();
 		add(gridLayer);
@@ -451,6 +438,7 @@ class ChartEditorState extends MusicBeatState
 		
 		currentSongName = Paths.sanitize(_song.song);
 		loadSong();
+		reloadGradient();
 		reloadGridLayer();
 		Conductor.bpm = _song.bpm;
 		Conductor.mapBPMChanges(_song);
@@ -621,6 +609,31 @@ class ChartEditorState extends MusicBeatState
 	{
 		littleBF?.sing(4);
 		littleDad?.sing(4);
+	}
+	
+	inline function reloadGradient():Void {
+		if (ClientPrefs.editorGradVis)
+		{
+			gradient.revive();
+			gradient.loadGraphic(FlxGradient.createGradientBitmapData(1, FlxG.height * 4, [
+				ClientPrefs.editorGradColors[0],
+				ClientPrefs.editorGradColors[1],
+				ClientPrefs.editorGradColors[0],
+			]));
+			gradient.screenCenter(X);
+			gradient.scrollFactor.set();
+			
+			bg.setColorTransform(-.25, -.25, -.25, 1, 60, 60, 60);
+			bg.blend = SUBTRACT;
+		}
+		else
+		{
+			gradient.kill();
+			
+			bg.setColorTransform();
+			bg.color = 0xff222222;
+			bg.blend = NORMAL;
+		}
 	}
 	
 	var check_mute_inst:FlxUICheckBox = null;
@@ -942,8 +955,6 @@ class ChartEditorState extends MusicBeatState
 		UI_box.addGroup(tab_group_song);
 	}
 	
-	var grad1Colors:Array<Int> = [];
-	var grad2Colors:Array<Int> = [];
 	var box1Colors:Array<Int> = [];
 	var box2Colors:Array<Int> = [];
 	var check_grad_vis:FlxUICheckBox = null;
@@ -959,45 +970,24 @@ class ChartEditorState extends MusicBeatState
 		var gradient2colors = new FlxUIInputTextEx(10, 50, 150, '${ClientPrefs.editorGradColors[1].red}, ${ClientPrefs.editorGradColors[1].green}, ${ClientPrefs.editorGradColors[1].blue}', 8);
 		
 		var changecolors:FlxButton = new FlxButton(180, 37.5, "Change colors", function() {
-			grad1Colors = [];
-			grad2Colors = [];
-			// gradient.y = 0;
-			
-			for (i in gradient1colors.text.split(', '))
-			{
-				grad1Colors.push(Std.parseInt(i));
-			}
-			for (i in gradient2colors.text.split(', '))
-			{
-				grad2Colors.push(Std.parseInt(i));
-			}
+			var grad1Colors:Array<Int> = [for (i in gradient1colors.text.split(',')) Std.parseInt(i.trim())];
+			var grad2Colors:Array<Int> = [for (i in gradient2colors.text.split(',')) Std.parseInt(i.trim())];
 			
 			ClientPrefs.editorGradColors[0] = FlxColor.fromRGB(grad1Colors[0], grad1Colors[1], grad1Colors[2]);
 			ClientPrefs.editorGradColors[1] = FlxColor.fromRGB(grad2Colors[0], grad2Colors[1], grad2Colors[2]);
 			ClientPrefs.flush();
 			
-			gradient?.destroy();
-			remove(gradient, true);
-			gradient = FlxGradient.createGradientFlxSprite(1, FlxG.height * 8, [
-				0x0,
-				FlxColor.fromRGB(grad1Colors[0], grad1Colors[1], grad1Colors[2]),
-				FlxColor.fromRGB(grad2Colors[0], grad2Colors[1], grad2Colors[2]),
-				0x0
-			]);
-			gradient.scale.x = FlxG.width;
-			gradient.updateHitbox();
-			gradient.scrollFactor.set();
-			insert(members.indexOf(shit), gradient);
+			reloadGradient();
 		});
 		
 		check_grad_vis = new FlxUICheckBox(10, 75, null, null, "Gradient Visible?", 100);
-		check_grad_vis.checked = gradient.visible;
+		check_grad_vis.checked = gradient.alive;
 		
 		check_grad_vis.callback = function() {
-			gradient.visible = check_grad_vis.checked;
-			
-			ClientPrefs.editorGradVis = gradient.visible;
+			ClientPrefs.editorGradVis = (!ClientPrefs.editorGradVis);
 			ClientPrefs.flush();
+			
+			reloadGradient();
 		}
 		
 		blockPressWhileTypingOn.push(gradient1colors);
@@ -1072,8 +1062,8 @@ class ChartEditorState extends MusicBeatState
 			ClientPrefs.editorUIColor = presetToUse[3];
 			ClientPrefs.flush();
 			
-			gradient.visible = ClientPrefs.editorGradVis;
-			check_grad_vis.checked = ClientPrefs.editorGradVis;
+			reloadGradient();
+			check_grad_vis.checked = gradient.alive;
 			UI_box.color = ClientPrefs.editorUIColor;
 			reloadGridLayer();
 		});
@@ -2133,10 +2123,13 @@ class ChartEditorState extends MusicBeatState
 		curStep = recalculateSteps();
 		if (camPos != null) camPos.setPosition(strumLine.x + CAM_OFFSET, strumLine.y);
 		
-		gradient.y = FlxMath.lerp(gradient.y, gradient.y - 10, 1 - Math.exp(-elapsed * 3));
-		if (gradient.y <= (FlxG.height * -8)) gradient.y = FlxG.height;
+		bg.scale.x = bg.scale.y = (1 / FlxG.camera.zoom);
 		
-		bg.scale.x = bg.scale.y = gradient.scale.x = (1 / FlxG.camera.zoom);
+		if (gradient.alive)
+		{
+			gradient.scale.x = FlxG.camera.viewWidth;
+			gradient.y = FlxMath.lerp(gradient.y, gradient.y - 10, 1 - Math.exp(-elapsed * 3));
+		}
 		
 		if (FlxG.sound.music.time < 0)
 		{
@@ -2925,7 +2918,7 @@ class ChartEditorState extends MusicBeatState
 		wavData[1][0] = [];
 		wavData[1][1] = [];
 		
-		var steps:Int = Math.round(getSectionBeats() * 4);
+		var steps:Int = (getSectionBeats() * 4);
 		var st:Float = sectionStartTime();
 		var et:Float = st + (Conductor.stepCrotchet * steps);
 		
