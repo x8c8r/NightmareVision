@@ -1,5 +1,7 @@
 package funkin.objects;
 
+import flash.display.BlendMode;
+
 import openfl.display.Graphics;
 
 import flixel.math.FlxRect;
@@ -277,6 +279,7 @@ class Bopper extends FlxSprite
 		animateAtlas.alpha = alpha;
 		animateAtlas.visible = visible;
 		animateAtlas.angle = angle;
+		animateAtlas.blend = blend ?? BlendMode.NORMAL; // oh my fucking god duskie bro.
 		animateAtlas.antialiasing = antialiasing;
 		animateAtlas.colorTransform = colorTransform;
 		animateAtlas.color = color;
