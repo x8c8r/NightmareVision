@@ -184,7 +184,7 @@ class PlayState extends MusicBeatState
 	
 	public var currentSV:SpeedEvent = {};
 	
-	var noteRows:Array<Array<Array<Note>>> = [[], []];
+	public var noteRows:Array<Array<Array<Note>>> = [[], []];
 	
 	public var variables:Map<String, Dynamic> = new Map();
 	
@@ -360,11 +360,6 @@ class PlayState extends MusicBeatState
 		}
 		return notes;
 	}
-	
-	/**
-	 * The container that all notesplashes are held in
-	 */
-	public var grpNoteSplashes:FlxTypedContainer<NoteSplash>;
 	
 	public var camZooming:Bool = false;
 	public var camZoomingMult:Float = 1;
@@ -677,8 +672,6 @@ class PlayState extends MusicBeatState
 		FlxG.cameras.add(camHUD, false);
 		FlxG.cameras.add(camOther, false);
 		
-		grpNoteSplashes = new FlxTypedContainer<NoteSplash>();
-		
 		persistentUpdate = true;
 		persistentDraw = true;
 		
@@ -790,15 +783,10 @@ class PlayState extends MusicBeatState
 		
 		playFields = new FlxTypedGroup<PlayField>();
 		add(playFields);
-		add(grpNoteSplashes);
 		
 		playHUD = new funkin.game.huds.PsychHUD(this);
 		insert(members.indexOf(playFields), playHUD); // Data told me to do this
 		playHUD.cameras = [camHUD];
-		
-		var splash:NoteSplash = new NoteSplash(100, 100, 0);
-		grpNoteSplashes.add(splash);
-		splash.alpha = 0.0;
 		
 		meta = Metadata.getSong();
 		
@@ -853,12 +841,10 @@ class PlayState extends MusicBeatState
 		add(botplayTxt);
 		
 		playFields.cameras = [camHUD];
-		grpNoteSplashes.cameras = [camHUD];
 		notes.cameras = [camHUD];
 		botplayTxt.cameras = [camHUD];
 		
 		scripts.set('playFields', playFields);
-		scripts.set('grpNoteSplashes', grpNoteSplashes);
 		scripts.set('notes', notes);
 		
 		scripts.set('botplayTxt', botplayTxt);
@@ -1137,11 +1123,54 @@ class PlayState extends MusicBeatState
 			
 			playFields.add(strums);
 			
-			strums.noteHitCallback.add(noteHit);
-			strums.noteMissCallback.add(noteMiss);
+			strums.onNoteHit.add((note, field) -> {
+				if (field.ID == 1) camZooming = true;
+				
+				if (field.playerControls || (!audio.splitVocals && !audio.trackSwap)) audio.hit();
+				
+				if (field.playerControls && field.showRatings && !note.isSustainNote)
+				{
+					combo += 1;
+					if (combo > 9999) combo = 9999;
+					popUpScore(note);
+				}
+			});
+			strums.onNoteMiss.add((note, field) -> {
+				if (note.canMiss || !field.playerControls) return;
+				
+				combo = 0;
+				audio.miss();
+				
+				if (instakillOnMiss) doDeathCheck(true);
+				
+				songMisses++;
+				if (!practiceMode) songScore -= 10;
+				
+				totalPlayed++;
+				RecalculateRating(true);
+			});
+			strums.onMissPress.add((key) -> {
+				if (ClientPrefs.ghostTapping) return;
+				
+				audio.miss();
+				
+				if (instakillOnMiss) doDeathCheck(true);
+				
+				if (combo > 5 && gf != null && gf.animOffsets.exists('sad')) gf.playAnim('sad');
+				combo = 0;
+				
+				if (!practiceMode) songScore -= 10;
+				if (!endingSong) songMisses++;
+				totalPlayed++;
+				RecalculateRating();
+			});
 			
 			strums.showRatings = true;
 			strums.noteSplashes = (lane == 0);
+			
+			final splashGrp = strums.grpNoteSplashes;
+			splashGrp.camera = camHUD;
+			add(splashGrp);
 			
 			if (lane == 1)
 			{
@@ -2100,7 +2129,7 @@ class PlayState extends MusicBeatState
 				{
 					if (!daNote.wasGoodHit && !daNote.ignoreNote) if ((daNote.isSustainNote && daNote.canBeHit)
 						|| (!daNote.isSustainNote
-							&& daNote.strumTime <= Conductor.songPosition)) field.noteHitCallback.dispatch(daNote, field);
+							&& daNote.strumTime <= Conductor.songPosition)) field.onNoteHit.dispatch(daNote, field);
 				}
 				
 				// Kill extremely late notes and cause misses
@@ -2108,7 +2137,7 @@ class PlayState extends MusicBeatState
 				{
 					daNote.garbage = true;
 					if (daNote.playField != null && daNote.playField.playerControls && !daNote.playField.autoPlayed && !daNote.ignoreNote && !endingSong && !daNote.wasGoodHit) if (field.playerControls
-						&& !field.autoPlayed) field.noteMissCallback.dispatch(daNote, field);
+						&& !field.autoPlayed) field.onNoteMiss.dispatch(daNote, field);
 				}
 				
 				if (daNote.garbage)
@@ -2887,7 +2916,7 @@ class PlayState extends MusicBeatState
 		
 		var field:PlayField = note.playField;
 		
-		if (!practiceMode && !field.autoPlayed)
+		if (!practiceMode && !(field?.autoPlayed ?? true))
 		{
 			if (defaultScoreAddition) songScore += judgeScore;
 			if (!note.ratingDisabled)
@@ -2929,18 +2958,18 @@ class PlayState extends MusicBeatState
 						if (sortedNotesList.length > 0)
 						{
 							pressNotes.push(sortedNotesList[0]);
-							field.noteHitCallback.dispatch(sortedNotesList[0], field);
+							field.onNoteHit.dispatch(sortedNotesList[0], field);
 						}
 					}
-				}
-				
-				if (pressNotes.length == 0)
-				{
-					scripts.call('onGhostTap', [key]);
-					if (canMiss)
+					
+					if (pressNotes.length == 0)
 					{
-						noteMissPress(key);
-						scripts.call('noteMissPress', [key]);
+						scripts.call('onGhostTap', [key]);
+						if (canMiss)
+						{
+							field.onMissPress.dispatch(key);
+							scripts.call('noteMissPress', [key]);
+						}
 					}
 				}
 			}
@@ -3007,7 +3036,7 @@ class PlayState extends MusicBeatState
 						&& FlxG.keys.anyPressed(keysArray[daNote.noteData])
 						&& daNote.canBeHit
 						&& !daNote.tooLate
-						&& !daNote.wasGoodHit) daNote.playField.noteHitCallback.dispatch(daNote, daNote.playField);
+						&& !daNote.wasGoodHit) daNote.playField.onNoteHit.dispatch(daNote, daNote.playField);
 				}
 				
 				if (ClientPrefs.guitarHeroSustains)
@@ -3023,7 +3052,7 @@ class PlayState extends MusicBeatState
 							&& !endingSong
 							&& (daNote.tooLate || !daNote.wasGoodHit))
 						{
-							daNote.playField.noteMissCallback.dispatch(daNote, daNote.playField);
+							daNote.playField.onNoteMiss.dispatch(daNote, daNote.playField);
 						}
 					}
 				}
@@ -3035,308 +3064,6 @@ class PlayState extends MusicBeatState
 		}
 		
 		// TO DO: Find a better way to handle controller inputs, this should work for now
-	}
-	
-	function noteMiss(daNote:Note, field:PlayField):Void
-	{ // You didn't hit the key and let it go offscreen, also used by Hurt Notes
-		// Dupe note remove
-		notes.forEachAlive(function(note:Note) {
-			if (daNote != note
-				&& field.playerControls
-				&& daNote.noteData == note.noteData
-				&& daNote.isSustainNote == note.isSustainNote
-				&& Math.abs(daNote.strumTime - note.strumTime) < 1) disposeNote(note);
-		});
-		if (daNote.canMiss) return;
-		
-		combo = 0;
-		health -= daNote.missHealth * healthLoss;
-		
-		audio.miss();
-		
-		if (instakillOnMiss) doDeathCheck(true);
-		
-		songMisses++;
-		if (!practiceMode) songScore -= 10;
-		
-		totalPlayed++;
-		RecalculateRating(true);
-		
-		for (owner in field.singers)
-		{
-			var char:Character = owner;
-			if (daNote.gfNote) char = gf;
-			
-			if (char != null && !daNote.noMissAnimation)
-			{
-				if (char.animTimer <= 0)
-				{
-					var daAlt = '';
-					if (daNote.noteType == 'Alt Animation') daAlt = '-alt';
-					
-					var animToPlay:String = noteSkin.data.singAnimations[Std.int(Math.abs(daNote.noteData))] + 'miss' + daAlt;
-					char.playAnim(animToPlay, true);
-				}
-			}
-		}
-		
-		final scriptArgs:Array<Dynamic> = [daNote, field.ID];
-		
-		final noteScriptRet = callNoteTypeScript(daNote.noteType, 'noteMiss', scriptArgs);
-		if (noteScriptRet != ScriptConstants.STOP_FUNC) scripts.call('noteMiss', scriptArgs, false, [daNote.noteType]);
-		
-		if (ClientPrefs.guitarHeroSustains)
-		{
-			inline function invalidateSustatin(note:Note)
-			{
-				note.blockHit = true;
-				note.ignoreNote = true;
-				note.alpha = 0.3;
-				note.copyAlpha = false;
-			}
-			
-			// hold note missing stuff, makes the hold unhittable (and kills it, might make it just transparent if i can fix some stuff)
-			if (daNote.isSustainNote)
-			{
-				for (sustain in daNote.parent.tail)
-				{
-					invalidateSustatin(sustain);
-				}
-			}
-			else
-			{
-				for (sustain in daNote.tail)
-				{
-					invalidateSustatin(sustain);
-				}
-			}
-		}
-	}
-	
-	function noteMissPress(direction:Int = 1, anim:Bool = true):Void // You pressed a key when there was no notes to press for this key
-	{
-		if (ClientPrefs.ghostTapping) return; // fuck it
-		
-		final char = playerStrums?.owner ?? boyfriend;
-		
-		if (!char.stunned)
-		{
-			health -= 0.05 * healthLoss;
-			
-			audio.miss();
-			
-			if (instakillOnMiss) doDeathCheck(true);
-			
-			if (combo > 5 && gf != null && gf.animOffsets.exists('sad')) gf.playAnim('sad');
-			combo = 0;
-			
-			if (!practiceMode) songScore -= 10;
-			if (!endingSong) songMisses++;
-			totalPlayed++;
-			RecalculateRating();
-			
-			FlxG.sound.play(Paths.soundRandom('missnote', 1, 3), FlxG.random.float(0.1, 0.2));
-			
-			if (anim) if (char.animTimer <= 0) char.playAnim(noteSkin.data.singAnimations[Std.int(Math.abs(direction))] + 'miss', true);
-		}
-		scripts.call('noteMissPress', [direction]);
-	}
-	
-	function noteHit(note:Note, field:PlayField):Void
-	{
-		if (field.ID == 1) camZooming = true;
-		
-		if (field.playerControls)
-		{
-			scripts.call('goodNoteHitPre', [note, field.ID]);
-			
-			if (note.wasGoodHit || field.autoPlayed && (note.ignoreNote || note.hitCausesMiss)) return;
-			
-			if (ClientPrefs.hitsoundVolume > 0 && !note.hitsoundDisabled) FlxG.sound.play(Paths.sound('hitsound'), ClientPrefs.hitsoundVolume);
-			
-			if (note.hitCausesMiss)
-			{
-				field.noteMissCallback.dispatch(note, field);
-				
-				note.wasGoodHit = true;
-				if (!note.isSustainNote) disposeNote(note);
-			}
-			
-			health += note.hitHealth * healthGain;
-		}
-		else if (field.ID == 1)
-		{
-			scripts.call('opponentNoteHitPre', [note, field.ID]);
-		}
-		else
-		{
-			scripts.call('extraNoteHitPre', [note, field.ID]);
-		}
-		
-		if (!note.noteSplashDisabled && !note.isSustainNote && field.noteSplashes && noteSkin.data.splashesEnabled) spawnNoteSplashOnNote(note);
-		
-		if (field.playerControls && field.showRatings && !note.isSustainNote)
-		{
-			combo += 1;
-			if (combo > 9999) combo = 9999;
-			popUpScore(note);
-		}
-		
-		// final char:Null<Character> = note.gfNote ? gf : note.owner ?? field.owner;
-		var chars:Array<Null<Character>> = note.gfNote ? [gf] : field.singers;
-		if (note.owner != null) chars = [note.owner];
-		
-		for (char in chars)
-		{
-			if (char != null)
-			{
-				if (!note.hitCausesMiss)
-				{
-					if (!note.noAnimation)
-					{
-						final animToPlay = noteSkin.data.singAnimations[Std.int(Math.abs(note.noteData))] + note.animSuffix;
-						
-						char.holdTimer = 0;
-						
-						// ghost stuff
-						final chord = noteRows[field.ID][note.row];
-						
-						if (!(char.vSliceSustains && note.isSustainNote))
-						{
-							if (ClientPrefs.jumpGhosts && char.ghostsEnabled && chord != null && chord.length > 1 && note.noteType != "Ghost Note")
-							{
-								final animNote = chord[0];
-								final realAnim = noteSkin.data.singAnimations[Std.int(Math.abs(animNote.noteData))] + note.animSuffix;
-								
-								if (char.mostRecentRow != note.row) char.playAnim(realAnim, true);
-								
-								if (note.nextNote != null && note.prevNote != null)
-								{
-									if (note != animNote
-										&& !note.nextNote.isSustainNote
-										&& scripts.call('onGhostAnim', [animToPlay, note]) != ScriptConstants.STOP_FUNC)
-									{
-										char.playGhostAnim(chord.indexOf(note), animToPlay, true);
-									}
-									else if (note.nextNote.isSustainNote)
-									{
-										char.playAnim(realAnim, true);
-										char.playGhostAnim(chord.indexOf(note), animToPlay, true);
-									}
-								}
-								char.mostRecentRow = note.row;
-							}
-							else
-							{
-								if (note.noteType != "Ghost Note") char.playAnim(animToPlay, true);
-								else char.playGhostAnim(note.noteData, animToPlay, true);
-							}
-						}
-						
-						switch (note.noteType)
-						{
-							case 'Hey!':
-								if (char.animation.exists('hey'))
-								{
-									char.playAnimForDuration('hey', 0.6);
-									char.specialAnim = true;
-								}
-						}
-					}
-				}
-				else
-				{
-					if (!note.noAnimation)
-					{
-						switch (note.noteType)
-						{
-							case 'Hurt Note':
-								if (char.animation.exists('hurt'))
-								{
-									char.playAnim('hurt', true);
-									char.specialAnim = true;
-								}
-						}
-					}
-				}
-			}
-		}
-		
-		if (field.playerControls || (!audio.splitVocals && !audio.trackSwap)) audio.hit();
-		
-		if (field.autoPlayed)
-		{
-			var time:Float = 0.15;
-			if (note.isSustainNote && !note.isSustainEnd) time += 0.15;
-			time /= playbackRate;
-			if (field.playAnims) strumPlayAnim(field, Std.int(Math.abs(note.noteData)) % SONG.keys, time, note);
-		}
-		else if (field.playAnims)
-		{
-			field.forEach(function(spr:StrumNote) {
-				if (Math.abs(note.noteData) == spr.ID) spr.playAnim('confirm', true, note);
-			});
-		}
-		
-		if (ClientPrefs.guitarHeroSustains)
-		{
-			if (!note.isSustainNote)
-			{
-				for (sustain in note.tail)
-				{
-					sustain.blockHit = false; // makes the hold note active when you press the base note
-				}
-			}
-		}
-		
-		note.wasGoodHit = true;
-		
-		final scriptArgs:Array<Dynamic> = [note, field.ID];
-		
-		final funcToCall = switch (field)
-		{
-			case(_.playerControls => true):
-				'goodNoteHit';
-				
-			case(_.ID => 1):
-				note.hitByOpponent = true;
-				'opponentNoteHit';
-				
-			default:
-				'extraNoteHit';
-		}
-		
-		final globalScript = callNoteTypeScript(note.noteType, 'hit', scriptArgs);
-		
-		final noteScriptRet = callNoteTypeScript(note.noteType, funcToCall, scriptArgs);
-		if (noteScriptRet != ScriptConstants.STOP_FUNC)
-		{
-			scripts.call(funcToCall, scriptArgs, false, [note.noteType]);
-		}
-		
-		if (!note.isSustainNote) disposeNote(note);
-	}
-	
-	function spawnNoteSplashOnNote(note:Note)
-	{
-		if (ClientPrefs.noteSplashes && note != null && !note.hitCausesMiss)
-		{
-			final strum:Null<StrumNote> = note.playField.members[note.noteData];
-			if (strum != null) spawnNoteSplash(strum.x, strum.y, note.noteData, note);
-		}
-	}
-	
-	public function spawnNoteSplash(x:Float, y:Float, data:Int, ?note:Note = null)
-	{
-		var skin:String = noteSplashSkin;
-		var q:Int = note == null ? 4 : note.quant;
-		final colors = [note.rgbShader.r, note.rgbShader.g, note.rgbShader.b];
-		
-		var splash:NoteSplash = grpNoteSplashes.recycle(NoteSplash);
-		splash.setupNoteSplash(x + script_SPLASHOffsets[data].x, y + script_SPLASHOffsets[data].y, data, skin, colors, note.playField);
-		grpNoteSplashes.add(splash);
-		
-		scripts.call('onSpawnNoteSplash', [splash, note]);
 	}
 	
 	@:inheritDoc
@@ -3462,7 +3189,7 @@ class PlayState extends MusicBeatState
 	/**
 	 * Attempts to call a function on a event script by event name
 	 */
-	function callEventScript(scriptName:String, func:String, args:Array<Dynamic>):Dynamic
+	public function callEventScript(scriptName:String, func:String, args:Array<Dynamic>):Dynamic
 	{
 		if (!eventScripts.exists(scriptName)) return ScriptConstants.CONTINUE_FUNC;
 		
@@ -3474,7 +3201,7 @@ class PlayState extends MusicBeatState
 	/**
 	 * Attempts to call a function on a note script by note type
 	 */
-	function callNoteTypeScript(noteType:String, func:String, args:Array<Dynamic>):Dynamic
+	public function callNoteTypeScript(noteType:String, func:String, args:Array<Dynamic>):Dynamic
 	{
 		if (!noteTypeScripts.exists(noteType)) return ScriptConstants.CONTINUE_FUNC;
 		
@@ -3493,17 +3220,6 @@ class PlayState extends MusicBeatState
 		var ret:Dynamic = script.call(event, args)?.returnValue;
 		
 		return ret ?? ScriptConstants.CONTINUE_FUNC;
-	}
-	
-	function strumPlayAnim(field:PlayField, id:Int, time:Float, ?note:Note)
-	{
-		var spr:StrumNote = field.members[id];
-		
-		if (spr != null)
-		{
-			spr.playAnim('confirm', true, note);
-			spr.resetAnim = time;
-		}
 	}
 	
 	public var ratingName:String = '?';

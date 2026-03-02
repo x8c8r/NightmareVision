@@ -46,8 +46,10 @@ class PlayField extends FlxTypedContainer<StrumNote>
 		return value;
 	}
 	
-	public var noteHitCallback:NoteSignal = new NoteSignal();
-	public var noteMissCallback:NoteSignal = new NoteSignal();
+	public var onNoteHit:NoteSignal = new NoteSignal();
+	public var onNoteMiss:NoteSignal = new NoteSignal();
+	public var onMissPress:FlxTypedSignal<Int->Void> = new FlxTypedSignal<Int->Void>();
+	
 	public var playAnims:Bool = true;
 	public var noteSplashes:Bool = false;
 	public var autoPlayed:Bool = false;
@@ -126,6 +128,11 @@ class PlayField extends FlxTypedContainer<StrumNote>
 		return inControl = value;
 	}
 	
+	/**
+	 * The container that all notesplashes are held in
+	 */
+	public var grpNoteSplashes:FlxTypedContainer<NoteSplash>;
+	
 	public function new(x:Float, y:Float, keyCount:Int = 4, ?who:Character, isPlayer:Bool = false, cpu:Bool = false, ?playerControls:Bool, player:Int = 0)
 	{
 		super();
@@ -141,6 +148,16 @@ class PlayField extends FlxTypedContainer<StrumNote>
 		this.baseX = x;
 		this.baseY = y;
 		this.keyCount = keyCount;
+		
+		grpNoteSplashes = new FlxTypedContainer<NoteSplash>();
+		
+		var splash:NoteSplash = new NoteSplash(100, 100, 0);
+		grpNoteSplashes.add(splash);
+		splash.alpha = 0.0;
+		
+		this.onNoteHit.add(noteHit);
+		this.onNoteMiss.add(noteMiss);
+		this.onMissPress.add(noteMissPress);
 	}
 	
 	public function clearReceptors()
@@ -229,13 +246,273 @@ class PlayField extends FlxTypedContainer<StrumNote>
 			if (note != null && note.exists && note.alive) func(note);
 	}
 	
+	inline function disposeNote(note:Note):Void
+	{
+		removeNote(note);
+		
+		note.kill();
+		notes.remove(note);
+		note.destroy();
+	}
+	
+	public function noteHit(note:Note, field:PlayField):Void
+	{
+		var scriptFunc:String = '';
+		if (field.playerControls) scriptFunc = 'goodNoteHit';
+		else scriptFunc = field.ID == 1 ? 'opponentNoteHit' : 'extraNotHit';
+		
+		final scriptArgs:Array<Dynamic> = [note, field.ID];
+		
+		PlayState.instance.scripts.call('${scriptFunc}Pre', scriptArgs);
+		
+		if (field.playerControls)
+		{
+			if (note.wasGoodHit || field.autoPlayed && (note.ignoreNote || note.hitCausesMiss)) return;
+			
+			if (ClientPrefs.hitsoundVolume > 0 && !note.hitsoundDisabled) FlxG.sound.play(Paths.sound('hitsound'), ClientPrefs.hitsoundVolume);
+			
+			if (note.hitCausesMiss)
+			{
+				field.onNoteMiss.dispatch(note, field);
+				
+				note.wasGoodHit = true;
+				if (!note.isSustainNote) disposeNote(note);
+			}
+			
+			PlayState.instance.health += note.hitHealth * PlayState.instance.healthGain;
+		}
+		
+		var chars:Array<Null<Character>> = note.gfNote ? [PlayState.instance.gf] : field.singers;
+		if (note.owner != null) chars = [note.owner];
+		
+		final noteRows = PlayState.instance.noteRows;
+		final noteSkin = PlayState.noteSkin;
+		
+		for (char in chars)
+		{
+			if (char != null)
+			{
+				if (!note.hitCausesMiss)
+				{
+					if (!note.noAnimation)
+					{
+						final animToPlay = noteSkin.data.singAnimations[Std.int(Math.abs(note.noteData))] + note.animSuffix;
+						
+						char.holdTimer = 0;
+						
+						// ghost stuff
+						final chord = noteRows[field.ID][note.row];
+						
+						if (!(char.vSliceSustains && note.isSustainNote))
+						{
+							if (ClientPrefs.jumpGhosts && char.ghostsEnabled && chord != null && chord.length > 1 && note.noteType != "Ghost Note")
+							{
+								final animNote = chord[0];
+								final realAnim = noteSkin.data.singAnimations[Std.int(Math.abs(animNote.noteData))] + note.animSuffix;
+								
+								if (char.mostRecentRow != note.row) char.playAnim(realAnim, true);
+								
+								if (note.nextNote != null && note.prevNote != null)
+								{
+									if (note != animNote && !note.nextNote.isSustainNote) char.playGhostAnim(chord.indexOf(note), animToPlay, true);
+									else if (note.nextNote.isSustainNote)
+									{
+										char.playAnim(realAnim, true);
+										char.playGhostAnim(chord.indexOf(note), animToPlay, true);
+									}
+								}
+								char.mostRecentRow = note.row;
+							}
+							else
+							{
+								if (note.noteType != "Ghost Note") char.playAnim(animToPlay, true);
+								else char.playGhostAnim(note.noteData, animToPlay, true);
+							}
+						}
+						
+						switch (note.noteType)
+						{
+							case 'Hey!':
+								if (char.animation.exists('hey'))
+								{
+									char.playAnimForDuration('hey', 0.6);
+									char.specialAnim = true;
+								}
+						}
+					}
+				}
+				else
+				{
+					if (!note.noAnimation)
+					{
+						switch (note.noteType)
+						{
+							case 'Hurt Note':
+								if (char.animation.exists('hurt'))
+								{
+									char.playAnim('hurt', true);
+									char.specialAnim = true;
+								}
+						}
+					}
+				}
+			}
+		}
+		
+		if (field.autoPlayed)
+		{
+			var time:Float = 0.15;
+			if (note.isSustainNote && !note.isSustainEnd) time += 0.15;
+			time /= PlayState.instance.playbackRate;
+			if (field.playAnims) strumPlayAnim(field, Std.int(Math.abs(note.noteData)) % keyCount, time, note);
+		}
+		else if (field.playAnims)
+		{
+			field.forEach(function(spr:StrumNote) {
+				if (Math.abs(note.noteData) == spr.ID) spr.playAnim('confirm', true, note);
+			});
+		}
+		
+		if (ClientPrefs.guitarHeroSustains)
+		{
+			if (!note.isSustainNote)
+			{
+				for (sustain in note.tail)
+				{
+					sustain.blockHit = false; // makes the hold note active when you press the base note
+				}
+			}
+		}
+		
+		note.wasGoodHit = true;
+		
+		if (field.noteSplashes) spawnSplash(note);
+		
+		final globalScript = PlayState.instance.callNoteTypeScript(note.noteType, 'hit', scriptArgs);
+		
+		final noteScriptRet = PlayState.instance.callNoteTypeScript(note.noteType, scriptFunc, scriptArgs);
+		if (noteScriptRet != ScriptConstants.STOP_FUNC) PlayState.instance.scripts.call(scriptFunc, scriptArgs, false, [note.noteType]);
+		
+		if (!note.isSustainNote) disposeNote(note);
+	}
+	
+	function noteMiss(note:Note, field:PlayField):Void
+	{
+		// Dupe note remove
+		forEachAliveNote((note:Note) -> {
+			if (note != note
+				&& field.playerControls
+				&& note.noteData == note.noteData
+				&& note.isSustainNote == note.isSustainNote
+				&& Math.abs(note.strumTime - note.strumTime) < 1) disposeNote(note);
+		});
+		
+		if (note.canMiss) return;
+		
+		PlayState.instance.health -= note.missHealth * PlayState.instance.healthLoss;
+		
+		for (owner in field.singers)
+		{
+			var char:Character = owner;
+			if (note.gfNote) char = PlayState.instance.gf;
+			
+			if (char != null && !note.noMissAnimation)
+			{
+				if (char.animTimer <= 0)
+				{
+					var daAlt = '';
+					if (note.noteType == 'Alt Animation') daAlt = '-alt';
+					
+					var animToPlay:String = PlayState.noteSkin.data.singAnimations[Std.int(Math.abs(note.noteData))] + 'miss' + daAlt;
+					char.playAnim(animToPlay, true);
+				}
+			}
+		}
+		
+		final scriptArgs:Array<Dynamic> = [note, field.ID];
+		
+		final noteScriptRet = PlayState.instance.callNoteTypeScript(note.noteType, 'noteMiss', scriptArgs);
+		if (noteScriptRet != ScriptConstants.STOP_FUNC) PlayState.instance.scripts.call('noteMiss', scriptArgs, false, [note.noteType]);
+		
+		// hold note missing stuff, makes the hold unhittable (and kills it, might make it just transparent if i can fix some stuff)
+		if (ClientPrefs.guitarHeroSustains)
+		{
+			final tail = (note.isSustainNote ? note.parent.tail : note.tail);
+			for (sustain in tail)
+			{
+				note.blockHit = true;
+				note.ignoreNote = true;
+				note.alpha = 0.3;
+				note.copyAlpha = false;
+			}
+		}
+	}
+	
+	function noteMissPress(key:Int):Void
+	{
+		if (ClientPrefs.ghostTapping) return;
+		
+		final char = PlayState.instance.playerStrums?.owner ?? PlayState.instance.boyfriend;
+		var gf = PlayState.instance.gf;
+		
+		if (!char.stunned)
+		{
+			PlayState.instance.health -= 0.05 * PlayState.instance.healthLoss;
+			
+			FlxG.sound.play(Paths.soundRandom('missnote', 1, 3), FlxG.random.float(0.1, 0.2));
+			
+			if (char.animTimer <= 0) char.playAnim(PlayState.noteSkin.data.singAnimations[Std.int(Math.abs(key))] + 'miss', true);
+		}
+	}
+	
+	function strumPlayAnim(field:PlayField, id:Int, time:Float, ?note:Note)
+	{
+		var spr:StrumNote = field.members[id];
+		
+		if (spr != null)
+		{
+			spr.playAnim('confirm', true, note);
+			spr.resetAnim = time;
+		}
+	}
+	
+	public function spawnSplash(note:Note)
+	{
+		if (ClientPrefs.noteSplashes
+			&& note != null
+			&& !note.hitCausesMiss
+			&& !note.isSustainNote
+			&& !note.noteSplashDisabled
+			&& noteSplashes
+			&& PlayState.noteSkin?.data?.splashesEnabled ?? true)
+		{
+			final strum:Null<StrumNote> = note.playField.members[note.noteData];
+			if (strum != null)
+			{
+				final data = note.noteData;
+				final skin:String = PlayState.noteSplashSkin;
+				final colors = [note.rgbShader.r, note.rgbShader.g, note.rgbShader.b];
+				
+				final offsets = PlayState.instance.script_SPLASHOffsets != null ? PlayState.instance.script_SPLASHOffsets[data] : null;
+				final _X = (strum.x + (offsets?.x ?? 0));
+				final _Y = (strum.y + (offsets?.y ?? 0));
+				
+				var splash:NoteSplash = grpNoteSplashes.recycle(NoteSplash);
+				splash.setupNoteSplash(_X, _Y, data, skin, colors, note.playField);
+				grpNoteSplashes.add(splash);
+				
+				PlayState.instance.scripts.call('onSpawnNoteSplash', [splash, note]);
+			}
+		}
+	}
+	
 	override function destroy()
 	{
-		noteHitCallback.removeAll();
-		noteHitCallback.destroy();
+		onNoteHit.removeAll();
+		onNoteHit.destroy();
 		
-		noteMissCallback.removeAll();
-		noteMissCallback.destroy();
+		onNoteMiss.removeAll();
+		onNoteMiss.destroy();
 		
 		super.destroy();
 	}
