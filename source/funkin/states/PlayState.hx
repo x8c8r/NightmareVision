@@ -2066,7 +2066,7 @@ class PlayState extends MusicBeatState
 				final strums:Null<PlayField> = getStrumFromID(i);
 				if (strums == null) continue;
 				strums.forEachAlive(strum -> {
-					final pos = modManager.getPos(0, 0, 0, curDecBeat, strum.noteData, i, strum, [], strum.vec3Cache);
+					final pos = modManager.getPos(0, 0, 0, curDecBeat, strum.noteData, i, strum, strum.vec3Cache);
 					modManager.updateObject(curDecBeat, strum, pos, i);
 					strum.x = pos.x + script_STRUMOffsets[strum.noteData].x;
 					strum.y = pos.y + script_STRUMOffsets[strum.noteData].y;
@@ -2087,12 +2087,10 @@ class PlayState extends MusicBeatState
 			notes.forEachAlive(function(daNote:Note) {
 				if (daNote.lane > (SONG.lanes - 1) || !modifiersRegistered) return;
 				
-				daNote.vec3Cache ??= funkin.backend.math.Vector3.get();
-				
 				final field = daNote.playField;
 				
 				final visPos = -((Conductor.visualPosition - daNote.visualTime) * songSpeed);
-				final pos = modManager.getPos(daNote.strumTime, visPos, daNote.strumTime - Conductor.songPosition, curDecBeat, daNote.noteData, daNote.lane, daNote, null, daNote.vec3Cache);
+				final pos = modManager.getPos(daNote.strumTime, visPos, daNote.strumTime - Conductor.songPosition, curDecBeat, daNote.noteData, daNote.lane, daNote);
 				
 				modManager.updateObject(curDecBeat, daNote, pos, daNote.lane);
 				pos.x += daNote.offsetX;
@@ -2106,7 +2104,7 @@ class PlayState extends MusicBeatState
 					final diff = daNote.visualTime - futureSongPos;
 					final vDiff = -((futureSongPos - daNote.visualTime) * songSpeed);
 					
-					var nextPos = modManager.getPos(daNote.strumTime, vDiff, diff, Conductor.getStep(futureSongPos) / 4, daNote.noteData, daNote.lane, daNote, [], daNote.vec3Cache);
+					var nextPos = modManager.getPos(daNote.strumTime, vDiff, diff, Conductor.getStep(futureSongPos) / 4, daNote.noteData, daNote.lane, daNote);
 					nextPos.x += daNote.offsetX;
 					nextPos.y += daNote.offsetY;
 					

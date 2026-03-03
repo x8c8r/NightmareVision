@@ -274,7 +274,6 @@ class ModManager
 	
 	public function getPos(time:Float, diff:Float, tDiff:Float, beat:Float, data:Int, player:Int, obj:FlxSprite, ?exclusions:Array<String>, ?pos:Vector3):Vector3
 	{
-		if (exclusions == null) exclusions = []; // since [] cant be a default value for.. some reason?? "its not constant!!" kys haxe
 		if (pos == null) pos = Vector3.get();
 		
 		if (!obj.active) return pos;
@@ -286,7 +285,7 @@ class ModManager
 		{
 			for (name in activeMods[player])
 			{
-				if (exclusions.contains(name)) continue; // because some modifiers may want the path without reverse, for example. (which is actually more common than you'd think!)
+				if (exclusions != null && exclusions.contains(name)) continue; // because some modifiers may want the path without reverse, for example. (which is actually more common than you'd think!)
 				var mod:Modifier = notemodRegister.get(name);
 				if (mod == null) continue;
 				if (!obj.active) continue;
