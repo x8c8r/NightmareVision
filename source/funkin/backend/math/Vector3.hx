@@ -17,16 +17,12 @@ class Vector3 implements IFlxPooled
 	
 	public static function get(x:Float = 0, y:Float = 0, z:Float = 0):Vector3
 	{
-		var vec3 = _pool.get().setTo(x, y, z);
-		
-		return vec3;
+		return _pool.get().setTo(x, y, z);
 	}
 	
 	public static inline function recycle(x:Float = 0, y:Float = 0, z:Float = 0):Vector3
 	{
-		var v = _pool.get();
-		v.setTo(x, y, z);
-		return v;
+		return _pool.get().setTo(x, y, z);
 	}
 	
 	public inline function put():Void

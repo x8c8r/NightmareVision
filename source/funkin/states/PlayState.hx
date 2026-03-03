@@ -2059,6 +2059,8 @@ class PlayState extends MusicBeatState
 			}
 		}
 		
+		var tempVector = funkin.backend.math.Vector3.get();
+		
 		if (modifiersRegistered)
 		{
 			for (i in 0...playFields?.length)
@@ -2066,7 +2068,7 @@ class PlayState extends MusicBeatState
 				final strums:Null<PlayField> = getStrumFromID(i);
 				if (strums == null) continue;
 				strums.forEachAlive(strum -> {
-					final pos = modManager.getPos(0, 0, 0, curDecBeat, strum.noteData, i, strum, strum.vec3Cache);
+					final pos = modManager.getPos(0, 0, 0, curDecBeat, strum.noteData, i, strum, tempVector);
 					modManager.updateObject(curDecBeat, strum, pos, i);
 					strum.x = pos.x + script_STRUMOffsets[strum.noteData].x;
 					strum.y = pos.y + script_STRUMOffsets[strum.noteData].y;
@@ -2090,7 +2092,7 @@ class PlayState extends MusicBeatState
 				final field = daNote.playField;
 				
 				final visPos = -((Conductor.visualPosition - daNote.visualTime) * songSpeed);
-				final pos = modManager.getPos(daNote.strumTime, visPos, daNote.strumTime - Conductor.songPosition, curDecBeat, daNote.noteData, daNote.lane, daNote);
+				final pos = modManager.getPos(daNote.strumTime, visPos, daNote.strumTime - Conductor.songPosition, curDecBeat, daNote.noteData, daNote.lane, daNote, tempVector);
 				
 				modManager.updateObject(curDecBeat, daNote, pos, daNote.lane);
 				pos.x += daNote.offsetX;
@@ -2129,8 +2131,6 @@ class PlayState extends MusicBeatState
 					nextPos.put();
 				}
 				
-				pos.put();
-				
 				daNote.x += script_NOTEOffsets[daNote.noteData].x;
 				daNote.y += script_NOTEOffsets[daNote.noteData].y;
 				
@@ -2158,6 +2158,8 @@ class PlayState extends MusicBeatState
 				}
 			});
 		}
+		
+		tempVector.put();
 		
 		for (i in followingCams)
 		{

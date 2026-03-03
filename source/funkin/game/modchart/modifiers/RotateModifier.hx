@@ -33,6 +33,8 @@ class RotateModifier extends NoteModifier
 		var rotateY = MathUtil.rotate(offX.x, offX.z, yA);
 		var offY = Vector3.get(rotateY.x, offX.y, rotateY.y);
 		
+		offZ.put(); offX.put();
+		
 		rotateZ.putWeak();
 		rotateX.putWeak();
 		rotateY.putWeak();
@@ -50,7 +52,11 @@ class RotateModifier extends NoteModifier
 		diff.z *= scale;
 		var out = rotateV3(diff, getValue(player), getSubmodValue('${prefix}rotateY', player), getSubmodValue('${prefix}rotateZ', player));
 		out.z /= scale;
-		return origin.add(out);
+		
+		origin.add(out, pos);
+		out.put(); // hehehehe
+		
+		return pos;
 	}
 	
 	override function getSubmods()

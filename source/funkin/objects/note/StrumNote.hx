@@ -15,8 +15,6 @@ class StrumNote extends FlxSprite
 {
 	public var intThing:Int = 0;
 	
-	// should the cache even be allowed to be potentially null?
-	public var vec3Cache:Null<Vector3> = Vector3.get(); // for vector3 operations in modchart code
 	public var defScale:FlxPoint = FlxPoint.get(); // for modcharts to keep the scaling
 	
 	public var resetAnim:Float = 0;
@@ -245,7 +243,6 @@ class StrumNote extends FlxSprite
 	override function destroy()
 	{
 		defScale.put();
-		vec3Cache?.put();
 		super.destroy();
 	}
 }
