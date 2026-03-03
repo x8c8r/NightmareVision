@@ -55,7 +55,9 @@ class DebugDisplay extends Sprite
 	/**
 		The current memory usage (WARNING: this is NOT your total program memory usage, rather it shows the garbage collector memory)
 	**/
-	public var memoryMegas(get, never):Float;
+	public var gcMemory(get, never):Float;
+	
+	public var taskMemory(get, never):Float;
 	
 	var times:Array<Float> = [];
 	
@@ -116,10 +118,10 @@ class DebugDisplay extends Sprite
 	{
 		if (!canUpdate) return;
 		
-		textField.text = 'FPS: $currentFPS • Memory: ${flixel.util.FlxStringUtil.formatBytes(memoryMegas)}';
+		textField.text = 'FPS: $currentFPS • Gc: ${flixel.util.FlxStringUtil.formatBytes(gcMemory)} • Task: ${flixel.util.FlxStringUtil.formatBytes(taskMemory)}';
 	}
 	
-	inline function get_memoryMegas():Float
+	inline function get_gcMemory():Float
 	{
 		#if cpp
 		return cpp.vm.Gc.memInfo64(cpp.vm.Gc.MEM_INFO_USAGE);
@@ -127,6 +129,16 @@ class DebugDisplay extends Sprite
 		return hl.Gc.stats().currentMemory;
 		#else
 		return (cast openfl.system.System.totalMemoryNumber : UInt);
+		#end
+	}
+	
+	inline function get_taskMemory():Float
+	{
+		//
+		#if (cpp && windows)
+		return cpp.Windows.getTaskMemory();
+		#else
+		return 0;
 		#end
 	}
 }
