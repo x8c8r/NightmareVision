@@ -122,7 +122,8 @@ class DebugDisplay extends Sprite
 	{
 		if (!canUpdate) return;
 		
-		textField.text = 'FPS: $currentFPS • [GC: ${FlxStringUtil.formatBytes(gcMemory)} | Task: ${FlxStringUtil.formatBytes(taskMemory)}]';
+		var str = 'FPS: $currentFPS • [GC: ${FlxStringUtil.formatBytes(gcMemory)} | Task: ${FlxStringUtil.formatBytes(taskMemory)}]';
+		
 		if (ClientPrefs.advancedDisplay)
 		{
 			var className = Type.getClassName(Type.getClass(FlxG.state));
@@ -133,11 +134,13 @@ class DebugDisplay extends Sprite
 				className = 'ScriptedState • (${path.replace('scripts/states/', '../../')})';
 			}
 			
-			textField.text += '\nState: $className';
+			str += '\nState: $className';
 			
 			if (className.indexOf('PlayState') != -1)
-				textField.text += '\ncurStep: ${PlayState.instance?.curStep ?? 0} • curBeat: ${PlayState.instance?.curBeat ?? 0} • curSection: ${PlayState.instance?.curSection ?? 0}';
+				str += '\ncurStep: ${PlayState.instance?.curStep ?? 0} • curBeat: ${PlayState.instance?.curBeat ?? 0} • curSection: ${PlayState.instance?.curSection ?? 0}';
 		}
+		
+		textField.text = str;
 	}
 	
 	inline function get_gcMemory():Float
