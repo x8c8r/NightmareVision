@@ -451,11 +451,10 @@ class Note extends FlxSprite
 	
 	function _loadNoteAnims()
 	{
-		for (i in 0...NoteSkinHelper.instance.data.noteAnimations[noteData].length)
-		{
-			var anim = NoteSkinHelper.instance.data.noteAnimations[noteData][i];
-			animation.addByPrefix(anim.anim, '${anim.xmlName}0', anim.fps, true);
-		}
+		var noteAnims = NoteSkinHelper.instance.data.noteAnimations;
+		var directionAnims = noteAnims[noteData % noteAnims.length];
+		
+		for (anim in directionAnims) animation.addByPrefix(anim.anim, '${anim.xmlName}0', anim.fps, true);
 		
 		setGraphicSize(Std.int(width * NoteSkinHelper.instance.data.scale));
 		updateHitbox();
@@ -493,7 +492,6 @@ class Note extends FlxSprite
 		noteDiff = diff;
 		var absDiff = Math.abs(diff);
 		canBeHit = absDiff <= actualHitbox;
-		if (hitByOpponent) wasGoodHit = true;
 		
 		if (strumTime < Conductor.songPosition - Conductor.safeZoneOffset && !wasGoodHit) tooLate = true;
 		

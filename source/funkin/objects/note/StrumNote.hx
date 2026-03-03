@@ -26,7 +26,7 @@ class StrumNote extends FlxSprite
 	public var isQuant:Bool = false;
 	public var player:Int;
 	public var targetAlpha:Float = 1;
-	public var alphaMult:Float;
+	public var alphaMult:Float = 1;
 	public var parent:PlayField;
 	@:isVar
 	public var swagWidth(get, null):Float;
@@ -149,11 +149,10 @@ class StrumNote extends FlxSprite
 	
 	function loadAnimations()
 	{
-		for (i in 0...NoteSkinHelper.instance.data.receptorAnimations[noteData].length)
-		{
-			var anim = NoteSkinHelper.instance.data.receptorAnimations[noteData][i];
-			addAnim(anim);
-		}
+		var noteAnims = NoteSkinHelper.instance.data.receptorAnimations;
+		var directionAnims = noteAnims[noteData % noteAnims.length];
+		
+		for (anim in directionAnims) addAnim(anim);
 	}
 	
 	function loadPixelAnimations()
