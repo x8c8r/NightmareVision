@@ -13,12 +13,46 @@ import flixel.FlxG;
 /**
  * enum that handles the display type of the FPS counter.
  */
-enum abstract FpsDisplayMode(Int)
+class FpsDisplayMode
 {
-	var DISABLED;
-	var SIMPLE;
-	var ADVANCED;
+	// if we wanna abuse the abstract part more go back to a abstract
+	// inline static finals get inlined with less garbage than abstract inlines for whatever reason so consider this the most minute optimization ever
+	
+	/**
+	 * The Fps counter will not be shown.
+	 */
+	public static inline final DISABLED:Int = 0;
+	
+	/**
+	 * The Fps counter will show Fps and Memory.
+	 */
+	public static inline final SIMPLE:Int = 1;
+	
+	/**
+	 * The Fps counter will additional info per state.
+	 */
+	public static inline final ADVANCED:Int = 2;
+	
+	public static inline function fromString(str:String):Int
+	{
+		return switch (str)
+		{
+			case 'Advanced': ADVANCED;
+			case 'Simple': SIMPLE;
+			default: DISABLED;
+		}
+	}
 }
+
+// /**
+//  * enum that handles the display type of the FPS counter.
+//  */
+// enum abstract FpsDisplayMode(Int) from Int to Int
+// {
+// 	var DISABLED;
+// 	var SIMPLE;
+// 	var ADVANCED;
+// }
 
 /**
  * A FL Sprite that displays the current FPS and GC memory
@@ -38,7 +72,7 @@ class DebugDisplay extends Sprite
 		if (FlxG.game?.parent == null || instance != null) return;
 		
 		instance = new DebugDisplay(10, 3, 0xFFFFFF);
-		instance.visible = instance.displayType != DISABLED;
+		instance.visible = instance.displayType != FpsDisplayMode.DISABLED;
 		
 		FlxG.game.parent.addChild(instance);
 	}
@@ -64,13 +98,18 @@ class DebugDisplay extends Sprite
 	public var currentFPS(default, null):Int = 0;
 	
 	/**
-		The current memory usage (WARNING: this is NOT your total program memory usage, rather it shows the garbage collector memory)
+		The current memory usage of the garbage collector.
 	**/
 	public var gcMemory(get, never):Float;
 	
+	/**
+	 * The current memory usage of the entire program.
+	 * 
+	 * Only supported on `Windows` currently
+	 */
 	public var taskMemory(get, never):Float;
 	
-	public var displayType:FpsDisplayMode = SIMPLE;
+	public var displayType:Int = FpsDisplayMode.SIMPLE;
 	
 	var times:Array<Float> = [];
 	
@@ -94,7 +133,7 @@ class DebugDisplay extends Sprite
 		textField.multiline = true;
 		textField.text = "FPS: ";
 		
-		displayType = ClientPrefs.getFps();
+		displayType = FpsDisplayMode.fromString(ClientPrefs.fpsDisplayType);
 		
 		addChild(textUnderlay);
 		addChild(textField);
@@ -121,7 +160,7 @@ class DebugDisplay extends Sprite
 		currentFPS = times.length < FlxG.updateFramerate ? times.length : FlxG.updateFramerate;
 		updateText();
 		textUnderlay.width = textField.width + 3;
-		textUnderlay.height = textField.height + (displayType == ADVANCED ? 0 : -5);
+		textUnderlay.height = textField.height + (displayType == FpsDisplayMode.ADVANCED ? 0 : -5);
 		
 		deltaTimeout = 0.0;
 	}
@@ -134,19 +173,19 @@ class DebugDisplay extends Sprite
 	
 	function __updateText()
 	{
-		displayType = ClientPrefs.getFps();
-		visible = displayType != DISABLED;
+		displayType = FpsDisplayMode.fromString(ClientPrefs.fpsDisplayType);
+		visible = displayType != FpsDisplayMode.DISABLED;
 		
-		if (!canUpdate || (displayType == DISABLED)) return;
+		if (!canUpdate || (displayType == FpsDisplayMode.DISABLED)) return;
 		
 		var str = 'FPS: $currentFPS • [GC: ${FlxStringUtil.formatBytes(gcMemory)} | Task: ${FlxStringUtil.formatBytes(taskMemory)}]';
 		
-		if (displayType == ADVANCED)
+		if (displayType == FpsDisplayMode.ADVANCED)
 		{
 			var className = Type.getClassName(Type.getClass(FlxG.state));
 			if (className.indexOf("ScriptedState") != -1)
 			{
-				var scripted = cast(FlxG.state, funkin.scripting.ScriptedState);
+				var scripted:funkin.scripting.ScriptedState = cast FlxG.state;
 				var path = funkin.scripts.FunkinScript.getPath('scripts/states/${scripted.scriptName}');
 				className = 'ScriptedState • (${path.replace('scripts/states/', '../../')})';
 			}

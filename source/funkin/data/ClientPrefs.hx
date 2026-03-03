@@ -21,7 +21,7 @@ class ClientPrefs
 	// debug ------------------------------------------------------------------------//
 	@saveVar public static var inDevMode:Bool = false;
 	
-	@saveVar public static var fpsDisplayType:String = 'simple';
+	@saveVar public static var fpsDisplayType:String = 'Simple';
 	
 	@saveVar public static var streamedMusic:Bool = false;
 	
@@ -347,19 +347,6 @@ class ClientPrefs
 		}
 		
 		return copiedArray;
-	}
-	
-	public static function getFps()
-	{
-		switch (fpsDisplayType.toLowerCase())
-		{
-			case 'simple':
-				return SIMPLE;
-			case 'advanced':
-				return ADVANCED;
-			default:
-				return DISABLED;
-		}
 	}
 }
 
