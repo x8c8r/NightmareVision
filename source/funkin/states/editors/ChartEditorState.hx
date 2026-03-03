@@ -2386,15 +2386,13 @@ class ChartEditorState extends MusicBeatState
 				
 				if (FlxG.keys.pressed.W)
 				{
-					FlxG.sound.music.time -= daTime;
-					
-					if (FlxG.sound.music.time < 0) changeSection(getSectionIndex(FlxG.sound.music.time = FlxG.sound.music.length));
+					if (FlxG.sound.music.time - daTime < 0) changeSection(-1);
+					else FlxG.sound.music.time -= daTime;
 				}
 				else
 				{
-					FlxG.sound.music.time += daTime;
-					
-					if (FlxG.sound.music.time >= FlxG.sound.music.length) changeSection(cast FlxG.sound.music.time = 0);
+					if (FlxG.sound.music.time + daTime >= FlxG.sound.music.length) changeSection(0);
+					else FlxG.sound.music.time += daTime;
 				}
 			}
 			
@@ -2605,8 +2603,8 @@ class ChartEditorState extends MusicBeatState
 		
 		var time:Float = Conductor.beatToSeconds((up ? Math.ceil : Math.floor)((beat + (increase * leniency) * (up ? -1 : 1)) / increase) * increase);
 		
-		if (time < 0) changeSection(getSectionIndex(time = FlxG.sound.music.length));
-		else if (time > (FlxG.sound.music.length - endOffset)) changeSection(cast time = 0);
+		if (time < 0) return changeSection(-1);
+		else if (time > (FlxG.sound.music.length - endOffset)) return changeSection(0);
 		
 		if (!vortex)
 		{
