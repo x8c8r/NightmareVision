@@ -2085,6 +2085,8 @@ class PlayState extends MusicBeatState
 			notes.forEachAlive(function(daNote:Note) {
 				if (daNote.lane > (SONG.lanes - 1) || !modifiersRegistered) return;
 				
+				daNote.vec3Cache ??= funkin.backend.math.Vector3.recycle();
+				
 				final field = daNote.playField;
 				
 				final visPos = -((Conductor.visualPosition - daNote.visualTime) * songSpeed);
@@ -2123,7 +2125,11 @@ class PlayState extends MusicBeatState
 						daNote.x += script_SUSTAINENDOffsets[daNote.noteData].x;
 						daNote.y += script_SUSTAINENDOffsets[daNote.noteData].y;
 					}
+					
+					nextPos.put();
 				}
+				
+				pos.put();
 				
 				daNote.x += script_NOTEOffsets[daNote.noteData].x;
 				daNote.y += script_NOTEOffsets[daNote.noteData].y;

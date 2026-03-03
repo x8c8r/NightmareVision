@@ -31,7 +31,7 @@ class Note extends FlxSprite
 	
 	public var noteScript:Null<FunkinScript> = null;
 	
-	public var vec3Cache:Vector3 = new Vector3(); // for vector3 operations in modchart code
+	public var vec3Cache:Vector3 = null; // for vector3 operations in modchart code
 	public var defScale:FlxPoint = FlxPoint.get(); // for modcharts to keep the scaling
 	
 	public var mAngle:Float = 0;
@@ -508,7 +508,7 @@ class Note extends FlxSprite
 	{
 		if (playField != null) playField.removeNote(this);
 		prevNote = null;
-		vec3Cache = null;
+		vec3Cache?.put();
 		defScale.put();
 		super.destroy();
 	}
