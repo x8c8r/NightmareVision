@@ -169,7 +169,7 @@
 					0
 				],
 				"looping": false,
-				"anim": "scroll0"
+				"anim": "scroll"
 			},
 			{
 				"xmlName": "purple hold piece",
@@ -178,7 +178,7 @@
 					0
 				],
 				"looping": false,
-				"anim": "hold0"
+				"anim": "hold"
 			},
 			{
 				"xmlName": "pruple end hold",
@@ -187,7 +187,7 @@
 					0
 				],
 				"looping": false,
-				"anim": "holdend0"
+				"anim": "holdend"
 			}
 		],
 		[
@@ -198,7 +198,7 @@
 					0
 				],
 				"looping": false,
-				"anim": "scroll1"
+				"anim": "scroll"
 			},
 			{
 				"xmlName": "blue hold piece",
@@ -207,7 +207,7 @@
 					0
 				],
 				"looping": false,
-				"anim": "hold1"
+				"anim": "hold"
 			},
 			{
 				"xmlName": "blue hold end",
@@ -216,7 +216,7 @@
 					0
 				],
 				"looping": false,
-				"anim": "holdend1"
+				"anim": "holdend"
 			}
 		],
 		[
@@ -227,7 +227,7 @@
 					0
 				],
 				"looping": false,
-				"anim": "scroll2"
+				"anim": "scroll"
 			},
 			{
 				"xmlName": "green hold piece",
@@ -236,7 +236,7 @@
 					0
 				],
 				"looping": false,
-				"anim": "hold2"
+				"anim": "hold"
 			},
 			{
 				"xmlName": "green hold end",
@@ -245,7 +245,7 @@
 					0
 				],
 				"looping": false,
-				"anim": "holdend2"
+				"anim": "holdend"
 			}
 		],
 		[
@@ -256,7 +256,7 @@
 					0
 				],
 				"looping": false,
-				"anim": "scroll3"
+				"anim": "scroll"
 			},
 			{
 				"xmlName": "red hold piece",
@@ -265,7 +265,7 @@
 					0
 				],
 				"looping": false,
-				"anim": "hold3"
+				"anim": "hold"
 			},
 			{
 				"xmlName": "red hold end",
@@ -274,7 +274,7 @@
 					0
 				],
 				"looping": false,
-				"anim": "holdend3"
+				"anim": "holdend"
 			}
 		]
 	],

@@ -933,18 +933,21 @@ class PlayState extends MusicBeatState
 			
 		for (i in 0...SONG.keys)
 		{
-			script_NOTEOffsets[i].x = noteSkin.data.noteAnimations[i][0].offsets[0];
-			script_NOTEOffsets[i].y = noteSkin.data.noteAnimations[i][0].offsets[1];
+			var safeDir:Int = (i % noteSkin.data.noteAnimations.length), safeSplashDir:Int = (i % noteSkin.data.noteSplashAnimations.length);
+			var noteAnims = noteSkin.data.noteAnimations[safeDir], splashAnims = noteSkin.data.noteSplashAnimations[safeSplashDir];
 			
-			script_SUSTAINOffsets[i].x = noteSkin.data.noteAnimations[i][1].offsets[0];
-			script_SUSTAINOffsets[i].y = noteSkin.data.noteAnimations[i][1].offsets[1];
+			script_NOTEOffsets[i].x = noteAnims[0].offsets[0];
+			script_NOTEOffsets[i].y = noteAnims[0].offsets[1];
 			
-			script_SUSTAINENDOffsets[i].x = noteSkin.data.noteAnimations[i][2].offsets[0];
-			script_SUSTAINENDOffsets[i].y = noteSkin.data.noteAnimations[i][2].offsets[1];
+			script_SUSTAINOffsets[i].x = noteAnims[1].offsets[0];
+			script_SUSTAINOffsets[i].y = noteAnims[1].offsets[1];
+			
+			script_SUSTAINENDOffsets[i].x = noteAnims[2].offsets[0];
+			script_SUSTAINENDOffsets[i].y = noteAnims[2].offsets[1];
 			script_SUSTAINENDOffsets[i].y *= (ClientPrefs.downScroll ? -1 : 1);
 			
-			script_SPLASHOffsets[i].x = noteSkin.data.noteSplashAnimations[i].offsets[0];
-			script_SPLASHOffsets[i].y = noteSkin.data.noteSplashAnimations[i].offsets[1];
+			script_SPLASHOffsets[i].x = splashAnims.offsets[0];
+			script_SPLASHOffsets[i].y = splashAnims.offsets[1];
 		}
 		
 		noteSplashSkin = noteSkin.data.noteSplashSkin;

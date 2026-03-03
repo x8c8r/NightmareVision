@@ -470,7 +470,7 @@ class NoteSkinHelper implements IFlxDestroyable
 		var newRGB = new RGBPalette();
 		var arr = getCurColors(id, quant);
 		
-		if (shaderEnabled && arr != null && id > -1 && id <= arr.length) newRGB.setColors(arr);
+		if (shaderEnabled && arr != null) newRGB.setColors(arr);
 		else newRGB.setColors([0xFFFF0000, 0xFF00FF00, 0xFF0000FF]);
 		
 		return newRGB;
@@ -486,7 +486,7 @@ class NoteSkinHelper implements IFlxDestroyable
 	
 	public static function getCurColors(id:Int = 0, quant:Int = 0)
 	{
-		var arr = instance.data.arrowRGBdefault[id];
+		var arr = instance.data.arrowRGBdefault[id % instance.data.arrowRGBdefault.length];
 		if (ClientPrefs.quants && quant != 0) arr = instance.data.arrowRGBquant[quants.indexOf(quant)];
 		
 		if (arr == null) arr = defaultColors[0];

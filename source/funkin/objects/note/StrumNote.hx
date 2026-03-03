@@ -15,7 +15,7 @@ class StrumNote extends FlxSprite
 {
 	public var intThing:Int = 0;
 	
-	public var vec3Cache:Vector3 = new Vector3(); // for vector3 operations in modchart code
+	public var vec3Cache:Vector3 = Vector3.recycle(); // for vector3 operations in modchart code
 	public var defScale:FlxPoint = FlxPoint.get(); // for modcharts to keep the scaling
 	
 	public var resetAnim:Float = 0;
@@ -157,14 +157,12 @@ class StrumNote extends FlxSprite
 	
 	function loadPixelAnimations()
 	{
-		for (note in 0...NoteSkinHelper.keys)
-		{
-			animation.add(NoteSkinHelper.instance.data.noteAnimations[note][0].anim, [note + 4]);
-		}
+		var columns:Int = NoteSkinHelper.instance.data.pixelSize[0];
+		var safeDir:Int = (noteData % columns);
 		
-		animation.add('static', [noteData]);
-		animation.add('pressed', [noteData + 4, noteData + 8], 12, false);
-		animation.add('confirm', [noteData + 12, noteData + 16], 24, false);
+		animation.add('static', [safeDir]);
+		animation.add('pressed', [safeDir + columns, safeDir + columns * 2], 12, false);
+		animation.add('confirm', [safeDir + columns * 3, safeDir + columns * 4], 24, false);
 	}
 	
 	public function hasAnim(anim:String)
@@ -245,7 +243,7 @@ class StrumNote extends FlxSprite
 	override function destroy()
 	{
 		defScale.put();
-		vec3Cache = null;
+		vec3Cache?.put();
 		super.destroy();
 	}
 }

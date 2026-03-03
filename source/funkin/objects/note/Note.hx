@@ -277,7 +277,7 @@ class Note extends FlxSprite
 			texture = '';
 			
 			x += swagWidth * (noteData % NoteSkinHelper.keys);
-			if (!isSustainNote) animation.play('scroll$noteData');
+			if (!isSustainNote) animation.play(animation.exists('scroll') ? 'scroll' : 'scroll$noteData');
 		}
 		
 		if (prevNote != null) prevNote.nextNote = this;
@@ -289,7 +289,7 @@ class Note extends FlxSprite
 			offsetX += width / 2;
 			copyAngle = false;
 			
-			animation.play('holdend$noteData');
+			animation.play(animation.exists('holdend') ? 'holdend' : 'holdend$noteData');
 			isSustainEnd = true;
 			updateHitbox();
 			
@@ -299,7 +299,7 @@ class Note extends FlxSprite
 			
 			if (prevNote.isSustainNote)
 			{
-				prevNote.animation.play('hold$noteData');
+				prevNote.animation.play(animation.exists('hold') ? 'hold' : 'hold$noteData');
 				prevNote.scale.y *= Conductor.stepCrotchet / 100 * 1.05;
 				prevNote.isSustainEnd = false;
 				if (PlayState.instance != null)
@@ -464,12 +464,15 @@ class Note extends FlxSprite
 	
 	function _loadPixelNoteAnims()
 	{
+		var columns:Int = NoteSkinHelper.instance.data.pixelSize[0];
+		var safeDir:Int = (noteData % columns);
+		
 		if (isSustainNote)
 		{
-			animation.add('holdend$noteData', [noteData + 4]);
-			animation.add('hold$noteData', [noteData]);
+			animation.add('holdend', [safeDir + columns]);
+			animation.add('hold', [safeDir]);
 		}
-		else animation.add('scroll$noteData', [noteData + 4]);
+		else animation.add('scroll', [safeDir + columns]);
 	}
 	
 	override function update(elapsed:Float)
