@@ -118,7 +118,7 @@ class DebugDisplay extends Sprite
 	{
 		if (!canUpdate) return;
 		
-		textField.text = 'FPS: $currentFPS • Gc: ${flixel.util.FlxStringUtil.formatBytes(gcMemory)} • Task: ${flixel.util.FlxStringUtil.formatBytes(taskMemory)}';
+		textField.text = 'FPS: $currentFPS • GC: ${flixel.util.FlxStringUtil.formatBytes(gcMemory)} • Task: ${flixel.util.FlxStringUtil.formatBytes(taskMemory)}';
 	}
 	
 	inline function get_gcMemory():Float
