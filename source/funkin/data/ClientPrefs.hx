@@ -20,8 +20,8 @@ class ClientPrefs
 {
 	// debug ------------------------------------------------------------------------//
 	@saveVar public static var inDevMode:Bool = false;
-
-	@saveVar public static var advancedDisplay:Bool = true;
+	
+	@saveVar public static var fpsDisplayType:String = 'simple';
 	
 	@saveVar public static var streamedMusic:Bool = false;
 	
@@ -56,8 +56,6 @@ class ClientPrefs
 	@saveVar public static var scoreZoom:Bool = true;
 	
 	@saveVar public static var healthBarAlpha:Float = 1;
-	
-	@saveVar public static var showFPS:Bool = true;
 	
 	@saveVar public static var pauseMusic:String = 'Tea Time';
 	
@@ -289,8 +287,6 @@ class ClientPrefs
 		
 		if (FlxG.save.data.mute != null) FlxG.sound.muted = FlxG.save.data.mute;
 		
-		if (DebugDisplay.instance != null) DebugDisplay.instance.visible = showFPS;
-		
 		if (FlxG.save.data.framerate == null) framerate = Std.int(FlxMath.bound(FlxG.stage.application.window.displayMode.refreshRate, 60, 240));
 		
 		if (framerate > FlxG.drawFramerate)
@@ -351,6 +347,19 @@ class ClientPrefs
 		}
 		
 		return copiedArray;
+	}
+	
+	public static function getFps()
+	{
+		switch (fpsDisplayType.toLowerCase())
+		{
+			case 'simple':
+				return SIMPLE;
+			case 'advanced':
+				return ADVANCED;
+			default:
+				return DISABLED;
+		}
 	}
 }
 

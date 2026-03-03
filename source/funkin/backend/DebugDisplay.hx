@@ -11,6 +11,16 @@ import flixel.util.FlxStringUtil;
 import flixel.FlxG;
 
 /**
+ * enum that handles the display type of the FPS counter.
+ */
+enum abstract FpsDisplayMode(Int)
+{
+	var DISABLED;
+	var SIMPLE;
+	var ADVANCED;
+}
+
+/**
  * A FL Sprite that displays the current FPS and GC memory
  */
 @:nullSafety
@@ -28,7 +38,7 @@ class DebugDisplay extends Sprite
 		if (FlxG.game?.parent == null || instance != null) return;
 		
 		instance = new DebugDisplay(10, 3, 0xFFFFFF);
-		instance.visible = ClientPrefs.showFPS;
+		instance.visible = instance.displayType != DISABLED;
 		
 		FlxG.game.parent.addChild(instance);
 	}
@@ -60,6 +70,8 @@ class DebugDisplay extends Sprite
 	
 	public var taskMemory(get, never):Float;
 	
+	public var displayType:FpsDisplayMode = SIMPLE;
+	
 	var times:Array<Float> = [];
 	
 	var deltaTimeout:Float = 0.0;
@@ -81,6 +93,8 @@ class DebugDisplay extends Sprite
 		textField.autoSize = LEFT;
 		textField.multiline = true;
 		textField.text = "FPS: ";
+		
+		displayType = ClientPrefs.getFps();
 		
 		addChild(textUnderlay);
 		addChild(textField);
@@ -107,7 +121,7 @@ class DebugDisplay extends Sprite
 		currentFPS = times.length < FlxG.updateFramerate ? times.length : FlxG.updateFramerate;
 		updateText();
 		textUnderlay.width = textField.width + 3;
-		textUnderlay.height = textField.height + (ClientPrefs.advancedDisplay ? 0 : -5);
+		textUnderlay.height = textField.height + (displayType == ADVANCED ? 0 : -5);
 		
 		deltaTimeout = 0.0;
 	}
@@ -120,11 +134,14 @@ class DebugDisplay extends Sprite
 	
 	function __updateText()
 	{
-		if (!canUpdate) return;
+		displayType = ClientPrefs.getFps();
+		visible = displayType != DISABLED;
+		
+		if (!canUpdate || (displayType == DISABLED)) return;
 		
 		var str = 'FPS: $currentFPS • [GC: ${FlxStringUtil.formatBytes(gcMemory)} | Task: ${FlxStringUtil.formatBytes(taskMemory)}]';
 		
-		if (ClientPrefs.advancedDisplay)
+		if (displayType == ADVANCED)
 		{
 			var className = Type.getClassName(Type.getClass(FlxG.state));
 			if (className.indexOf("ScriptedState") != -1)

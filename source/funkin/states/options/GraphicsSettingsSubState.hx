@@ -33,9 +33,12 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 		
 		#if !mobile
-		var option:Option = new Option('FPS Counter', 'If unchecked, hides FPS Counter.', 'showFPS', 'bool', true);
+		var option:Option = new Option('Time Bar:', "What should the Time Bar display?", 'timeBarType', 'string', 'Time Left', ['Time Left', 'Time Elapsed', 'Song Name', 'Disabled']);
+		
+		var option:Option = new Option('Debug Display Type',
+			'Handles what type of information to display in the top left of your screen.\nSimple displays FPS & Memory, and advanced displays the same alongside debug information.\nDisabled disables the counter entirely.',
+			'fpsDisplayType', 'string', 'Simple', ['Simple', 'Advanced', 'Disabled']);
 		addOption(option);
-		option.onChange = onChangeFPSCounter;
 		#end
 		
 		var option:Option = new Option('Framerate', "Pretty self explanatory, isn't it?", 'framerate', 'int', 60);
@@ -75,11 +78,4 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 			FlxG.updateFramerate = ClientPrefs.framerate;
 		}
 	}
-	
-	#if !mobile
-	function onChangeFPSCounter()
-	{
-		if (DebugDisplay.instance != null) DebugDisplay.instance.visible = ClientPrefs.showFPS;
-	}
-	#end
 }
