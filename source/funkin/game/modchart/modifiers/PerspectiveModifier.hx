@@ -28,7 +28,7 @@ class PerspectiveModifier extends NoteModifier
 	
 	public function getVector(curZ:Float, pos:Vector3):Vector3
 	{
-		var halfOffset = Vector3.recycle(FlxG.width / 2, FlxG.height / 2);
+		var halfOffset = Vector3.get(FlxG.width / 2, FlxG.height / 2);
 		pos = pos.subtract(halfOffset);
 		var oX = pos.x;
 		var oY = pos.y;
@@ -50,7 +50,7 @@ class PerspectiveModifier extends NoteModifier
 		var b = 2 * near * far / (near - far);
 		var z = (a * shit + b);
 		// trace(shit, curZ, z, x/z, y/z);
-		var returnedVector = Vector3.recycle(x / z, y / z, z).add(halfOffset);
+		var returnedVector = Vector3.get(x / z, y / z, z).add(halfOffset);
 		
 		return returnedVector;
 	}

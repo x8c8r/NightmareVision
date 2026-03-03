@@ -23,13 +23,16 @@ class LocalRotateModifier extends NoteModifier
 	function rotateV3(vec:Vector3, xA:Float, yA:Float, zA:Float):Vector3
 	{
 		var rotateZ = MathUtil.rotate(vec.x, vec.y, zA);
-		var offZ = Vector3.recycle(rotateZ.x, rotateZ.y, vec.z);
+		var offZ = Vector3.get(rotateZ.x, rotateZ.y, vec.z);
 		
 		var rotateX = MathUtil.rotate(offZ.z, offZ.y, xA);
-		var offX = Vector3.recycle(offZ.x, rotateX.y, rotateX.x);
+		var offX = Vector3.get(offZ.x, rotateX.y, rotateX.x);
 		
 		var rotateY = MathUtil.rotate(offX.x, offX.z, yA);
-		var offY = Vector3.recycle(rotateY.x, offX.y, rotateY.y);
+		var offY = Vector3.get(rotateY.x, offX.y, rotateY.y);
+		
+		offZ.put();
+		offX.put();
 		
 		rotateZ.putWeak();
 		rotateX.putWeak();
@@ -51,7 +54,7 @@ class LocalRotateModifier extends NoteModifier
 		
 		x -= 56;
 		
-		var origin:Vector3 = Vector3.recycle(x, FlxG.height * 0.5 - Note.swagWidth * 0.5);
+		var origin:Vector3 = Vector3.get(x, FlxG.height * 0.5 - Note.swagWidth * 0.5);
 		
 		var diff = pos.subtract(origin);
 		var scale = FlxG.height;

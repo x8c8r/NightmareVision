@@ -47,7 +47,7 @@ class ModManager
 			quickRegister(Type.createInstance(mod, [this]));
 			
 		quickRegister(new RotateModifier(this));
-		quickRegister(new RotateModifier(this, 'center', Vector3.recycle((FlxG.width * 0.5) - (Note.swagWidth / 2), (FlxG.height * 0.5) - Note.swagWidth / 2)));
+		quickRegister(new RotateModifier(this, 'center', Vector3.get((FlxG.width * 0.5) - (Note.swagWidth / 2), (FlxG.height * 0.5) - Note.swagWidth / 2)));
 		quickRegister(new LocalRotateModifier(this, 'local'));
 		quickRegister(new SubModifier("noteSpawnTime", this));
 		setValue("noteSpawnTime", 2000);
@@ -275,7 +275,7 @@ class ModManager
 	public function getPos(time:Float, diff:Float, tDiff:Float, beat:Float, data:Int, player:Int, obj:FlxSprite, ?exclusions:Array<String>, ?pos:Vector3):Vector3
 	{
 		if (exclusions == null) exclusions = []; // since [] cant be a default value for.. some reason?? "its not constant!!" kys haxe
-		if (pos == null) pos = Vector3.recycle();
+		if (pos == null) pos = Vector3.get();
 		
 		if (!obj.active) return pos;
 		

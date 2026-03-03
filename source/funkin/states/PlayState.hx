@@ -933,9 +933,11 @@ class PlayState extends MusicBeatState
 			
 		for (i in 0...SONG.keys)
 		{
-			var safeDir:Int = (i % noteSkin.data.noteAnimations.length), safeSplashDir:Int = (i % noteSkin.data.noteSplashAnimations.length);
-			var noteAnims = noteSkin.data.noteAnimations[safeDir], splashAnims = noteSkin.data.noteSplashAnimations[safeSplashDir];
-			
+			var safeDir:Int = (i % noteSkin.data.noteAnimations.length),
+				safeSplashDir:Int = (i % noteSkin.data.noteSplashAnimations.length);
+			var noteAnims = noteSkin.data.noteAnimations[safeDir],
+				splashAnims = noteSkin.data.noteSplashAnimations[safeSplashDir];
+				
 			script_NOTEOffsets[i].x = noteAnims[0].offsets[0];
 			script_NOTEOffsets[i].y = noteAnims[0].offsets[1];
 			
@@ -2085,7 +2087,7 @@ class PlayState extends MusicBeatState
 			notes.forEachAlive(function(daNote:Note) {
 				if (daNote.lane > (SONG.lanes - 1) || !modifiersRegistered) return;
 				
-				daNote.vec3Cache ??= funkin.backend.math.Vector3.recycle();
+				daNote.vec3Cache ??= funkin.backend.math.Vector3.get();
 				
 				final field = daNote.playField;
 				

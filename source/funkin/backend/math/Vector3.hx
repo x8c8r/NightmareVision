@@ -11,9 +11,16 @@ import flixel.util.FlxPool;
 @:fileXml('tags="haxe,release"')
 @:noDebug
 #end
-class Vector3 implements IFlxDestroyable
+class Vector3 implements IFlxPooled
 {
-	private static var _pool = new FlxPool<Vector3>(() -> new Vector3());
+	static final _pool = new FlxPool<Vector3>(() -> new Vector3());
+	
+	public static function get(x:Float = 0, y:Float = 0, z:Float = 0):Vector3
+	{
+		var vec3 = _pool.get().setTo(x, y, z);
+		
+		return vec3;
+	}
 	
 	public static inline function recycle(x:Float = 0, y:Float = 0, z:Float = 0):Vector3
 	{
@@ -28,10 +35,12 @@ class Vector3 implements IFlxDestroyable
 		_pool.put(this);
 	}
 	
-	public function destroy():Void
-	{
-		// required by IFlxDestroyable, leave empty
-	}
+	// should set this up weak vecs later
+	var _weak:Bool = false;
+	
+	public inline function putWeak() {}
+	
+	public function destroy():Void {}
 	
 	/**
 		A constant representing the x axis (1, 0, 0)
@@ -81,11 +90,9 @@ class Vector3 implements IFlxDestroyable
 		@param	y	(Optional) An initial y value (default is 0)
 		@param	z	(Optional) An initial z value (default is 0)
 	**/
-	public function new(x:Float = 0., y:Float = 0., z:Float = 0.)
+	public function new(x:Float = 0.0, y:Float = 0.0, z:Float = 0.0)
 	{
-		this.x = x;
-		this.y = y;
-		this.z = z;
+		setTo(x, y, z);
 	}
 	
 	/**
@@ -96,7 +103,7 @@ class Vector3 implements IFlxDestroyable
 	**/
 	public inline function add(a:Vector3, result:Vector3 = null):Vector3
 	{
-		if (result == null) result = Vector3.recycle();
+		if (result == null) result = Vector3.get();
 		result.setTo(this.x + a.x, this.y + a.y, this.z + a.z);
 		return result;
 	}
@@ -123,7 +130,7 @@ class Vector3 implements IFlxDestroyable
 	**/
 	public inline function clone():Vector3
 	{
-		return Vector3.recycle(x, y, z);
+		return Vector3.get(x, y, z);
 	}
 	
 	/**
@@ -135,7 +142,7 @@ class Vector3 implements IFlxDestroyable
 	// https://gamedev.stackexchange.com/questions/18615/how-do-i-linearly-interpolate-between-two-vectors
 	public function lerp(goal:Vector3, alpha:Float):Vector3
 	{
-		return Vector3.recycle(alpha * goal.x + x * (1 - alpha), alpha * goal.y + y * (1 - alpha), alpha * goal.z + z * (1 - alpha));
+		return Vector3.get(alpha * goal.x + x * (1 - alpha), alpha * goal.y + y * (1 - alpha), alpha * goal.z + z * (1 - alpha));
 	}
 	
 	/**
@@ -157,7 +164,7 @@ class Vector3 implements IFlxDestroyable
 	**/
 	public inline function crossProduct(a:Vector3, result:Vector3 = null):Vector3
 	{
-		if (result == null) result = Vector3.recycle();
+		if (result == null) result = Vector3.get();
 		result.setTo(y * a.z - z * a.y, z * a.x - x * a.z, x * a.y - y * a.x);
 		return result;
 	}
@@ -294,12 +301,16 @@ class Vector3 implements IFlxDestroyable
 		@param	xa	An x value
 		@param	ya	A y value
 		@param	za	A z value
+
+		@return returns `this` vector3
 	**/
-	public inline function setTo(xa:Float, ya:Float, za:Float):Void
+	public inline function setTo(xa:Float, ya:Float, za:Float):Vector3
 	{
 		x = xa;
 		y = ya;
 		z = za;
+		
+		return this;
 	}
 	
 	/**
@@ -311,7 +322,7 @@ class Vector3 implements IFlxDestroyable
 	**/
 	public inline function subtract(a:Vector3, result:Vector3 = null):Vector3
 	{
-		if (result == null) result = Vector3.recycle();
+		if (result == null) result = Vector3.get();
 		result.setTo(x - a.x, y - a.y, z - a.z);
 		return result;
 	}
@@ -334,16 +345,16 @@ class Vector3 implements IFlxDestroyable
 	
 	private inline static function get_X_AXIS():Vector3
 	{
-		return Vector3.recycle(1, 0, 0);
+		return Vector3.get(1, 0, 0);
 	}
 	
 	private inline static function get_Y_AXIS():Vector3
 	{
-		return Vector3.recycle(0, 1, 0);
+		return Vector3.get(0, 1, 0);
 	}
 	
 	private inline static function get_Z_AXIS():Vector3
 	{
-		return Vector3.recycle(0, 0, 1);
+		return Vector3.get(0, 0, 1);
 	}
 }

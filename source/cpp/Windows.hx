@@ -15,8 +15,6 @@ package cpp;
 #include <winuser.h>
 
 #include <psapi.h>
-#include <stdint.h>
-#include <stdio.h>
 
 #pragma comment(lib, "Shell32.lib")
 extern "C" HRESULT WINAPI SetCurrentProcessExplicitAppUserModelID(PCWSTR AppID);

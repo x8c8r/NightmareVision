@@ -64,7 +64,7 @@ class PathModifier extends NoteModifier
 				
 				pathData[dir].push(
 					{
-						position: pos.add(Vector3.recycle(-Note.swagWidth / 2, -Note.swagWidth / 2)),
+						position: pos.add(Vector3.get(-Note.swagWidth / 2, -Note.swagWidth / 2)),
 						start: totalDists[dir],
 						end: 0,
 						dist: 0
