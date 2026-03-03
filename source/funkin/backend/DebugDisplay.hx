@@ -7,6 +7,7 @@ import openfl.text.TextFormat;
 import openfl.Assets;
 import openfl.display.Sprite;
 
+import flixel.util.FlxStringUtil;
 import flixel.FlxG;
 
 /**
@@ -70,10 +71,13 @@ class DebugDisplay extends Sprite
 		textUnderlay = new Bitmap();
 		textUnderlay.bitmapData = new BitmapData(1, 1, true, 0x6F000000);
 		
+		final textFormat = new TextFormat(Assets.getFont("assets/fonts/aller.ttf").fontName, 14, color);
+		textFormat.leading = 5;
+		
 		textField = new TextField();
 		textField.selectable = false;
 		textField.mouseEnabled = false;
-		textField.defaultTextFormat = new TextFormat(Assets.getFont("assets/fonts/aller.ttf").fontName, 14, color);
+		textField.defaultTextFormat = textFormat;
 		textField.autoSize = LEFT;
 		textField.multiline = true;
 		textField.text = "FPS: ";
@@ -103,7 +107,7 @@ class DebugDisplay extends Sprite
 		currentFPS = times.length < FlxG.updateFramerate ? times.length : FlxG.updateFramerate;
 		updateText();
 		textUnderlay.width = textField.width + 3;
-		textUnderlay.height = textField.height;
+		textUnderlay.height = textField.height + (ClientPrefs.advancedDisplay ? 0 : -5);
 		
 		deltaTimeout = 0.0;
 	}
@@ -118,7 +122,22 @@ class DebugDisplay extends Sprite
 	{
 		if (!canUpdate) return;
 		
-		textField.text = 'FPS: $currentFPS • GC: ${flixel.util.FlxStringUtil.formatBytes(gcMemory)} • Task: ${flixel.util.FlxStringUtil.formatBytes(taskMemory)}';
+		textField.text = 'FPS: $currentFPS • [GC: ${FlxStringUtil.formatBytes(gcMemory)} | Task: ${FlxStringUtil.formatBytes(taskMemory)}]';
+		if (ClientPrefs.advancedDisplay)
+		{
+			var className = Type.getClassName(Type.getClass(FlxG.state));
+			if (className.indexOf("ScriptedState") != -1)
+			{
+				var scripted = cast(FlxG.state, funkin.scripting.ScriptedState);
+				var path = funkin.scripts.FunkinScript.getPath('scripts/states/${scripted.scriptName}');
+				className = 'ScriptedState • (${path.replace('scripts/states/', '../../')})';
+			}
+			
+			textField.text += '\nState: $className';
+			
+			if (className.indexOf('PlayState') != -1)
+				textField.text += '\ncurStep: ${PlayState.instance?.curStep ?? 0} • curBeat: ${PlayState.instance?.curBeat ?? 0} • curSection: ${PlayState.instance?.curSection ?? 0}';
+		}
 	}
 	
 	inline function get_gcMemory():Float

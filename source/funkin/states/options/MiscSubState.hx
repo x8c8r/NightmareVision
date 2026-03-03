@@ -15,6 +15,9 @@ class MiscSubState extends BaseOptionsMenu
 		var option:Option = new Option('Dev Mode', "If checked, traces & developer hotkeys will become available.", 'inDevMode', 'bool', true);
 		addOption(option);
 		
+		var option:Option = new Option('Advanced Debug Display', 'If checked, addition details will be provided if the FPS counter is enabled.', 'advancedDisplay', 'bool', false);
+		addOption(option);
+		
 		var option:Option = new Option('Streamed Song files',
 			'If checked, playable song files will be streamed via bytes instead of being loaded all at once. This heavily improves loading times, however it is EXTREMELY EXPERIMENTAL and prone to issues.',
 			'streamedMusic', 'bool', false);
@@ -23,9 +26,9 @@ class MiscSubState extends BaseOptionsMenu
 		var pause:Option = new Option("Auto-Pause Game",
 			'If checked, the game will automatically freeze when unselected, pausing all sounds and visuals. If unchecked, the game will continue as normal regardless of focus.', 'autoPause',
 			'bool', false);
-		pause.onChange = ()->{
+		pause.onChange = () -> {
 			FlxG.autoPause = ClientPrefs.autoPause;
-		};		
+		};
 		addOption(pause);
 		
 		super();

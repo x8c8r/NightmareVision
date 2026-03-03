@@ -20,6 +20,8 @@ class ClientPrefs
 {
 	// debug ------------------------------------------------------------------------//
 	@saveVar public static var inDevMode:Bool = false;
+
+	@saveVar public static var advancedDisplay:Bool = true;
 	
 	@saveVar public static var streamedMusic:Bool = false;
 	
