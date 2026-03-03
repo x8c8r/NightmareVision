@@ -8,9 +8,16 @@ package cpp;
 </target>
 ')
 @:cppFileCode('
+#define WIN32_LEAN_AND_MEAN
+
 #include <dwmapi.h>
 #include <windows.h>
 #include <winuser.h>
+
+#include <psapi.h>
+#include <stdint.h>
+#include <stdio.h>
+
 #pragma comment(lib, "Shell32.lib")
 extern "C" HRESULT WINAPI SetCurrentProcessExplicitAppUserModelID(PCWSTR AppID);
 ')
@@ -80,4 +87,20 @@ class Windows
 		FlxG.stage.window.borderless = false;
 		#end
 	}
+	
+	// windows class sucks redo this
+	#if (windows && cpp)
+	@:functionCode("
+            PROCESS_MEMORY_COUNTERS pmc;
+
+            if (GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc)))
+                return pmc.WorkingSetSize;
+
+            return 0;
+    ")
+	public static function getTaskMemory():cpp.SizeT
+	{
+		return 0;
+	}
+	#end
 }
