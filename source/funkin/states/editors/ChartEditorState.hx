@@ -48,7 +48,7 @@ import funkin.scripts.*;
 import funkin.states.*;
 import funkin.objects.*;
 import funkin.objects.note.*;
-import funkin.states.editors.ui.EditorNote;
+import funkin.states.editors.ui.*;
 import funkin.backend.MusicBeatSubstate;
 
 #if sys
@@ -258,6 +258,8 @@ class ChartEditorState extends MusicBeatState
 	
 	var prevRenderedSustains:FlxTypedGroup<FlxSprite>;
 	var prevRenderedNotes:FlxTypedGroup<Note>;
+	
+	var selectionBox:DebugBounds;
 	
 	var gridBG:FlxSprite;
 	var nextGridBG:FlxSprite;
@@ -559,6 +561,11 @@ class ChartEditorState extends MusicBeatState
 		
 		// add(textBox);
 		// add(clickForInfo);
+		
+		selectionBox = new DebugBounds();
+		selectionBox.bgAlpha = .5;
+		selectionBox.kill();
+		add(selectionBox);
 		
 		if (lastSong != currentSongName)
 		{
@@ -1333,10 +1340,24 @@ class ChartEditorState extends MusicBeatState
 			updateGrid();
 		});
 		var mirrorButton:FlxButton = new FlxButton(duetButton.x + 100, duetButton.y, "Mirror Notes", function() {
-			var duetNotes:Array<Array<Dynamic>> = [];
-			for (note in _song.notes[curSec].sectionNotes)
+			if (curSelectedNotes.length > 0)
 			{
-				note[1] = ((_song.keys - (note[1] % _song.keys) - 1) + Std.int(note[1] / _song.keys) * _song.keys);
+				var minData:Int = Lambda.fold(curSelectedNotes, (note:Array<Dynamic>, r:Int) -> (note[1] < r && note[1] > -1 ? note[1] : r), 9999);
+				var maxData:Int = Lambda.fold(curSelectedNotes, (note:Array<Dynamic>, r:Int) -> (note[1] > r ? note[1] : r), 0);
+				
+				for (note in curSelectedNotes)
+				{
+					if (note[1] < 0) continue;
+					
+					note[1] = (maxData - note[1] + minData);
+				}
+			}
+			else
+			{
+				for (note in _song.notes[curSec].sectionNotes)
+				{
+					note[1] = ((_song.keys - (note[1] % _song.keys) - 1) + Std.int(note[1] / _song.keys) * _song.keys);
+				}
 			}
 			
 			updateGrid();
@@ -2213,14 +2234,16 @@ class ChartEditorState extends MusicBeatState
 		
 		if (canAddNotes)
 		{
-			if (FlxG.mouse.justPressed)
+			var rightSelect:Bool = FlxG.mouse.justReleasedRight;
+			
+			if (!selectionBox.alive && FlxG.mouse.justPressed)
 			{
 				if (FlxG.mouse.overlaps(curRenderedNotes))
 				{
 					for (note in curRenderedNotes) {
 						if (!FlxG.mouse.overlaps(note)) continue;
 						
-						if (FlxG.keys.pressed.CONTROL || FlxG.mouse.justPressedRight)
+						if (FlxG.keys.pressed.CONTROL)
 						{
 							selectNote(note);
 						}
@@ -2247,6 +2270,43 @@ class ChartEditorState extends MusicBeatState
 						FlxG.log.add('added note');
 						addNote();
 					}
+				}
+			}
+			
+			if (!selectionBox.alive && FlxG.mouse.justPressedRight)
+			{
+				selectionBox.revive();
+				selectionBox.setPosition(FlxG.mouse.x, FlxG.mouse.y);
+			}
+			if (selectionBox.alive)
+			{
+				if (rightSelect)
+				{
+					selectionBox.kill();
+					
+					if (!FlxG.keys.pressed.SHIFT) curSelectedNotes.resize(0);
+					
+					final pad:Float = (GRID_SIZE / 4);
+					final hitbox = selectionBox.getHitbox();
+					final testRect = flixel.math.FlxRect.get();
+					
+					for (note in curRenderedNotes) {
+						testRect.set(note.x + pad, note.y + pad, note.width - pad * 2, note.height - pad * 2);
+						
+						if (!hitbox.overlaps(testRect)) continue;
+						
+						if (!curSelectedNotes.contains(note.chartData)) curSelectedNotes.push(note.chartData);
+					}
+					
+					testRect.put();
+					hitbox.put();
+					
+					updateGrid();
+					updateNoteUI();
+				}
+				else
+				{
+					selectionBox.setSize(FlxG.mouse.x - selectionBox.x, FlxG.mouse.y - selectionBox.y);
 				}
 			}
 		}
@@ -2384,7 +2444,6 @@ class ChartEditorState extends MusicBeatState
 			
 			if (FlxG.mouse.wheel != 0)
 			{
-				resetLittleFriends();
 				toggleMusic(false);
 				
 				if (!mouseQuant) FlxG.sound.music.time -= (FlxG.mouse.wheel * Conductor.stepCrotchet * 0.8);
@@ -2395,26 +2454,15 @@ class ChartEditorState extends MusicBeatState
 			
 			if (FlxG.keys.pressed.W || FlxG.keys.pressed.S)
 			{
-				resetLittleFriends();
 				toggleMusic(false);
 				
 				var holdingShift:Float = 1;
 				if (FlxG.keys.pressed.CONTROL) holdingShift = 0.25;
 				else if (FlxG.keys.pressed.SHIFT) holdingShift = 4;
 				
-				var daTime:Float = 700 * FlxG.elapsed * holdingShift;
-				resetLittleFriends();
+				var delta:Float = (700 * FlxG.elapsed * holdingShift);
 				
-				if (FlxG.keys.pressed.W)
-				{
-					if (FlxG.sound.music.time - daTime < 0) changeSection(-1);
-					else FlxG.sound.music.time -= daTime;
-				}
-				else
-				{
-					if (FlxG.sound.music.time + daTime >= FlxG.sound.music.length) changeSection(0);
-					else FlxG.sound.music.time += daTime;
-				}
+				FlxG.sound.music.time = FlxMath.bound(FlxG.sound.music.time + delta * (FlxG.keys.pressed.W ? -1 : 1), 0, FlxG.sound.music.length - endOffset);
 			}
 			
 			if (!blockInput)
@@ -2451,6 +2499,23 @@ class ChartEditorState extends MusicBeatState
 			
 			if (FlxG.keys.justPressed.D) changeSection(curSec + shiftThing);
 			if (FlxG.keys.justPressed.A) changeSection(curSec - shiftThing);
+			
+			if (FlxG.keys.justPressed.DELETE)
+			{
+				for (note in curSelectedNotes)
+				{
+					if (note[2] != null)
+					{
+						_song.notes[curSec].sectionNotes.remove(note);
+					}
+					else
+					{
+						_song.events.remove(note);
+					}
+				}
+				
+				curSelectedNotes.resize(0);
+			}
 			
 			if (vortex && !blockInput)
 			{
@@ -2539,12 +2604,13 @@ class ChartEditorState extends MusicBeatState
 			
 		var playedSound:Array<Bool> = [for (_ in 0 ... _song.lanes) false]; // Prevents ouchy sex sounds
 		
+		colorSine += elapsed;
+		
 		curRenderedNotes.forEachAlive(function(note:EditorNote) {
 			note.alpha = 1;
 			
 			if (curSelectedNotes.contains(note.chartData))
 			{
-				colorSine += elapsed;
 				var colorVal:Float = 0.7 + Math.sin(Math.PI * colorSine) * 0.3;
 				note.color = FlxColor.fromRGBFloat(colorVal, colorVal, colorVal, 0.999); // Alpha can't be 100% or the color won't be updated for some reason, guess i will die
 			}
@@ -2617,9 +2683,7 @@ class ChartEditorState extends MusicBeatState
 		var increase:Float = (1 / (quantization / 4));
 		
 		var time:Float = Conductor.beatToSeconds((up ? Math.ceil : Math.floor)((beat + (increase * leniency) * (up ? -1 : 1)) / increase) * increase);
-		
-		if (time < 0) return changeSection(-1);
-		else if (time > (FlxG.sound.music.length - endOffset)) return changeSection(0);
+		time = FlxMath.bound(time, 0, FlxG.sound.music.length - endOffset);
 		
 		if (!vortex)
 		{
@@ -3116,8 +3180,6 @@ class ChartEditorState extends MusicBeatState
 		// Basically old shit from changeSection???
 		FlxG.sound.music.time = sectionStartTime();
 		
-		resetLittleFriends();
-		
 		if (songBeginning)
 		{
 			FlxG.sound.music.time = 0;
@@ -3146,6 +3208,8 @@ class ChartEditorState extends MusicBeatState
 		}
 		else if (!play && FlxG.sound.music.playing)
 		{
+			resetLittleFriends();
+			
 			FlxG.sound.music.pause();
 			opponentVocals?.pause();
 			vocals?.pause();
@@ -3212,7 +3276,6 @@ class ChartEditorState extends MusicBeatState
 		
 		Conductor.songPosition = FlxG.sound.music.time;
 		updateWaveform();
-		resetLittleFriends();
 	}
 	
 	function updateSectionUI():Void
@@ -3580,7 +3643,7 @@ class ChartEditorState extends MusicBeatState
 	function selectNote(note:EditorNote):Void
 	{
 		if (!FlxG.keys.pressed.SHIFT) curSelectedNotes.resize(0);
-		curSelectedNotes.push(note.chartData);
+		if (!curSelectedNotes.contains(note.chartData)) curSelectedNotes.push(note.chartData);
 		
 		if (note.noteData >= 0)
 		{
@@ -3597,7 +3660,7 @@ class ChartEditorState extends MusicBeatState
 		updateNoteUI();
 	}
 	
-	function deleteNote(note:EditorNote):Void
+	function deleteNote(note:EditorNote, update:Bool = true):Void
 	{
 		var noteDataToCheck:Int = note.noteData;
 		
@@ -3919,10 +3982,8 @@ class ChartEditorState extends MusicBeatState
 		FlxG.switchState(PlayState.new);
 	}
 	
-	public function togglePause()
+	public inline function togglePause()
 	{
-		resetLittleFriends();
-		
 		toggleMusic(!FlxG.sound.music.playing);
 	}
 }
