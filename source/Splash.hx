@@ -18,9 +18,11 @@ class Splash extends FlxState
 	var spriteEvents:FlxTimer;
 	var logo:FlxSprite;
 
+	#if VIDEOS_ALLOWED
 	var skipTime:Float = 0;
 	var skipLoad:FlxPieDial;
 	var video:FunkinVideoSprite;
+	#end
 	
 	override function create()
 	{
@@ -62,6 +64,7 @@ class Splash extends FlxState
 				finish();
 			}
 		}
+		#if VIDEOS_ALLOWED
 				if (video != null)
 			{
 				if (FlxG.keys.pressed.SPACE || FlxG.keys.pressed.ENTER)
@@ -78,6 +81,7 @@ class Splash extends FlxState
 							finish();
 						}
 			}
+		#end
 		super.update(elapsed);
 	}
 	
@@ -139,9 +143,11 @@ class Splash extends FlxState
 			spriteEvents.cancel();
 			spriteEvents.destroy();
 		}
+		#if VIDEOS_ALLOWED
 		video.stop();
 		video.destroy();
 		skipLoad.destroy();
+		#end
 		complete();
 	}
 	
