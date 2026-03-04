@@ -86,6 +86,7 @@ class FunkinVideoSprite extends FlxVideoSprite
 	{
 		super(x, y);
 		canSkip = isSkippable;
+		canSkip = isSkippable;
 		if (oneTimeUse) bitmap.onEndReached.add(this.destroy, true, -10);
 	}
 	
@@ -97,6 +98,9 @@ class FunkinVideoSprite extends FlxVideoSprite
 	 */
 	public function delayAndStart(delay:Float = 0)
 	{
+		FlxTimer.wait(delay, function() {
+			if (bitmap != null) play();
+		});
 		FlxTimer.wait(delay, function() {
 			if (bitmap != null) play();
 		});
@@ -140,6 +144,26 @@ class FunkinVideoSprite extends FlxVideoSprite
 	public function onFormat(func:Void->Void, once:Bool = false, priority:Int = 0)
 	{
 		if (bitmap != null) bitmap.onFormatSetup.add(func, once, priority);
+	}
+	
+	/**
+	 * Stops the video immediately and triggers the onEndReached event.
+	 * Useful for skipping cutscenes.
+	 */
+	public function skip()
+	{
+		if (bitmap != null && bitmap.isPlaying)
+		{
+			bitmap.stop();
+		}
+	}
+	
+	override public function update(elapsed:Float)
+	{
+		if (canSkip && controls.ACCEPT)
+		{
+			skip();
+		}
 	}
 	
 	/**
