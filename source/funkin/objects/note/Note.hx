@@ -234,7 +234,6 @@ class Note extends FlxSprite
 			}
 			noteType = value;
 		}
-		if (hitCausesMiss) canMiss = true;
 		
 		return value;
 	}

@@ -267,6 +267,24 @@ class PlayField extends FlxTypedContainer<StrumNote>
 		
 		PlayState.instance.scripts.call('${scriptFunc}Pre', scriptArgs);
 		
+		if (field.autoPlayed)
+		{
+			var time:Float = 0.15;
+			if (note.isSustainNote && !note.isSustainEnd) time += 0.15;
+			time /= PlayState.instance.playbackRate;
+			
+			if (field.playAnims) strumPlayAnim(field, Std.int(Math.abs(note.noteData)) % keyCount, time, note);
+		}
+		else if (field.playAnims)
+		{
+			members[note.noteData]?.playAnim('confirm', true, note);
+		}
+		
+		if (ClientPrefs.guitarHeroSustains && !note.isSustainNote)
+		{
+			for (sustain in note.tail) sustain.blockHit = false; // makes the hold note active when you press the base note
+		}
+		
 		if (field.playerControls)
 		{
 			if (note.wasGoodHit || field.autoPlayed && (note.ignoreNote || note.hitCausesMiss)) return;
@@ -278,7 +296,10 @@ class PlayField extends FlxTypedContainer<StrumNote>
 				field.onNoteMiss.dispatch(note, field);
 				
 				note.wasGoodHit = true;
+				
 				if (!note.isSustainNote) disposeNote(note);
+				
+				return;
 			}
 			
 			PlayState.instance.health += note.hitHealth * PlayState.instance.healthGain;
@@ -290,11 +311,9 @@ class PlayField extends FlxTypedContainer<StrumNote>
 		final noteRows = PlayState.instance.noteRows;
 		final noteSkin = PlayState.noteSkin;
 		
-		if (note.noAnimation) return;
-		
 		for (char in chars)
 		{
-			if (char == null) continue;
+			if (note.noAnimation || char == null) continue;
 			
 			if (!note.hitCausesMiss)
 			{
@@ -350,25 +369,6 @@ class PlayField extends FlxTypedContainer<StrumNote>
 			}
 		}
 		
-		if (field.autoPlayed)
-		{
-			var time:Float = 0.15;
-			if (note.isSustainNote && !note.isSustainEnd) time += 0.15;
-			time /= PlayState.instance.playbackRate;
-			if (field.playAnims) strumPlayAnim(field, Std.int(Math.abs(note.noteData)) % keyCount, time, note);
-		}
-		else if (field.playAnims)
-		{
-			field.forEach(function(spr:StrumNote) {
-				if (Math.abs(note.noteData) == spr.ID) spr.playAnim('confirm', true, note);
-			});
-		}
-		
-		if (ClientPrefs.guitarHeroSustains && !note.isSustainNote)
-		{
-			for (sustain in note.tail) sustain.blockHit = false; // makes the hold note active when you press the base note
-		}
-		
 		note.wasGoodHit = true;
 		
 		if (field.noteSplashes) spawnSplash(note);
@@ -383,17 +383,6 @@ class PlayField extends FlxTypedContainer<StrumNote>
 	
 	function noteMiss(note:Note, field:PlayField):Void
 	{
-		// Dupe note remove
-		forEachAliveNote((note:Note) -> {
-			if (note != note
-				&& field.playerControls
-				&& note.noteData == note.noteData
-				&& note.isSustainNote == note.isSustainNote
-				&& Math.abs(note.strumTime - note.strumTime) < 1) disposeNote(note);
-		});
-		
-		if (note.canMiss) return;
-		
 		PlayState.instance.health -= note.missHealth * PlayState.instance.healthLoss;
 		
 		for (owner in field.singers)
@@ -420,7 +409,7 @@ class PlayField extends FlxTypedContainer<StrumNote>
 		if (noteScriptRet != ScriptConstants.STOP_FUNC) PlayState.instance.scripts.call('noteMiss', scriptArgs, false, [note.noteType]);
 		
 		// hold note missing stuff, makes the hold unhittable (and kills it, might make it just transparent if i can fix some stuff)
-		if (ClientPrefs.guitarHeroSustains)
+		if (ClientPrefs.guitarHeroSustains && !note.hitCausesMiss)
 		{
 			final tail = (note.isSustainNote ? note.parent.tail : note.tail);
 			for (sustain in tail)

@@ -1617,7 +1617,7 @@ class PlayState extends MusicBeatState
 					sustainNote.gfNote = swagNote.gfNote;
 					sustainNote.noteType = type;
 					
-					if (ClientPrefs.guitarHeroSustains) sustainNote.blockHit = true; // stops you from holding a note without key pressing first
+					if (ClientPrefs.guitarHeroSustains && !swagNote.hitCausesMiss) sustainNote.blockHit = true; // stops you from holding a note without key pressing first
 					if (!sustainNote.alive) break;
 					
 					sustainNote.ID = unspawnNotes.length;
@@ -2152,7 +2152,7 @@ class PlayState extends MusicBeatState
 				if (Conductor.songPosition > noteKillOffset + daNote.strumTime)
 				{
 					daNote.garbage = true;
-					if (daNote.playField != null && daNote.playField.playerControls && !daNote.playField.autoPlayed && !daNote.ignoreNote && !endingSong && !daNote.wasGoodHit) if (field.playerControls
+					if (daNote.playField != null && daNote.playField.playerControls && !daNote.playField.autoPlayed && !daNote.ignoreNote && !daNote.canMiss && !endingSong && !daNote.wasGoodHit) if (field.playerControls
 						&& !field.autoPlayed) field.onNoteMiss.dispatch(daNote, field);
 				}
 				
@@ -3024,18 +3024,18 @@ class PlayState extends MusicBeatState
 	{
 		var eventKey:FlxKey = event.keyCode;
 		var key:Int = input.getKeyFromEvent(eventKey);
+		
 		if (startedCountdown && !paused && key > -1)
 		{
 			for (field in playFields.members)
 			{
-				if (field.inControl && !field.autoPlayed && field.playerControls)
+				if (!field.canInput()) continue;
+				
+				var spr:StrumNote = field.members[key];
+				if (spr != null)
 				{
-					var spr:StrumNote = field.members[key];
-					if (spr != null)
-					{
-						spr.playAnim('static');
-						spr.resetAnim = 0;
-					}
+					spr.playAnim('static');
+					spr.resetAnim = 0;
 				}
 			}
 			scripts.call('onKeyRelease', [key]);
