@@ -5,6 +5,8 @@ package funkin.video;
 import hxvlc.flixel.FlxVideoSprite;
 import hxvlc.util.Location;
 
+import funkin.backend.PlayerSettings;
+
 // with hxvlcs improvements this is less needed but still has its values
 
 /**
@@ -30,6 +32,11 @@ import hxvlc.util.Location;
  */
 class FunkinVideoSprite extends FlxVideoSprite
 {
+	/**
+	 * All currently active video instances
+	 */
+	public static final instances:Array<FunkinVideoSprite> = [];
+	
 	/**
 	 * Video loading argument to make the video loop
 	 * 
@@ -88,6 +95,12 @@ class FunkinVideoSprite extends FlxVideoSprite
 	public var isPlaying(get, never):Bool;
 	inline function get_isPlaying():Bool return bitmap != null && bitmap.isPlaying;
 	
+	public var tiedToGame:Bool = true;
+	
+	/**
+	 * Bool that decides if the video can be skipped.
+	 */
+	public var canSkip:Bool = false;
 	
 	/**
 	 * Creates a new FunkinVideoSprite
@@ -136,6 +149,7 @@ class FunkinVideoSprite extends FlxVideoSprite
 	{
 		if (bitmap != null)
 			bitmap.onEndReached.add(func, once, priority);
+		if (bitmap != null) bitmap.onEndReached.add(func, o
 	}
 	
 	/**
@@ -145,8 +159,7 @@ class FunkinVideoSprite extends FlxVideoSprite
 	 */
 	public function onStart(func:Void->Void, once:Bool = false, priority:Int = 0)
 	{
-		if (bitmap != null)
-			bitmap.onOpening.add(func, once, priority);
+		if (bitmap != null) bitmap.onOpening.add(func, once, priority);
 	}
 	
 	/**
@@ -203,6 +216,8 @@ class FunkinVideoSprite extends FlxVideoSprite
 	
 	override function destroy()
 	{
+		if (instances.contains(this)) instances.remove(this);
+		
 		if (bitmap != null)
 		{
 			bitmap.stop();
@@ -217,6 +232,24 @@ class FunkinVideoSprite extends FlxVideoSprite
 		}
 		
 		super.destroy();
+	}
+	
+	/**
+	 * Iterates over `FunkinVideoSprite.instances` and calls a function on them
+	 */
+	public static function forEach(func:FunkinVideoSprite->Void)
+	{
+		for (video in instances)
+			if (video != null) func(video);
+	}
+	
+	/**
+	 * Iterates over `FunkinVideoSprite.instances` and calls a function on them
+	 */
+	public static function forEachAlive(func:FunkinVideoSprite->Void)
+	{
+		for (video in instances)
+			if (video != null && video.exists && video.alive) func(video);
 	}
 }
 #end

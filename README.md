@@ -12,7 +12,19 @@ Havee fun with NightmareVision V1! (***[follow me on twitter](https://twitter.co
 
 * Rozebud for the chart editor little buddies ([Check out their engine too](https://github.com/ThatRozebudDude/FPS-Plus-Public))
 
+* Cne crew for camera rotation support ([Check out codename engine](https://github.com/CodenameCrew/CodenameEngine))
+
+* MaybeMaru for [MoonChart](https://github.com/MaybeMaru/moonchart) and [Flixel-Animate](https://github.com/MaybeMaru/flixel-animate)
+
+
 ## How to compile NMV Engine
+
+### Quick Note
+- Haxe 4.3.6 or newer is expected
+- This engine ENFORCES the use of local libraries with hxpkg/hmm to prevent issues in relation to `hxvlc`
+- The expected library versions are listed within the .hxpkg file. 
+
+if compilation errors arise, Ensure your Haxe version is correct and your haxelibs match what is listed in the .hxpkg file
 
 ### Download the prerequisites... (skip this if you already have compiled any fnf project, or any flixel project basically lol)
 
@@ -28,15 +40,10 @@ within the VS Community Installer, download `Desktop development with c++`
 
 In a cmd within the project directory, in order run...
 
-> haxelib install hxpkg --global
+> haxelib install hxpkg
 
-> haxelib run hxpkg setup --global
+> haxelib run hxpkg setup
 
-> hxpkg install
-
-### Quick Note
-- This engine ENFORCES the use of local libraries with hxpkg/hmm to prevent issues in relation to `hxvlc`
-- The recommend library versions are within the .hxpkg.
-
+> haxelib run hxpkg install
 
 After that is complete, run `lime test windows` and you should be compiling

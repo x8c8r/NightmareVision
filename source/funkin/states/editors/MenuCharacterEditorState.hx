@@ -38,10 +38,9 @@ class MenuCharacterEditorState extends MusicBeatState
 				confirm_anim: 'M Dad Idle',
 				flipX: false
 			};
-		#if DISCORD_ALLOWED
+			
 		// Updating Discord Rich Presence
 		DiscordClient.changePresence("Menu Character Editor", "Editting: " + characterFile.image);
-		#end
 		
 		grpWeekCharacters = new FlxTypedGroup<MenuCharacter>();
 		for (char in 0...3)
@@ -56,13 +55,13 @@ class MenuCharacterEditorState extends MusicBeatState
 		add(grpWeekCharacters);
 		
 		txtOffsets = new FlxText(20, 10, 0, "[0, 0]", 32);
-		txtOffsets.setFormat("VCR OSD Mono", 32, FlxColor.WHITE, CENTER);
+		txtOffsets.setFormat(Paths.DEFAULT_FONT, 32, FlxColor.WHITE, CENTER);
 		txtOffsets.alpha = 0.7;
 		add(txtOffsets);
 		
 		var tipText:FlxText = new FlxText(0, 540, FlxG.width, "Arrow Keys - Change Offset (Hold shift for 10x speed)
 			\nSpace - Play \"Start Press\" animation (Boyfriend Character Type)", 16);
-		tipText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, CENTER);
+		tipText.setFormat(Paths.DEFAULT_FONT, 16, FlxColor.WHITE, CENTER);
 		tipText.scrollFactor.set();
 		add(tipText);
 		
@@ -242,10 +241,8 @@ class MenuCharacterEditorState extends MusicBeatState
 		confirmInputText.visible = (curTypeSelected == 1);
 		updateOffset();
 		
-		#if DISCORD_ALLOWED
 		// Updating Discord Rich Presence
 		DiscordClient.changePresence("Menu Character Editor", "Editting: " + characterFile.image);
-		#end
 	}
 	
 	override function getEvent(id:String, sender:Dynamic, data:Dynamic, ?params:Array<Dynamic>)
@@ -294,13 +291,13 @@ class MenuCharacterEditorState extends MusicBeatState
 		
 		if (!blockInput)
 		{
-			FlxG.sound.muteKeys = Init.muteKeys;
-			FlxG.sound.volumeDownKeys = Init.volumeDownKeys;
-			FlxG.sound.volumeUpKeys = Init.volumeUpKeys;
+			FlxG.sound.muteKeys = ClientPrefs.muteKeys;
+			FlxG.sound.volumeDownKeys = ClientPrefs.volumeDownKeys;
+			FlxG.sound.volumeUpKeys = ClientPrefs.volumeUpKeys;
 			if (FlxG.keys.justPressed.ESCAPE)
 			{
 				FlxG.switchState(funkin.states.editors.MasterEditorMenu.new);
-				FlxG.sound.playMusic(Paths.music('freakyMenu'));
+				FunkinSound.playMusic(Paths.music('freakyMenu'));
 			}
 			
 			var shiftMult:Int = 1;

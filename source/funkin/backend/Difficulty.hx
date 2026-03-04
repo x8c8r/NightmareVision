@@ -3,6 +3,7 @@ package funkin.backend;
 import funkin.states.PlayState;
 
 // do more wuith this
+@:nullSafety
 class Difficulty
 {
 	/**
@@ -11,9 +12,9 @@ class Difficulty
 	public static final defaultDifficulties:Array<String> = ['Easy', 'Normal', 'Hard'];
 	
 	/**
-	 * Resets the currently loaded difficulties back to default
+	 * Resets the currently loaded difficulties to `defaultDifficulties`
 	 */
-	public static function reset() return (difficulties = defaultDifficulties.copy());
+	public static inline function reset() return (difficulties = defaultDifficulties.copy());
 	
 	/**
 	 * The considered default difficulty. Used to determine which difficulties chart shouldnt have a suffix
@@ -26,27 +27,29 @@ class Difficulty
 	public static var difficulties:Array<String> = reset();
 	
 	/**
-	 * Returns the difficulty suffix from `num`
-	 * @param num 
+	 * Returns the difficulty suffix from an index in `Difficulty.difficulties`
 	 */
-	public static function getDifficultyFilePath(?number:Int)
+	public static function getDifficultyFilePath(number:Int = -1):String
 	{
-		number ??= PlayState.storyDifficulty;
+		if (number == -1) number = PlayState.storyMeta.difficulty;
 		
-		var fileSuffix:String = difficulties[number];
-		if (fileSuffix != defaultDifficulty)
+		var fileSuffix:Null<String> = difficulties[number];
+		
+		if (fileSuffix == null)
 		{
-			fileSuffix = '-' + fileSuffix;
+			Logger.log('difficulty in index $number does not exist');
+			return Paths.sanitize(defaultDifficulty);
 		}
-		else
-		{
-			fileSuffix = '';
-		}
-		return Paths.formatToSongPath(fileSuffix);
+		
+		return Paths.sanitize(fileSuffix);
 	}
 	
-	public static function getCurDifficulty():String
+	/**
+	 * Gets the current difficulty by string.
+	 * @return String
+	 */
+	public static function getCurrentDifficultyString():String
 	{
-		return difficulties[PlayState.storyDifficulty].toUpperCase();
+		return difficulties[PlayState.storyMeta.difficulty] ?? defaultDifficulty;
 	}
 }

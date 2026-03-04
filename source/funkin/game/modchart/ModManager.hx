@@ -1,19 +1,15 @@
 // @author Nebula_Zorua
 package funkin.game.modchart;
 
-import math.Vector3;
-
 import flixel.FlxSprite;
 import flixel.FlxG;
 
-import funkin.game.modchart.Modifier.ModifierType;
 import funkin.game.modchart.modifiers.*;
 import funkin.game.modchart.events.*;
-import funkin.states.*;
 import funkin.objects.*;
 
 // Weird amalgamation of Schmovin' modifier system, Andromeda modifier system and my own new shit -neb
-// todo more safety this crashes too easily
+// todo more safety this crashes too easily //still to do aha..
 class ModManager
 {
 	/**
@@ -40,7 +36,7 @@ class ModManager
 			BeatModifier,
 			AlphaModifier,
 			ReceptorScrollModifier,
-			ScaleModifier, // u cause sustains to break.
+			ScaleModifier,
 			TransformModifier,
 			InfinitePathModifier,
 			AccelModifier,
@@ -51,7 +47,7 @@ class ModManager
 			quickRegister(Type.createInstance(mod, [this]));
 			
 		quickRegister(new RotateModifier(this));
-		quickRegister(new RotateModifier(this, 'center', new Vector3((FlxG.width * 0.5) - (Note.swagWidth / 2), (FlxG.height * 0.5) - Note.swagWidth / 2)));
+		quickRegister(new RotateModifier(this, 'center', Vector3.get((FlxG.width * 0.5) - (Note.swagWidth / 2), (FlxG.height * 0.5) - Note.swagWidth / 2)));
 		quickRegister(new LocalRotateModifier(this, 'local'));
 		quickRegister(new SubModifier("noteSpawnTime", this));
 		setValue("noteSpawnTime", 2000);
@@ -63,14 +59,12 @@ class ModManager
 	private var state:PlayState;
 	
 	public var lanes:Int = 2;
+	public var keys:Int = 4;
 	public var receptors:Array<Array<StrumNote>> = []; // for modifiers to be able to access receptors directly if they need to
 	public var timeline:EventTimeline = new EventTimeline();
 	
 	public var notemodRegister:Map<String, Modifier> = [];
 	public var miscmodRegister:Map<String, Modifier> = [];
-	
-	@:deprecated("Unused in place of notemodRegister and miscModRegister")
-	public var registerByType:Map<ModifierType, Map<String, Modifier>> = [NOTE_MOD => [], MISC_MOD => []];
 	
 	public var register:Map<String, Modifier> = [];
 	
@@ -83,7 +77,6 @@ class ModManager
 	public function registerMod(modName:String, mod:Modifier, ?registerSubmods = true)
 	{
 		register.set(modName, mod);
-		// registerByType.get(mod.getModType()).set(modName, mod);
 		switch (mod.getModType())
 		{
 			case NOTE_MOD:
@@ -210,13 +203,13 @@ class ModManager
 	
 	public function getBaseX(direction:Int, player:Int):Float
 	{
-		var x:Float = (FlxG.width * 0.5) - Note.swagWidth - 54 + Note.swagWidth * direction;
+		var x:Float = (FlxG.width * 0.5) + Note.swagWidth * (direction - (keys / 2) + .5) - 3;
 		switch (player)
 		{
 			case 0:
-				x += FlxG.width * 0.5 - Note.swagWidth * 2 - 100;
+				x += FlxG.width * 0.5 - Note.swagWidth * (keys / 2) - 100;
 			case 1:
-				x -= FlxG.width * 0.5 - Note.swagWidth * 2 - 100;
+				x -= FlxG.width * 0.5 - Note.swagWidth * (keys / 2) - 100;
 		}
 		
 		x -= 56;
@@ -226,40 +219,42 @@ class ModManager
 	
 	public function updateObject(beat:Float, obj:FlxSprite, pos:Vector3, player:Int)
 	{
-		for (name in activeMods[player])
+		obj.x = pos.x;
+		obj.y = pos.y;
+		
+		if (activeMods[player] != null)
 		{
-			var mod:Modifier = notemodRegister.get(name);
-			if (mod == null) continue;
-			if (!obj.active) continue;
-			if ((obj is Note))
+			for (name in activeMods[player])
 			{
-				var o:Note = cast obj;
-				mod.updateNote(beat, o, pos, player);
-			}
-			else if ((obj is StrumNote))
-			{
-				var o:StrumNote = cast obj;
-				mod.updateReceptor(beat, o, pos, player);
+				var mod:Modifier = notemodRegister.get(name);
+				if (mod == null || !obj.active) continue;
+				
+				if ((obj is Note)) mod.updateNote(beat, cast obj, pos, player);
+				else if ((obj is StrumNote)) mod.updateReceptor(beat, cast obj, pos, player);
 			}
 		}
 		
-		if ((obj is Note)) obj.updateHitbox();
-		
+		obj.updateHitbox();
 		obj.centerOrigin();
 		obj.centerOffsets();
 		
 		if (obj is StrumNote)
 		{
 			var strum:StrumNote = cast obj;
-			var strumAnim = strum.animation.curAnim.name;
-			if (strum.animOffsets.exists(strumAnim))
+			
+			final strumAnim = strum.animation.name;
+			final offsetsAdd = strum.animOffsets.get(strumAnim);
+			
+			if (offsetsAdd != null)
 			{
-				strum.offset.x += strum.animOffsets.get(strumAnim)[0];
-				strum.offset.y += strum.animOffsets.get(strumAnim)[1];
+				strum.offset.x += offsetsAdd[0];
+				strum.offset.y += offsetsAdd[1];
 			}
+			
+			strum.offset.x += ((strum.width - Note.swagWidth * strum.scale.x / strum.defScale.x) * .5);
+			strum.offset.y += ((strum.height - Note.swagWidth * strum.scale.y / strum.defScale.y) * .5);
 		}
-		
-		if ((obj is Note))
+		else if ((obj is Note))
 		{
 			var cum:Note = cast obj;
 			cum.offset.x += cum.typeOffsetX;
@@ -274,26 +269,28 @@ class ModManager
 	
 	public inline function getVisPos(songPos:Float = 0, strumTime:Float = 0, songSpeed:Float = 1)
 	{
-		return -getBaseVisPosD(songPos - strumTime, 1);
+		return -getBaseVisPosD(songPos - strumTime, songSpeed);
 	}
 	
 	public function getPos(time:Float, diff:Float, tDiff:Float, beat:Float, data:Int, player:Int, obj:FlxSprite, ?exclusions:Array<String>, ?pos:Vector3):Vector3
 	{
-		if (exclusions == null) exclusions = []; // since [] cant be a default value for.. some reason?? "its not constant!!" kys haxe
-		if (pos == null) pos = new Vector3();
+		if (pos == null) pos = Vector3.get();
 		
 		if (!obj.active) return pos;
 		
 		pos.x = getBaseX(data, player);
 		pos.y = 50 + diff;
 		pos.z = 0;
-		for (name in activeMods[player])
+		if (activeMods[player] != null)
 		{
-			if (exclusions.contains(name)) continue; // because some modifiers may want the path without reverse, for example. (which is actually more common than you'd think!)
-			var mod:Modifier = notemodRegister.get(name);
-			if (mod == null) continue;
-			if (!obj.active) continue;
-			pos = mod.getPos(time, diff, tDiff, beat, pos, data, player, obj);
+			for (name in activeMods[player])
+			{
+				if (exclusions != null && exclusions.contains(name)) continue; // because some modifiers may want the path without reverse, for example. (which is actually more common than you'd think!)
+				var mod:Modifier = notemodRegister.get(name);
+				if (mod == null) continue;
+				if (!obj.active) continue;
+				pos = mod.getPos(time, diff, tDiff, beat, pos, data, player, obj);
+			}
 		}
 		return pos;
 	}

@@ -31,7 +31,7 @@ class FunkinSoundTray extends FlxSoundTray
 		super();
 		removeChildren();
 		
-		var bg:Bitmap = new Bitmap(FunkinAssets.getBitmapData(Paths.getPath('images/soundtray/volumebox.png', IMAGE)));
+		var bg:Bitmap = new Bitmap(FunkinAssets.getBitmapData(Paths.getPath('images/soundtray/volumebox.png')));
 		bg.scaleX = graphicScale;
 		bg.scaleY = graphicScale;
 		bg.smoothing = ClientPrefs.globalAntialiasing;
@@ -41,7 +41,7 @@ class FunkinSoundTray extends FlxSoundTray
 		visible = false;
 		
 		// makes an alpha'd version of all the bars (bar_10.png)
-		var backingBar:Bitmap = new Bitmap(FunkinAssets.getBitmapData(Paths.getPath('images/soundtray/bars_10.png', IMAGE)));
+		var backingBar:Bitmap = new Bitmap(FunkinAssets.getBitmapData(Paths.getPath('images/soundtray/bars_10.png')));
 		backingBar.x = 9;
 		backingBar.y = 5;
 		backingBar.scaleX = graphicScale;
@@ -58,7 +58,7 @@ class FunkinSoundTray extends FlxSoundTray
 		// we are trying to get assets bar_1-10
 		for (i in 1...11)
 		{
-			var bar:Bitmap = new Bitmap(FunkinAssets.getBitmapData(Paths.getPath('images/soundtray/bars_$i.png', IMAGE)));
+			var bar:Bitmap = new Bitmap(FunkinAssets.getBitmapData(Paths.getPath('images/soundtray/bars_$i.png')));
 			bar.x = 9;
 			bar.y = 5;
 			bar.scaleX = graphicScale;

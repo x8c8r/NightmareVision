@@ -15,6 +15,9 @@ class MusicBeatSubstate extends FlxSubState
 		super();
 	}
 	
+	private var curSection:Int = 0;
+	private var stepsToDo:Int = 0;
+	
 	private var lastBeat:Float = 0;
 	private var lastStep:Float = 0;
 	
@@ -29,57 +32,108 @@ class MusicBeatSubstate extends FlxSubState
 	
 	public var scripted:Bool = false;
 	public var scriptName:String = '';
-	public var scriptPrefix:String = 'menus/substates';
-	public var scriptGroup:HScriptGroup = new HScriptGroup();
+	public var scriptPrefix:String = 'substates';
+	public var scriptGroup:ScriptGroup = new ScriptGroup();
 	
-	public function setUpScript(s:String = '', callOnCreate:Bool = true):Bool
+	public function initStateScript(?scriptName:String, callOnLoad:Bool = true):Bool
 	{
-		scriptGroup.parent = this;
-		scriptName = s;
+		if (scriptName == null)
+		{
+			final stateName = Type.getClassName(Type.getClass(this)).split('.').pop();
+			scriptName = stateName ?? '???';
+		}
 		
-		final scriptFile = FunkinIris.getPath('scripts/$scriptPrefix/$scriptName');
-		// trace(FunkinIris.getPath('scripts/$scriptPrefix/$scriptName'));
+		this.scriptName = scriptName;
+		
+		final scriptFile = FunkinScript.getPath('scripts/$scriptPrefix/$scriptName');
 		
 		if (FunkinAssets.exists(scriptFile))
 		{
-			var tScript = FunkinIris.fromFile(scriptFile);
-			if (tScript.__garbage)
+			var _script = FunkinScript.fromFile(scriptFile);
+			if (_script.__garbage)
 			{
-				tScript = FlxDestroyUtil.destroy(tScript);
+				_script = FlxDestroyUtil.destroy(_script);
 				return false;
 			}
 			
-			scriptGroup.addScript(tScript);
+			scriptGroup.parent = this;
+			
+			Logger.log('script [$scriptName] initialized', NOTICE);
+			
+			scriptGroup.addScript(_script);
 			scripted = true;
 		}
 		
-		if (callOnCreate) scriptGroup.call('onCreate', []);
+		if (callOnLoad) scriptGroup.call('onLoad', []);
 		
 		return scripted;
 	}
-	
-	inline function isHardcodedState() return (scriptGroup != null && !scriptGroup.call('customMenu') == true) || (scriptGroup == null);
 	
 	public function refreshZ(?group:FlxTypedGroup<FlxBasic>)
 	{
 		group ??= FlxG.state;
 		group.sort(SortUtil.sortByZ, flixel.util.FlxSort.ASCENDING);
 	}
-		
-
+	
 	override function update(elapsed:Float)
 	{
-		// everyStep();
 		var oldStep:Int = curStep;
 		
 		updateCurStep();
 		updateBeat();
 		
-		if (oldStep != curStep && curStep > 0) stepHit();
+		if (oldStep != curStep)
+		{
+			if (curStep > 0) stepHit();
+			
+			if (PlayState.SONG != null)
+			{
+				if (oldStep < curStep) updateSection();
+				else rollbackSection();
+			}
+		}
 		
 		scriptGroup.call('onUpdate', [elapsed]);
 		
 		super.update(elapsed);
+	}
+	
+	private function updateSection():Void
+	{
+		if (stepsToDo < 1) stepsToDo = Math.round(getBeatsOnSection() * 4);
+		while (curStep >= stepsToDo)
+		{
+			curSection++;
+			var beats:Float = getBeatsOnSection();
+			stepsToDo += Math.round(beats * 4);
+			sectionHit();
+		}
+	}
+	
+	private function rollbackSection():Void
+	{
+		if (curStep < 0) return;
+		
+		var lastSection:Int = curSection;
+		curSection = 0;
+		stepsToDo = 0;
+		for (i in 0...PlayState.SONG.notes.length)
+		{
+			if (PlayState.SONG.notes[i] != null)
+			{
+				stepsToDo += Math.round(getBeatsOnSection() * 4);
+				if (stepsToDo > curStep) break;
+				
+				curSection++;
+			}
+		}
+		
+		if (curSection > lastSection) sectionHit();
+	}
+	
+	function getBeatsOnSection():Float
+	{
+		return PlayState.SONG?.notes[curSection]?.sectionBeats ?? 4.0;
 	}
 	
 	private function updateBeat():Void
@@ -106,6 +160,11 @@ class MusicBeatSubstate extends FlxSubState
 	public function beatHit():Void
 	{
 		scriptGroup.call('onBeatHit', [curBeat]);
+	}
+	
+	public function sectionHit()
+	{
+		scriptGroup.call('onSectionHit');
 	}
 	
 	override function destroy()

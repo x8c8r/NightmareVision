@@ -1,111 +1,195 @@
 package funkin.api;
 
-import Sys.sleep;
-
-import funkin.states.*;
-
-#if LUA_ALLOWED
-import llua.Lua;
-import llua.State;
-#end
-
 #if DISCORD_ALLOWED
-import discord_rpc.DiscordRpc;
+import sys.thread.Thread;
+
+import hxdiscord_rpc.Types.DiscordEventHandlers;
+import hxdiscord_rpc.Types.DiscordUser;
+import hxdiscord_rpc.Discord;
+import hxdiscord_rpc.Types.DiscordRichPresence;
 
 class DiscordClient
 {
-	public static var discordPresences:Array<String> = [];
+	/**
+	 * NightmareVisions specific id
+	 */
+	public static final NMV_ID:String = '1252033037680513115';
 	
-	public static var isInitialized:Bool = false;
+	/**
+	 * Additional thread to run discord tasks without lagspikes
+	 */
+	static var thread:Null<Thread> = null;
 	
-	public function new()
+	/**
+	 * internal bool to check if the discord RPC is initiated
+	 */
+	static var initiated:Bool = false;
+	
+	/**
+	 * The current discord RPC id
+	 * 
+	 * change this to set it to display your own mod
+	 */
+	public static var rpcId(default, set):String = NMV_ID;
+	
+	/**
+	 * The active RPC presence.
+	 * 
+	 * use `changePresence` to change the displayed presence
+	 */
+	public static final discordPresence:DiscordRichPresence = DiscordRichPresence.create();
+	
+	/**
+	 * The string value of the currently connected discord user.
+	 * Only used for gags in individual mods, it serves no real purpose.
+	 */
+	public static var username:String = 'Unknown';
+	
+	/**
+	 * Initiates the discord thread and hooks to `rpcId`
+	 */
+	public static function init()
 	{
-		trace("Discord Client starting...");
-		DiscordRpc.start(
-			{
-				clientID: "1252033037680513115",
-				onReady: onReady,
-				onError: onError,
-				onDisconnected: onDisconnected
-			});
-		trace("Discord Client started.");
+		final discordEventHandlers = DiscordEventHandlers.create();
 		
-		while (true)
+		discordEventHandlers.ready = cpp.Function.fromStaticFunction(onReady);
+		discordEventHandlers.errored = cpp.Function.fromStaticFunction(onError);
+		discordEventHandlers.disconnected = cpp.Function.fromStaticFunction(onDisconnect);
+		
+		Discord.Initialize(rpcId, cpp.RawPointer.addressOf(discordEventHandlers), 1, null);
+		
+		if (thread == null)
 		{
-			DiscordRpc.process();
-			sleep(2);
-			// trace("Discord Client Update");
-		}
-		
-		DiscordRpc.shutdown();
-	}
-	
-	public static function shutdown()
-	{
-		DiscordRpc.shutdown();
-	}
-	
-	static function onReady()
-	{
-		DiscordRpc.presence(
-			{
-				details: "mod",
-				state: null,
-				largeImageKey: 'icon',
-				largeImageText: "mod"
-			});
-	}
-	
-	static function onError(_code:Int, _message:String)
-	{
-		trace('Error! $_code : $_message');
-	}
-	
-	static function onDisconnected(_code:Int, _message:String)
-	{
-		trace('Disconnected! $_code : $_message');
-	}
-	
-	public static function initialize()
-	{
-		var DiscordDaemon = sys.thread.Thread.create(() -> {
-			new DiscordClient();
-		});
-		trace("Discord Client initialized");
-		isInitialized = true;
-	}
-	
-	public static function changePresence(details:String, state:Null<String>, ?smallImageKey:String, ?hasStartTimestamp:Bool, ?endTimestamp:Float)
-	{
-		var startTimestamp:Float = if (hasStartTimestamp) Date.now().getTime() else 0;
-		
-		if (endTimestamp > 0)
-		{
-			endTimestamp = startTimestamp + endTimestamp;
-		}
-		
-		DiscordRpc.presence(
-			{
-				details: details,
-				state: state,
-				largeImageKey: 'icon',
-				largeImageText: "Engine Version: " + Main.NMV_VERSION,
-				smallImageKey: smallImageKey,
-				// Obtained times are in milliseconds so they are divided so Discord can use it
-				startTimestamp: Std.int(startTimestamp / 1000),
-				endTimestamp: Std.int(endTimestamp / 1000)
+			thread = Thread.create(() -> {
+				while (true)
+				{
+					if (initiated)
+					{
+						#if DISCORD_DISABLE_IO_THREAD
+						Discord.UpdateConnection();
+						#end
+						Discord.RunCallbacks();
+					}
+					
+					Sys.sleep(2);
+				}
 			});
 			
-		// trace('Discord RPC Updated. Arguments: $details, $state, $smallImageKey, $hasStartTimestamp, $endTimestamp');
+			FlxG.stage.window.onClose.add(close);
+		}
+		
+		initiated = true;
 	}
 	
-	#if LUA_ALLOWED
-	public static function addLuaCallbacks(lua:State)
+	/**
+	 * Triggered when discord connection fails.
+	 */
+	static function onError(errorCode:Int, message:cpp.ConstCharStar):Void
 	{
-		Lua_helper.add_callback(lua, "changePresence", function(details:String, state:Null<String>, ?smallImageKey:String, ?hasStartTimestamp:Bool, ?endTimestamp:Float) {
-			changePresence(details, state, smallImageKey, hasStartTimestamp, endTimestamp);
-		});
+		Logger.log('Discord Error. [$errorCode: ${(cast message : String)}]');
 	}
-	#end
+	
+	/**
+	 * Triggered when discord connection is lost.
+	 */
+	static function onDisconnect(errorCode:Int, message:cpp.ConstCharStar):Void
+	{
+		Logger.log('Discord Disconnected. [$errorCode: ${(cast message : String)}]');
+	}
+	
+	/**
+	 * Shuts down the current discord RPC
+	 */
+	public static function close():Void
+	{
+		if (initiated) Discord.Shutdown();
+		initiated = false;
+	}
+	
+	/**
+	 * Triggered when discord connection is successfully connected
+	 */
+	static function onReady(request:cpp.RawConstPointer<DiscordUser>):Void
+	{
+		final user:String = cast request[0].username;
+		final discriminator:String = cast request[0].discriminator;
+		
+		username = discriminator != '0' ? '$user#$discriminator' : '$user';
+		var discordUser = '[$username]';
+		
+		Logger.log('Successfully connect to user $discordUser', NOTICE);
+		
+		changePresence();
+	}
+	
+	/**
+	 * Helper function to change the current RPC presence more easily
+	 * @param details 
+	 * @param state 
+	 * @param smallImageKey 
+	 * @param hasStartTimestamp 
+	 * @param endTimestamp 
+	 */
+	public static function changePresence(details:String = 'In the Menus', ?state:String, ?smallImageKey:String, hasStartTimestamp:Bool = false, ?endTimestamp:Float,
+			largeImageKey:String = 'icon'):Void
+	{
+		final startTimestamp:Float = hasStartTimestamp == true ? Date.now().getTime() : 0;
+		
+		if (endTimestamp > 0) endTimestamp = startTimestamp + endTimestamp;
+		
+		discordPresence.state = state;
+		discordPresence.details = details;
+		discordPresence.smallImageKey = smallImageKey;
+		discordPresence.largeImageKey = largeImageKey;
+		discordPresence.largeImageText = 'FNF NMV (${Main.NMV_VERSION})';
+		discordPresence.startTimestamp = Std.int(startTimestamp / 1000);
+		discordPresence.endTimestamp = Std.int(endTimestamp / 1000);
+		
+		updatePresence();
+	}
+	
+	/**
+	 * Refreshes the current presence.
+	 * 
+	 * Call this after changing `discordPresence`
+	 */
+	static function updatePresence():Void
+	{
+		Discord.UpdatePresence(cpp.RawConstPointer.addressOf(discordPresence));
+	}
+	
+	static function set_rpcId(value:String):String
+	{
+		if (rpcId != value && initiated)
+		{
+			rpcId = value;
+			close();
+			init();
+			updatePresence();
+		}
+		return rpcId;
+	}
+}
+#else
+
+/**
+ * Dummy class
+ * 
+ * Does nothing but exists for the cases discord is unavailable.
+ */
+class DiscordClient
+{
+	public static final NMV_ID:String = '';
+	
+	public static var rpcId(default, set):String = '';
+	
+	public static inline function changePresence(details:String = 'In the Menus', ?state:String, ?smallImageKey:String, hasStartTimestamp:Bool = false, ?endTimestamp:Float,
+		largeImageKey:String = 'icon'):Void {}
+		
+	public static function close():Void {}
+	
+	public static function init() {}
+	
+	static function set_rpcId(value:String):String return (rpcId = value);
 }
 #end

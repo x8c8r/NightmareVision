@@ -5,6 +5,7 @@ import flixel.util.FlxSignal;
 
 import funkin.data.Controls;
 
+// this class is honestly gross kill it later
 // import ui.DeviceManager;
 // import props.Player;
 class PlayerSettings

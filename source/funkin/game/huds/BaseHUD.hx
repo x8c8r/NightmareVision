@@ -52,8 +52,17 @@ class BaseHUD extends FlxTypedContainer<FlxBasic>
 	
 	public function onHealthChange(health:Float) {}
 	
-	public function getVar(obj:String):Dynamic
+	public function cachePopUpScore() {}
+	
+	public var alpha(default, set):Float = 1;
+	
+	function set_alpha(v:Float)
 	{
-		return Reflect.getProperty(this, obj);
+		v = FlxMath.bound(v, 0, 1);
+		for (basic in members)
+		{
+			if (basic != null && basic is FlxSprite) (cast basic : FlxSprite).alpha = v;
+		}
+		return alpha = v;
 	}
 }

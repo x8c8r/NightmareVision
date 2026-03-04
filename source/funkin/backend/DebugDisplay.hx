@@ -4,64 +4,146 @@ import openfl.display.BitmapData;
 import openfl.display.Bitmap;
 import openfl.text.TextField;
 import openfl.text.TextFormat;
+import openfl.Assets;
 import openfl.display.Sprite;
 
+import flixel.util.FlxStringUtil;
 import flixel.FlxG;
 
 /**
-	The FPS class provides an easy-to-use monitor to display
-	the current frame rate of an OpenFL project
-**/
+ * enum that handles the display type of the FPS counter.
+ */
+class FpsDisplayMode
+{
+	// if we wanna abuse the abstract part more go back to a abstract
+	// inline static finals get inlined with less garbage than abstract inlines for whatever reason so consider this the most minute optimization ever
+	
+	/**
+	 * The Fps counter will not be shown.
+	 */
+	public static inline final DISABLED:Int = 0;
+	
+	/**
+	 * The Fps counter will show Fps and Memory.
+	 */
+	public static inline final SIMPLE:Int = 1;
+	
+	/**
+	 * The Fps counter will additional info per state.
+	 */
+	public static inline final ADVANCED:Int = 2;
+	
+	public static inline function fromString(str:String):Int
+	{
+		return switch (str)
+		{
+			case 'Advanced': ADVANCED;
+			case 'Simple': SIMPLE;
+			default: DISABLED;
+		}
+	}
+}
+
+// /**
+//  * enum that handles the display type of the FPS counter.
+//  */
+// enum abstract FpsDisplayMode(Int) from Int to Int
+// {
+// 	var DISABLED;
+// 	var SIMPLE;
+// 	var ADVANCED;
+// }
+
+/**
+ * A FL Sprite that displays the current FPS and GC memory
+ */
+@:nullSafety
 class DebugDisplay extends Sprite
 {
-	var updating:Bool = true;
+	public static var instance:Null<DebugDisplay> = null;
 	
-	var text:TextField;
-	var underlay:Bitmap;
+	/**
+	 * Creates a DebugDisplay instance
+	 * 
+	 * Use after your FlxGame is initiated.
+	 */
+	public static function init()
+	{
+		if (FlxG.game?.parent == null || instance != null) return;
+		
+		instance = new DebugDisplay(10, 3, 0xFFFFFF);
+		instance.visible = instance.displayType != FpsDisplayMode.DISABLED;
+		
+		FlxG.game.parent.addChild(instance);
+	}
+	
+	/**
+	 * The visualized text showing the current fps
+	 */
+	final textField:TextField;
+	
+	/**
+	 * The bg for the text
+	 */
+	final textUnderlay:Bitmap;
+	
+	/**
+	 * If disabled, the fps counter will no longer update visually
+	 */
+	var canUpdate:Bool = true;
 	
 	/**
 		The current frame rate, expressed using frames-per-second
 	**/
-	public var currentFPS(default, null):Int;
+	public var currentFPS(default, null):Int = 0;
 	
 	/**
-		The current memory usage (WARNING: this is NOT your total program memory usage, rather it shows the garbage collector memory)
+		The current memory usage of the garbage collector.
 	**/
-	public var memoryMegas(get, never):Float;
+	public var gcMemory(get, never):Float;
 	
-	@:noCompletion private var times:Array<Float>;
+	/**
+	 * The current memory usage of the entire program.
+	 * 
+	 * Only supported on `Windows` currently
+	 */
+	public var taskMemory(get, never):Float;
+	
+	public var displayType:Int = FpsDisplayMode.SIMPLE;
+	
+	var times:Array<Float> = [];
+	
+	var deltaTimeout:Float = 0.0;
 	
 	public function new(x:Float = 10, y:Float = 10, color:Int = 0x000000)
 	{
 		super();
 		
+		textUnderlay = new Bitmap();
+		textUnderlay.bitmapData = new BitmapData(1, 1, true, 0x6F000000);
+		
+		final textFormat = new TextFormat(Assets.getFont("assets/fonts/aller.ttf").fontName, 14, color);
+		textFormat.leading = 5;
+		
+		textField = new TextField();
+		textField.selectable = false;
+		textField.mouseEnabled = false;
+		textField.defaultTextFormat = textFormat;
+		textField.autoSize = LEFT;
+		textField.multiline = true;
+		textField.text = "FPS: ";
+		
+		displayType = FpsDisplayMode.fromString(ClientPrefs.fpsDisplayType);
+		
+		addChild(textUnderlay);
+		addChild(textField);
+		
 		this.x = x;
 		this.y = y;
-		
-		underlay = new Bitmap();
-		underlay.bitmapData = new BitmapData(1, 1, true, 0x6F000000);
-		addChild(underlay);
-		
-		text = new TextField();
-		addChild(text);
-		
-		currentFPS = 0;
-		text.selectable = false;
-		text.mouseEnabled = false;
-		text.defaultTextFormat = new TextFormat("_sans", 14, color);
-		text.autoSize = LEFT;
-		text.multiline = true;
-		text.text = "FPS: ";
-		
-		times = [];
-		
-		FlxG.signals.postStateSwitch.add(() -> updateText = __updateTxt);
 	}
 	
-	var deltaTimeout:Float = 0.0;
-	
 	// Event Handlers
-	private override function __enterFrame(deltaTime:Float):Void
+	override function __enterFrame(deltaTime:Float):Void
 	{
 		final now:Float = haxe.Timer.stamp() * 1000;
 		times.push(now);
@@ -77,35 +159,64 @@ class DebugDisplay extends Sprite
 		
 		currentFPS = times.length < FlxG.updateFramerate ? times.length : FlxG.updateFramerate;
 		updateText();
-		underlay.width = text.width + 3;
-		underlay.height = text.height;
+		textUnderlay.width = textField.width + 3;
+		textUnderlay.height = textField.height + (displayType == FpsDisplayMode.ADVANCED ? 0 : -5);
 		
 		deltaTimeout = 0.0;
 	}
 	
-	dynamic function updateText():Void
+	// rebind this function to set a custom fps counter
+	public dynamic function updateText():Void
 	{
-		__updateTxt();
+		__updateText();
 	}
 	
-	function __updateTxt()
+	function __updateText()
 	{
-		if (!updating) return;
+		displayType = FpsDisplayMode.fromString(ClientPrefs.fpsDisplayType);
+		visible = displayType != FpsDisplayMode.DISABLED;
 		
-		text.text = 'FPS: $currentFPS • Memory: ${flixel.util.FlxStringUtil.formatBytes(memoryMegas)}';
+		if (!canUpdate || (displayType == FpsDisplayMode.DISABLED)) return;
 		
-		text.textColor = 0xFFFFFFFF;
-		if (currentFPS < FlxG.drawFramerate * 0.5) text.textColor = 0xFFFF0000;
+		var str = 'FPS: $currentFPS • [GC: ${FlxStringUtil.formatBytes(gcMemory)} | Task: ${FlxStringUtil.formatBytes(taskMemory)}]';
+		
+		if (displayType == FpsDisplayMode.ADVANCED)
+		{
+			var className = Type.getClassName(Type.getClass(FlxG.state));
+			if (className.indexOf("ScriptedState") != -1)
+			{
+				var scripted:funkin.scripting.ScriptedState = cast FlxG.state;
+				var path = funkin.scripts.FunkinScript.getPath('scripts/states/${scripted.scriptName}');
+				className = 'ScriptedState • (${path.replace('scripts/states/', '../../')})';
+			}
+			
+			str += '\nState: $className';
+			
+			if (className.indexOf('PlayState') != -1)
+				str += '\ncurStep: ${PlayState.instance?.curStep ?? 0} • curBeat: ${PlayState.instance?.curBeat ?? 0} • curSection: ${PlayState.instance?.curSection ?? 0}';
+		}
+		
+		textField.text = str;
 	}
 	
-	inline function get_memoryMegas():Float
+	inline function get_gcMemory():Float
 	{
 		#if cpp
 		return cpp.vm.Gc.memInfo64(cpp.vm.Gc.MEM_INFO_USAGE);
-		#elseif (openfl >= "9.4.0")
-		return cast(openfl.system.System.totalMemoryNumber, UInt);
+		#elseif hl
+		return hl.Gc.stats().currentMemory;
 		#else
-		return cast(openfl.system.System.totalMemory, UInt);
+		return (cast openfl.system.System.totalMemoryNumber : UInt);
+		#end
+	}
+	
+	inline function get_taskMemory():Float
+	{
+		//
+		#if (cpp && windows)
+		return cpp.Windows.getTaskMemory();
+		#else
+		return 0;
 		#end
 	}
 }

@@ -1,14 +1,5 @@
 package funkin.game.modchart.modifiers;
 
-import math.Vector3;
-
-import flixel.FlxSprite;
-import flixel.math.FlxMath;
-import flixel.FlxG;
-
-import funkin.objects.*;
-import funkin.game.modchart.*;
-
 // NOTE: THIS SHOULDNT HAVE ITS PERCENTAGE MODIFIED
 // THIS IS JUST HERE TO ALLOW OTHER MODIFIERS TO HAVE PERSPECTIVE
 // did my research
@@ -26,6 +17,8 @@ class PerspectiveModifier extends NoteModifier
 	
 	override function shouldExecute(player:Int, val:Float) return true;
 	
+	var halfOffset = Vector3.get(FlxG.width / 2, FlxG.height / 2);
+	
 	var fov = Math.PI / 2;
 	var near = 0;
 	var far = 2;
@@ -37,10 +30,12 @@ class PerspectiveModifier extends NoteModifier
 	
 	public function getVector(curZ:Float, pos:Vector3):Vector3
 	{
-		var halfOffset = new Vector3(FlxG.width / 2, FlxG.height / 2);
-		pos = pos.subtract(halfOffset);
+		pos.subtract(halfOffset, pos);
+		
 		var oX = pos.x;
 		var oY = pos.y;
+		
+		pos.put();
 		
 		// should I be using a matrix?
 		// .. nah im sure itll be fine just doing this manually
@@ -59,7 +54,8 @@ class PerspectiveModifier extends NoteModifier
 		var b = 2 * near * far / (near - far);
 		var z = (a * shit + b);
 		// trace(shit, curZ, z, x/z, y/z);
-		var returnedVector = new Vector3(x / z, y / z, z).add(halfOffset);
+		var returnedVector = Vector3.get(x / z, y / z, z);
+		returnedVector.add(halfOffset, returnedVector);
 		
 		return returnedVector;
 	}

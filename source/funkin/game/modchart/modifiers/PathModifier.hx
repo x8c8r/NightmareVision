@@ -1,18 +1,12 @@
 package funkin.game.modchart.modifiers;
 
-import math.Vector3;
-
-import flixel.FlxSprite;
-
-import funkin.game.modchart.*;
-import funkin.objects.*;
-
-typedef PathInfo =
+@:structInit
+class PathInfo
 {
-	var position:Vector3;
-	var dist:Float;
-	var start:Float;
-	var end:Float;
+	public var position:Vector3;
+	public var dist:Float;
+	public var start:Float;
+	public var end:Float;
 }
 
 class PathModifier extends NoteModifier
@@ -70,7 +64,7 @@ class PathModifier extends NoteModifier
 				
 				pathData[dir].push(
 					{
-						position: pos.add(new Vector3(-Note.swagWidth / 2, -Note.swagWidth / 2)),
+						position: pos.add(Vector3.get(-Note.swagWidth / 2, -Note.swagWidth / 2)),
 						start: totalDists[dir],
 						end: 0,
 						dist: 0

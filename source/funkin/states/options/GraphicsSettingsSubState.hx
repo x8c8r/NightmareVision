@@ -4,12 +4,17 @@ import flixel.text.FlxText;
 import flixel.FlxG;
 import flixel.FlxSprite;
 
+import funkin.backend.DebugDisplay;
+
 class GraphicsSettingsSubState extends BaseOptionsMenu
 {
 	public function new()
 	{
 		title = 'Graphics';
 		rpcTitle = 'Graphics Settings Menu'; // for Discord Rich Presence
+		
+		var option:Option = new Option('GPU Caching', 'If checked, GPU caching will be enabled.', 'gpuCaching', 'bool', false);
+		addOption(option);
 		
 		// I'd suggest using "Low Quality" as an example for making your own option since it is the simplest here
 		var option:Option = new Option('Low Quality', // Name
@@ -23,11 +28,19 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 		
 		var option:Option = new Option('Anti-Aliasing', 'If unchecked, disables anti-aliasing, increases performance\nat the cost of sharper visuals.', 'globalAntialiasing', 'bool', true);
-		option.showBoyfriend = true;
+		// option.showBoyfriend = true;
 		option.onChange = onChangeAntiAliasing; // Changing onChange is only needed if you want to make a special interaction after it changes the value
 		addOption(option);
 		
-		#if !html5 // Apparently other framerates isn't correctly supported on Browser? Probably it has some V-Sync shit enabled by default, idk
+		#if !mobile
+		var option:Option = new Option('Time Bar:', "What should the Time Bar display?", 'timeBarType', 'string', 'Time Left', ['Time Left', 'Time Elapsed', 'Song Name', 'Disabled']);
+		
+		var option:Option = new Option('Debug Display Type',
+			'Handles what type of information to display in the top left of your screen.\nSimple displays FPS & Memory, and advanced displays the same alongside debug information.\nDisabled disables the counter entirely.',
+			'fpsDisplayType', 'string', 'Simple', ['Simple', 'Advanced', 'Disabled']);
+		addOption(option);
+		#end
+		
 		var option:Option = new Option('Framerate', "Pretty self explanatory, isn't it?", 'framerate', 'int', 60);
 		addOption(option);
 		
@@ -35,17 +48,6 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 		option.maxValue = 240;
 		option.displayFormat = '%v FPS';
 		option.onChange = onChangeFramerate;
-		#end
-		
-		/*
-			var option:Option = new Option('Persistent Cached Data',
-				'If checked, images loaded will stay in memory\nuntil the game is closed, this increases memory usage,\nbut basically makes reloading times instant.',
-				'imagesPersist',
-				'bool',
-				false);
-			option.onChange = onChangePersistentData; //Persistent Cached Data changes FlxGraphic.defaultPersist
-			addOption(option);
-		 */
 		
 		super();
 	}
@@ -54,13 +56,13 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 	{
 		for (sprite in members)
 		{
-			var sprite:Dynamic = sprite; // Make it check for FlxSprite instead of FlxBasic
-			var sprite:FlxSprite = sprite; // Don't judge me ok
 			if (sprite != null && (sprite is FlxSprite) && !(sprite is FlxText))
 			{
-				sprite.antialiasing = ClientPrefs.globalAntialiasing;
+				(cast sprite : FlxSprite).antialiasing = ClientPrefs.globalAntialiasing;
 			}
 		}
+		
+		FlxSprite.defaultAntialiasing = ClientPrefs.globalAntialiasing;
 	}
 	
 	function onChangeFramerate()

@@ -36,7 +36,6 @@ class MenuCharacter extends FlxSprite
 		if (character == this.character) return;
 		
 		this.character = character;
-		antialiasing = ClientPrefs.globalAntialiasing;
 		visible = true;
 		
 		var dontPlayAnim:Bool = false;
@@ -57,19 +56,19 @@ class MenuCharacter extends FlxSprite
 				var path:String = Paths.modFolders(characterPath);
 				if (!FileSystem.exists(path))
 				{
-					path = Paths.getPrimaryPath(characterPath);
+					path = Paths.getCorePath(characterPath);
 				}
 				
 				if (!FileSystem.exists(path))
 				{
-					path = Paths.getPrimaryPath('images/menucharacters/' + DEFAULT_CHARACTER + '.json');
+					path = Paths.getCorePath('images/menucharacters/' + DEFAULT_CHARACTER + '.json');
 				}
 				rawJson = File.getContent(path);
 				#else
-				var path:String = Paths.getPrimaryPath(characterPath);
+				var path:String = Paths.getCorePath(characterPath);
 				if (!Assets.exists(path))
 				{
-					path = Paths.getPrimaryPath('images/menucharacters/' + DEFAULT_CHARACTER + '.json');
+					path = Paths.getCorePath('images/menucharacters/' + DEFAULT_CHARACTER + '.json');
 				}
 				rawJson = Assets.getText(path);
 				#end

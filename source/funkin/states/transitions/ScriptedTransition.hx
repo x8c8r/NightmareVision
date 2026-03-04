@@ -9,7 +9,7 @@ class ScriptedTransition extends BaseTransitionState
 	
 	public static function setTransition(newTransition:String)
 	{
-		if (!FunkinAssets.exists(funkin.scripts.FunkinIris.getPath('scripts/transitions/$newTransition')))
+		if (!FunkinAssets.exists(funkin.scripts.FunkinScript.getPath('scripts/transitions/$newTransition')))
 		{
 			Logger.log('scripted Transition [$newTransition] not found.', WARN);
 			return;
@@ -22,8 +22,8 @@ class ScriptedTransition extends BaseTransitionState
 	override function create()
 	{
 		scriptPrefix = 'transitions';
-		setUpScript(_transition, false);
+		initStateScript(_transition, false);
 		
-		scriptGroup.call('onCreate', []);
+		scriptGroup.call('onLoad', []);
 	}
 }

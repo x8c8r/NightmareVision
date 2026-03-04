@@ -30,10 +30,16 @@ class HotReloadPlugin extends FlxBasic
 	{
 		super.update(elapsed);
 		
+		#if !debug
+		if (!ClientPrefs.inDevMode) return;
+		#end
+		
 		if (FlxG.keys.justPressed.F5)
 		{
 			FlxTransitionableState.skipNextTransIn = FlxTransitionableState.skipNextTransOut = true;
 			FlxG.resetState();
+			
+			Mods.applyModConfig();
 		}
 		
 		if (FlxG.keys.justPressed.F6)
@@ -42,8 +48,12 @@ class HotReloadPlugin extends FlxBasic
 				FunkinAssets.cache.clearStoredMemory();
 				FunkinAssets.cache.clearUnusedMemory();
 			});
+			funkin.scripting.PluginsManager.populate();
+			
 			FlxTransitionableState.skipNextTransIn = FlxTransitionableState.skipNextTransOut = true;
 			FlxG.resetState();
+			
+			Mods.applyModConfig();
 		}
 	}
 }

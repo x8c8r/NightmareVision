@@ -1,13 +1,5 @@
 package funkin.game.modchart.modifiers;
 
-import math.Vector3;
-
-import flixel.FlxG;
-
-import funkin.states.*;
-import funkin.objects.*;
-import funkin.game.modchart.*;
-
 class ReceptorScrollModifier extends NoteModifier
 {
 	inline function lerp(a:Float, b:Float, c:Float)

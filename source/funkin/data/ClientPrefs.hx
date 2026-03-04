@@ -1,5 +1,7 @@
 package funkin.data;
 
+import funkin.backend.DebugDisplay;
+
 import flixel.input.keyboard.FlxKey;
 import flixel.util.FlxSave;
 
@@ -16,6 +18,15 @@ import funkin.data.Controls.KeyboardScheme;
 @:build(funkin.backend.macro.SaveMacro.buildSaveVars('im gonna make this do smth later okay just not rn'))
 class ClientPrefs
 {
+	// debug ------------------------------------------------------------------------//
+	@saveVar public static var inDevMode:Bool = false;
+	
+	@saveVar public static var fpsDisplayType:String = 'Simple';
+	
+	@saveVar public static var streamedMusic:Bool = false;
+	
+	@saveVar public static var autoPause:Bool = true;
+	
 	// graphics ------------------------------------------------------------------------//
 	@saveVar public static var gpuCaching:Bool = true;
 	
@@ -28,11 +39,13 @@ class ClientPrefs
 	@saveVar public static var framerate:Int = 60;
 	
 	// visuals ------------------------------------------------------------------------//
-	@saveVar public static var jumpGhosts:Bool = true;
+	@saveVar public static var jumpGhosts:Bool = false;
 	
 	@saveVar public static var noteSplashes:Bool = true;
 	
 	@saveVar public static var hideHud:Bool = false;
+	
+	@saveVar public static var showRatings:Bool = true;
 	
 	@saveVar public static var timeBarType:String = 'Time Left';
 	
@@ -44,16 +57,18 @@ class ClientPrefs
 	
 	@saveVar public static var healthBarAlpha:Float = 1;
 	
-	@saveVar public static var showFPS:Bool = true;
-	
 	@saveVar public static var pauseMusic:String = 'Tea Time';
 	
 	@saveVar public static var camFollowsCharacters:Bool = true;
 	
 	// gameplay ------------------------------------------------------------------------//
+	@saveVar public static var guitarHeroSustains:Bool = true;
+	
 	@saveVar public static var controllerMode:Bool = false;
 	
 	@saveVar public static var mechanics:Bool = true;
+	
+	@saveVar public static var modcharts:Bool = true;
 	
 	@saveVar public static var downScroll:Bool = false;
 	
@@ -85,8 +100,9 @@ class ClientPrefs
 	
 	@saveVar public static var noteOffset:Int = 0;
 	
-	@saveVar public static var noteSkin:String = 'Vanilla';
+	@saveVar public static var quants:Bool = false;
 	
+	// @saveVar public static var noteSkin:String = 'Vanilla';
 	@saveVar public static var comboOffset:Array<Int> = [0, 0, 0, 0];
 	
 	@saveVar public static var gameplaySettings:Map<String, Dynamic> = [
@@ -111,6 +127,26 @@ class ClientPrefs
 	];
 	
 	// note colours ------------------------------------------------------------------------//
+	@saveVar public static var arrowRGBdef:Array<Array<FlxColor>> = [
+		[0xFFC24B99, 0xFFFFFFFF, 0xFF3C1F56],
+		[0xFF00FFFF, 0xFFFFFFFF, 0xFF1542B7],
+		[0xFF12FA05, 0xFFFFFFFF, 0xFF0A4447],
+		[0xFFF9393F, 0xFFFFFFFF, 0xFF651038]];
+		
+	@saveVar public static var arrowRGBquant:Array<Array<FlxColor>> = [
+		[0xFFE51919, 0xFFFFFF, 0xFF5B0A30], // 4th
+		[0xFF193BE5, 0xFFFFFF, 0xFF0A3B5B], // 8th
+		[0xFFA119E5, 0xFFFFFF, 0xFF1D0A5B], // 12th
+		[0xFF26D93E, 0xFFFFFF, 0xFF24560F], // 16th
+		[0xFF0000B2, 0xFFFFFF, 0xFF002247], // 20th
+		[0xFFA119E5, 0xFFFFFF, 0xFF1D0A5B], // 24th
+		[0xFFE5C319, 0xFFFFFF, 0xFF5B2A0A], // 32nd
+		[0xFFA119E5, 0xFFFFFF, 0xFF1D0A5B], // 48th
+		[0xFF13ECA4, 0xFFFFFF, 0xFF085D18], // 64th
+		[0xFF3A3A6C, 0xFFFFFF, 0xFF17202B], // 96th
+		[0xFF3A3A6C, 0xFFFFFF, 0xFF17202B] // 192nd
+	];
+	
 	@saveVar public static var arrowHSV:Array<Array<Int>> = [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]];
 	@saveVar public static var quantHSV:Array<Array<Int>> = [
 		[0, -20, 0], // 4th
@@ -187,17 +223,57 @@ class ClientPrefs
 		]
 	];
 	
+	/**
+	 * Contains keys that mute the game volume
+	 * 
+	 * default is `0`
+	 */
+	public static var muteKeys:Array<FlxKey> = [FlxKey.ZERO];
+	
+	/**
+	 * Contains keys that turn down the game volume
+	 * 
+	 * default is `-`
+	 */
+	public static var volumeDownKeys:Array<FlxKey> = [FlxKey.NUMPADMINUS, FlxKey.MINUS];
+	
+	/**
+	 * Contains keys that turn up the game volume
+	 * 
+	 * default is `+`
+	 */
+	public static var volumeUpKeys:Array<FlxKey> = [FlxKey.NUMPADPLUS, FlxKey.PLUS];
+	
 	public static function flush()
 	{
-		// FlxG.save.data.achievementsMap = Achievements.achievementsMap;
-		// FlxG.save.data.henchmenDeath = Achievements.henchmenDeath;
-		
 		FlxG.save.flush();
 		
 		var save:FlxSave = new FlxSave();
-		save.bind('controls_v2', 'ninjamuffin99'); // Placing this in a separate save so that it can be manually deleted without removing your Score and stuff
+		save.bind('controls_v2');
 		save.data.customControls = keyBinds;
 		save.close();
+	}
+	
+	public static function tryBindingSave(name:String = 'funkin')
+	{
+		if (FlxG.save.bind(name, CoolUtil.getSavePath()) == false) // coudlnt bind the save so just fallback
+		{
+			@:privateAccess
+			{
+				final file = FlxSave.validate(FlxG.stage.application.meta.get('file'));
+				final path = SaveUtil.getPath('', '$file/$name');
+				
+				if (FileSystem.exists(path))
+				{
+					final corruptedPath = path.withoutExtension() + ' (corrupted) ${Date.now().toString().replace(':', '_')}.sol';
+					FileSystem.rename(path, corruptedPath);
+					
+					trace('Save was corrupted. corrupted save was placed at $corruptedPath');
+				}
+			}
+			
+			FlxG.save.bind(name, CoolUtil.getSavePath());
+		}
 	}
 	
 	/**
@@ -210,8 +286,6 @@ class ClientPrefs
 		if (FlxG.save.data.volume != null) FlxG.sound.volume = FlxG.save.data.volume;
 		
 		if (FlxG.save.data.mute != null) FlxG.sound.muted = FlxG.save.data.mute;
-		
-		if (Main.fpsVar != null) Main.fpsVar.visible = showFPS;
 		
 		if (FlxG.save.data.framerate == null) framerate = Std.int(FlxMath.bound(FlxG.stage.application.window.displayMode.refreshRate, 60, 240));
 		
@@ -227,14 +301,14 @@ class ClientPrefs
 		}
 		
 		var save:FlxSave = new FlxSave();
-		save.bind('controls_v2', 'ninjamuffin99');
+		save.bind('controls_v2');
 		if (save != null && save.data.customControls != null)
 		{
 			CoolUtil.copyMapValues(save.data.customControls, keyBinds);
-			
-			reloadControls();
 		}
-		save.destroy();
+		reloadControls();
+		
+		save = FlxDestroyUtil.destroy(save);
 	}
 	
 	inline public static function getGameplaySetting(name:String, defaultValue:Dynamic):Dynamic
@@ -246,12 +320,13 @@ class ClientPrefs
 	{
 		PlayerSettings.player1.controls.setKeyboardScheme(KeyboardScheme.Solo);
 		
-		FlxG.sound.muteKeys = Init.muteKeys;
-		FlxG.sound.volumeDownKeys = Init.volumeDownKeys;
-		FlxG.sound.volumeUpKeys = Init.volumeUpKeys;
-		Init.muteKeys = copyKey(keyBinds.get('volume_mute'));
-		Init.volumeDownKeys = copyKey(keyBinds.get('volume_down'));
-		Init.volumeUpKeys = copyKey(keyBinds.get('volume_up'));
+		ClientPrefs.muteKeys = copyKey(keyBinds.get('volume_mute'));
+		ClientPrefs.volumeDownKeys = copyKey(keyBinds.get('volume_down'));
+		ClientPrefs.volumeUpKeys = copyKey(keyBinds.get('volume_up'));
+		
+		FlxG.sound.muteKeys = ClientPrefs.muteKeys;
+		FlxG.sound.volumeDownKeys = ClientPrefs.volumeDownKeys;
+		FlxG.sound.volumeUpKeys = ClientPrefs.volumeUpKeys;
 	}
 	
 	public static function copyKey(arrayToCopy:Array<FlxKey>):Array<FlxKey>
@@ -272,5 +347,56 @@ class ClientPrefs
 		}
 		
 		return copiedArray;
+	}
+}
+
+@:access(flixel.util.FlxSave)
+private class SaveUtil
+{
+	static function getPath(localPath:String, name:String):String
+	{
+		// Avoid ever putting .sol files directly in AppData
+		if (localPath == "") localPath = getDefaultLocalPath();
+		
+		var directory = lime.system.System.applicationStorageDirectory;
+		var path = haxe.io.Path.normalize('$directory/../../../$localPath') + "/";
+		
+		name = StringTools.replace(name, "//", "/");
+		name = StringTools.replace(name, "//", "/");
+		
+		if (StringTools.startsWith(name, "/"))
+		{
+			name = name.substr(1);
+		}
+		
+		if (StringTools.endsWith(name, "/"))
+		{
+			name = name.substring(0, name.length - 1);
+		}
+		
+		if (name.indexOf("/") > -1)
+		{
+			var split = name.split("/");
+			name = "";
+			
+			for (i in 0...(split.length - 1))
+			{
+				name += split[i] + "/";
+			}
+			
+			name += split[split.length - 1];
+		}
+		
+		return path + name + ".sol";
+	}
+	
+	static function getDefaultLocalPath()
+	{
+		var meta = openfl.Lib.current.stage.application.meta;
+		var path = meta["company"];
+		if (path == null || path == "") path = "HaxeFlixel";
+		else path = FlxSave.validate(path);
+		
+		return path;
 	}
 }
