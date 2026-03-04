@@ -109,7 +109,7 @@ class FunkinVideoSprite extends FlxVideoSprite
 	 */
 	public function onEnd(func:Void->Void, once:Bool = false, priority:Int = 0)
 	{
-		bitmap.onEndReached.add(func, once, priority);
+		if (bitmap != null) bitmap.onEndReached.add(func, once, priority);
 	}
 	
 	/**
@@ -119,7 +119,7 @@ class FunkinVideoSprite extends FlxVideoSprite
 	 */
 	public function onStart(func:Void->Void, once:Bool = false, priority:Int = 0)
 	{
-		bitmap.onOpening.add(func, once, priority);
+		if (bitmap != null) bitmap.onOpening.add(func, once, priority);
 	}
 	
 	/**
@@ -139,7 +139,7 @@ class FunkinVideoSprite extends FlxVideoSprite
 	 */
 	public function onFormat(func:Void->Void, once:Bool = false, priority:Int = 0)
 	{
-		bitmap.onFormatSetup.add(func, once, priority);
+		if (bitmap != null) bitmap.onFormatSetup.add(func, once, priority);
 	}
 	
 	/**
