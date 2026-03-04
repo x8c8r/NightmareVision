@@ -17,6 +17,10 @@ class Splash extends FlxState
 	
 	var spriteEvents:FlxTimer;
 	var logo:FlxSprite;
+
+	#if VIDEOS_ALLOWED
+	var video:FunkinVideoSprite;
+	#end
 	
 	override function create()
 	{
@@ -25,7 +29,7 @@ class Splash extends FlxState
 		
 		FlxTimer.wait(1, () -> {
 			#if VIDEOS_ALLOWED
-			var video = new FunkinVideoSprite();
+			video = new FunkinVideoSprite();
 			add(video);
 			video.onFormat(() -> {
 				video.setGraphicSize(0, FlxG.height);
@@ -53,7 +57,15 @@ class Splash extends FlxState
 				finish();
 			}
 		}
-		
+		#if VIDEOS_ALLOWED
+				if (video != null)
+			{
+				if (FlxG.keys.justPressed.SPACE || FlxG.keys.justPressed.ENTER)
+				{
+							finish();
+					}
+			}
+		#end
 		super.update(elapsed);
 	}
 	
@@ -115,6 +127,10 @@ class Splash extends FlxState
 			spriteEvents.cancel();
 			spriteEvents.destroy();
 		}
+		#if VIDEOS_ALLOWED
+		video.stop();
+		video.destroy();
+		#end
 		complete();
 	}
 	
