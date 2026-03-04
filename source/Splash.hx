@@ -4,7 +4,9 @@ import flixel.FlxState;
 
 import funkin.FunkinAssets;
 import funkin.states.TitleState;
+#if VIDEOS_ALLOWED
 import funkin.video.FunkinVideoSprite;
+#end
 
 using StringTools;
 
