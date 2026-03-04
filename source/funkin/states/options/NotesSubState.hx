@@ -1,12 +1,11 @@
 package funkin.states.options;
 
-
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.util.FlxColor;
-import funkin.backend.MusicBeatSubstate;
 
+import funkin.backend.MusicBeatSubstate;
 import funkin.game.shaders.*;
 import funkin.objects.*;
 
@@ -31,13 +30,12 @@ class NotesSubState extends MusicBeatSubstate
 	{
 		super();
 		
-		setUpScript('NotesSubState');
+		initStateScript('NotesSubState');
 		scriptGroup.set('this', this);
 		
 		var bg:FlxSprite = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
 		bg.color = 0xFFea71fd;
 		bg.screenCenter();
-		bg.antialiasing = ClientPrefs.globalAntialiasing;
 		add(bg);
 		
 		blackBG = new FlxSprite(posX - 25).makeGraphic(870, 200, FlxColor.BLACK);
@@ -64,7 +62,6 @@ class NotesSubState extends MusicBeatSubstate
 			var animations:Array<String> = ['purple0', 'blue0', 'green0', 'red0'];
 			note.animation.addByPrefix('idle', animations[i]);
 			note.animation.play('idle');
-			note.antialiasing = ClientPrefs.globalAntialiasing;
 			grpNotes.add(note);
 			
 			var newShader:HSLColorSwap = new HSLColorSwap();

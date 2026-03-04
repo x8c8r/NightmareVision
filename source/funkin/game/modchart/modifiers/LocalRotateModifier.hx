@@ -1,13 +1,5 @@
 package funkin.game.modchart.modifiers;
 
-import math.Vector3;
-
-import flixel.FlxSprite;
-import flixel.FlxG;
-
-import funkin.objects.*;
-import funkin.game.modchart.*;
-
 class LocalRotateModifier extends NoteModifier
 { // this'll be rotateX in ModManager
 	override function getName() return '${prefix}rotateX';
@@ -30,14 +22,17 @@ class LocalRotateModifier extends NoteModifier
 	// thanks schmoovin'
 	function rotateV3(vec:Vector3, xA:Float, yA:Float, zA:Float):Vector3
 	{
-		var rotateZ = CoolUtil.rotate(vec.x, vec.y, zA);
-		var offZ = new Vector3(rotateZ.x, rotateZ.y, vec.z);
+		var rotateZ = MathUtil.rotate(vec.x, vec.y, zA);
+		var offZ = Vector3.get(rotateZ.x, rotateZ.y, vec.z);
 		
-		var rotateX = CoolUtil.rotate(offZ.z, offZ.y, xA);
-		var offX = new Vector3(offZ.x, rotateX.y, rotateX.x);
+		var rotateX = MathUtil.rotate(offZ.z, offZ.y, xA);
+		var offX = Vector3.get(offZ.x, rotateX.y, rotateX.x);
 		
-		var rotateY = CoolUtil.rotate(offX.x, offX.z, yA);
-		var offY = new Vector3(rotateY.x, offX.y, rotateY.y);
+		var rotateY = MathUtil.rotate(offX.x, offX.z, yA);
+		var offY = Vector3.get(rotateY.x, offX.y, rotateY.y);
+		
+		offZ.put();
+		offX.put();
 		
 		rotateZ.putWeak();
 		rotateX.putWeak();
@@ -48,25 +43,29 @@ class LocalRotateModifier extends NoteModifier
 	
 	override function getPos(time:Float, visualDiff:Float, timeDiff:Float, beat:Float, pos:Vector3, data:Int, player:Int, obj:FlxSprite)
 	{
-		var x:Float = (FlxG.width * 0.5) - Note.swagWidth - 54 + Note.swagWidth * 1.5;
+		var x:Float = (FlxG.width * 0.5);
 		switch (player)
 		{
 			case 0:
-				x += FlxG.width * 0.5 - Note.swagWidth * 2 - 100;
+				x += FlxG.width * 0.5 - Note.swagWidth * (modMgr.keys / 2) - 100;
 			case 1:
-				x -= FlxG.width * 0.5 - Note.swagWidth * 2 - 100;
+				x -= FlxG.width * 0.5 - Note.swagWidth * (modMgr.keys / 2) - 100;
 		}
 		
 		x -= 56;
 		
-		var origin:Vector3 = new Vector3(x, FlxG.height * 0.5 - Note.swagWidth * 0.5);
+		var origin:Vector3 = Vector3.get(x, FlxG.height * 0.5 - Note.swagWidth * 0.5);
 		
 		var diff = pos.subtract(origin);
 		var scale = FlxG.height;
 		diff.z *= scale;
 		var out = rotateV3(diff, getValue(player), getSubmodValue('${prefix}rotateY', player), getSubmodValue('${prefix}rotateZ', player));
 		out.z /= scale;
-		return origin.add(out);
+		
+		origin.add(out, pos);
+		out.put();
+		
+		return pos;
 	}
 	
 	override function getSubmods()

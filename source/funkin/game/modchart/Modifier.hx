@@ -1,18 +1,14 @@
 // @author Nebula_Zorua
 package funkin.game.modchart;
 
-import math.Vector3;
-
-import flixel.FlxSprite;
-
 import funkin.objects.*;
 
 // Based on Schmovin' and Andromeda's modifier systems
 
-enum ModifierType
+enum abstract ModifierType(String)
 {
-	NOTE_MOD; // used when the mod moves notes
-	MISC_MOD; // used for anything else
+	var NOTE_MOD; // used when the mod moves notes
+	var MISC_MOD; // used for anything else
 }
 
 enum abstract ModifierOrder(Int) to Int

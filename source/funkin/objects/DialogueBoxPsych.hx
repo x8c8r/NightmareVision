@@ -69,7 +69,6 @@ class DialogueCharacter extends FlxSprite
 		frames = Paths.getSparrowAtlas('dialogue/' + jsonFile.image);
 		reloadAnimations();
 		
-		antialiasing = ClientPrefs.globalAntialiasing;
 		if (jsonFile.no_antialiasing == true) antialiasing = false;
 	}
 	
@@ -82,16 +81,16 @@ class DialogueCharacter extends FlxSprite
 		var path:String = Paths.modFolders(characterPath);
 		if (!FileSystem.exists(path))
 		{
-			path = Paths.getPrimaryPath(characterPath);
+			path = Paths.getCorePath(characterPath);
 		}
 		
 		if (!FileSystem.exists(path))
 		{
-			path = Paths.getPrimaryPath('images/dialogue/' + DEFAULT_CHARACTER + '.json');
+			path = Paths.getCorePath('images/dialogue/' + DEFAULT_CHARACTER + '.json');
 		}
 		rawJson = File.getContent(path);
 		#else
-		var path:String = Paths.getPrimaryPath(characterPath);
+		var path:String = Paths.getCorePath(characterPath);
 		rawJson = Assets.getText(path);
 		#end
 		
@@ -168,15 +167,15 @@ class DialogueCharacter extends FlxSprite
 	}
 }
 
-// TO DO: Clean code? Maybe? idk
+// TO DO: Clean code? Maybe? idk //im so srs if i touch this again its a entire rewrite
 class DialogueBoxPsych extends FlxSpriteGroup
 {
 	var dialogue:Alphabet;
 	var dialogueList:DialogueFile = null;
 	
 	public var finishThing:Void->Void;
-	public var nextDialogueThing:Void->Void = null;
-	public var skipDialogueThing:Void->Void = null;
+	public var nextDialogueThing:Null<Void->Void> = null;
+	public var skipDialogueThing:Null<Void->Void> = null;
 	
 	var bgFade:FlxSprite = null;
 	var box:FlxSprite;
@@ -199,7 +198,7 @@ class DialogueBoxPsych extends FlxSpriteGroup
 		
 		if (song != null && song != '')
 		{
-			FlxG.sound.playMusic(Paths.music(song), 0);
+			FunkinSound.playMusic(Paths.music(song), 0);
 			FlxG.sound.music.fadeIn(2, 0, 1);
 		}
 		
@@ -215,7 +214,6 @@ class DialogueBoxPsych extends FlxSpriteGroup
 		box = new FlxSprite(70, 370);
 		box.frames = Paths.getSparrowAtlas('speech_bubble');
 		box.scrollFactor.set();
-		box.antialiasing = ClientPrefs.globalAntialiasing;
 		box.animation.addByPrefix('normal', 'speech bubble normal', 24);
 		box.animation.addByPrefix('normalOpen', 'Speech Bubble Normal Open', 24, false);
 		box.animation.addByPrefix('angry', 'AHH speech bubble', 24);
@@ -586,15 +584,10 @@ class DialogueBoxPsych extends FlxSpriteGroup
 		}
 	}
 	
-	public static function parseDialogue(path:String):DialogueFile
+	public static function parseDialogue(path:String):Null<DialogueFile>
 	{
-		#if MODS_ALLOWED
-		if (FileSystem.exists(path))
-		{
-			return cast Json.parse(File.getContent(path));
-		}
-		#end
-		return cast Json.parse(Assets.getText(path));
+		if (FunkinAssets.exists(path, TEXT)) return cast Json.parse(FunkinAssets.getContent(path));
+		else return null;
 	}
 	
 	public static function updateBoxOffsets(box:FlxSprite)

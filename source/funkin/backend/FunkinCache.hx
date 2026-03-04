@@ -1,15 +1,45 @@
 package funkin.backend;
 
+import haxe.ds.IntMap;
+
+import flixel.util.FlxStringUtil;
+
 import openfl.Assets;
 
 import flixel.graphics.FlxGraphic;
-import flixel.system.FlxAssets;
 
 import openfl.display.BitmapData;
 import openfl.media.Sound;
 
+class CacheMap<T>
+{
+	public function new() {}
+	
+	public var cache:Map<String, T> = [];
+	public var permanentKeys:Array<String> = [];
+	
+	public function get(key:String):Null<T> return cache.get(key);
+	
+	public function exists(key:String) return cache.exists(key);
+	
+	public function set(key:String, value:T) cache.set(key, value);
+	
+	public function remove(key:String) return cache.remove(key);
+	
+	public function keys() return cache.keys();
+	
+	/**
+	 * Adds a key to be considered permanent to the cache.
+	 */
+	public function addPermanentKey(key:String)
+	{
+		if (!permanentKeys.contains(key)) permanentKeys.push(key);
+	}
+}
+
 @:access(openfl.display.BitmapData)
 @:nullSafety
+@:allow(funkin.FunkinAssets)
 class FunkinCache
 {
 	/**
@@ -17,24 +47,30 @@ class FunkinCache
 	 * 
 	 * use `clearUnusedMemory` afterwards to purge everything
 	 */
-	public function clearStoredMemory()
+	public function clearStoredMemory() // maybe rename
 	{
-		@:privateAccess
-		for (key in FlxG.bitmap._cache.keys())
-		{
-			if (!currentTrackedGraphics.exists(key) && !key.startsWith('NMV_DEBUG'))
-			{
-				disposeGraphic(FlxG.bitmap.get(key));
-			}
-		}
+		// @:privateAccess
+		// for (key in FlxG.bitmap._cache.keys())
+		// {
+		// 	// ok this is dumb fix this later
+		// 	if (!currentTrackedGraphics.exists(key)
+		// 		&& !key.startsWith('pixels')
+		// 		&& !key.contains('editors/notification_neutral.png')
+		// 		&& !key.contains('editors/notification_success.png')
+		// 		&& !key.contains('editors/notification_warn.png')) // for haxeui is a bit hacky will do for now //find out hwo to avoid haxeui nicer or just do a different caching method //rewrite soonish ok.
+		// 	{
+		// 		disposeGraphic(FlxG.bitmap.get(key));
+		// 	}
+		// }
+		
+		Paths.tempAtlasFramesCache.clear();
 		
 		// clear all sounds that are cached
 		for (key in currentTrackedSounds.keys())
 		{
-			if (!localTrackedAssets.contains(key) && !dumpExclusions.contains(key) && key != null)
+			if (!localTrackedAssets.contains(key) && !currentTrackedSounds.permanentKeys.contains(key))
 			{
-				Assets.cache.clear(key);
-				currentTrackedSounds.remove(key);
+				removeFromCache(key);
 			}
 		}
 		// flags everything to be cleared out next unused memory clear
@@ -49,10 +85,9 @@ class FunkinCache
 	{
 		for (key in currentTrackedGraphics.keys())
 		{
-			if (!localTrackedAssets.contains(key) && !dumpExclusions.contains(key))
+			if (!localTrackedAssets.contains(key) && !currentTrackedGraphics.permanentKeys.contains(key))
 			{
-				disposeGraphic(currentTrackedGraphics.get(key));
-				currentTrackedGraphics.remove(key);
+				removeFromCache(key);
 			}
 		}
 		
@@ -62,19 +97,47 @@ class FunkinCache
 		#end
 	}
 	
-	public function new() {}
+	function new() {}
 	
-	public final currentTrackedGraphics:Map<String, FlxGraphic> = [];
+	public final currentTrackedGraphics:CacheMap<FlxGraphic> = new CacheMap();
 	
-	public final currentTrackedSounds:Map<String, Sound> = [];
+	public final currentTrackedSounds:CacheMap<Sound> = new CacheMap();
 	
 	public final localTrackedAssets:Array<String> = [];
 	
-	public final dumpExclusions:Array<String> = ['assets/music/freakyMenu.${Paths.SOUND_EXT}'];
-	
-	public function excludeAsset(key:String)
+	/**
+	 * Removes a asset from the cache
+	 * @param key 
+	 * @param disposeToo 
+	 * @return Bool
+	 */
+	public function removeFromCache(key:String, disposeToo:Bool = true):Bool
 	{
-		if (!dumpExclusions.contains(key)) dumpExclusions.push(key);
+		if (currentTrackedGraphics.exists(key))
+		{
+			if (disposeToo) disposeGraphic(currentTrackedGraphics.get(key));
+			currentTrackedGraphics.remove(key);
+			
+			// #if VERBOSE_LOGS
+			// Logger.log('Cleared Graphic [$key]');
+			// #end
+			
+			return true;
+		}
+		
+		if (currentTrackedSounds.exists(key))
+		{
+			if (disposeToo) Assets.cache.clear(key);
+			currentTrackedSounds.remove(key);
+			
+			// #if VERBOSE_LOGS
+			// Logger.log('Cleared Sound [$key]');
+			// #end
+			
+			return true;
+		}
+		
+		return false;
 	}
 	
 	/**
@@ -99,21 +162,7 @@ class FunkinCache
 	{
 		if (allowGPU && ClientPrefs.gpuCaching)
 		{
-			if (bitmap.__texture == null)
-			{
-				bitmap.image.premultiplied = true;
-				bitmap.getTexture(FlxG.stage.context3D);
-			}
-			bitmap.getSurface();
 			bitmap.disposeImage();
-			
-			@:nullSafety(Off)
-			{
-				bitmap.image.data = null;
-				bitmap.image = null;
-			}
-			
-			bitmap.readable = true;
 		}
 		
 		var newGraphic:FlxGraphic = FlxGraphic.fromBitmapData(bitmap, false, key);
@@ -132,5 +181,13 @@ class FunkinCache
 		localTrackedAssets.push(key);
 		
 		return sound;
+	}
+	
+	public function toString():String
+	{
+		final bmpCache = [for (key in currentTrackedGraphics.keys()) key];
+		final sndCache = [for (key in currentTrackedSounds.keys()) key];
+		
+		return 'Bmp Cache: $bmpCache\nSnd Cache: $sndCache';
 	}
 }

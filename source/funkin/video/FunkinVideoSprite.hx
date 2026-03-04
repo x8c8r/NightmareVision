@@ -5,6 +5,8 @@ package funkin.video;
 import hxvlc.flixel.FlxVideoSprite;
 import hxvlc.util.Location;
 
+import funkin.backend.PlayerSettings;
+
 // with hxvlcs improvements this is less needed but still has its values
 
 /**
@@ -31,6 +33,11 @@ import hxvlc.util.Location;
 class FunkinVideoSprite extends FlxVideoSprite
 {
 	/**
+	 * All currently active video instances
+	 */
+	public static final instances:Array<FunkinVideoSprite> = [];
+	
+	/**
 	 * Video loading argument to make the video loop
 	 * 
 	 * Usage:
@@ -50,7 +57,7 @@ class FunkinVideoSprite extends FlxVideoSprite
 	 * ```
 	 */
 	public static final muted:String = ':no-audio';
-
+	
 	/**
 	 * Manually initiates the Libvlc instance
 	 */
@@ -64,12 +71,29 @@ class FunkinVideoSprite extends FlxVideoSprite
 	 * 
 	 * Disable this if you dont want your video to pause when paused in `PlayState`
 	 */
-	public var isStateAffected:Bool = true;
-
+	public var tiedToGame:Bool = true;
+	
 	/**
-    * Bool that decides if the video can be skipped.
-    */
+	 * Bool that decides if the video can be skipped.
+	 */
 	public var canSkip:Bool = false;
+	
+	/**
+	 * The playback speed of the video. 1.0 is normal speed.
+	 */
+	public var playbackRate(default, set):Float = 1.0;
+	
+	function set_playbackRate(value:Float):Float
+	{
+		if (bitmap != null) bitmap.rate = value;
+		
+		return playbackRate = value;
+	}
+	
+	/** Returns whether the video is currently playing. */
+	public var isPlaying(get, never):Bool;
+	
+	inline function get_isPlaying():Bool return bitmap != null && bitmap.isPlaying;
 	
 	/**
 	 * Creates a new FunkinVideoSprite
@@ -97,6 +121,18 @@ class FunkinVideoSprite extends FlxVideoSprite
 		});
 	}
 	
+	// flxvideosprite already contains these 2
+	// /** Pauses the video. */
+	// public function pause()
+	// {
+	// 	if (bitmap != null) bitmap.pause();
+	// }
+	// /** Resumes the video. */
+	// public function resume()
+	// {
+	// 	if (bitmap != null) bitmap.resume();
+	// }
+	
 	/**
 	 * Adds a event to be dispatched when the video reaches its end
 	 * @param func the event to be called
@@ -104,8 +140,7 @@ class FunkinVideoSprite extends FlxVideoSprite
 	 */
 	public function onEnd(func:Void->Void, once:Bool = false, priority:Int = 0)
 	{
-		if (bitmap != null)
-			bitmap.onEndReached.add(func, once, priority);
+		if (bitmap != null) bitmap.onEndReached.add(func, once, priority);
 	}
 	
 	/**
@@ -115,8 +150,7 @@ class FunkinVideoSprite extends FlxVideoSprite
 	 */
 	public function onStart(func:Void->Void, once:Bool = false, priority:Int = 0)
 	{
-		if (bitmap != null)
-			bitmap.onOpening.add(func, once, priority);
+		if (bitmap != null) bitmap.onOpening.add(func, once, priority);
 	}
 	
 	/**
@@ -136,32 +170,44 @@ class FunkinVideoSprite extends FlxVideoSprite
 	 */
 	public function onFormat(func:Void->Void, once:Bool = false, priority:Int = 0)
 	{
-		if (bitmap != null)
-			bitmap.onFormatSetup.add(func, once, priority);
+		if (bitmap != null) bitmap.onFormatSetup.add(func, once, priority);
 	}
-
+	
 	/**
-     * Stops the video immediately and triggers the onEndReached event.
-     * Useful for skipping cutscenes.
-     */
-     public function skip() {
-		 if (bitmap != null && bitmap.isPlaying)
-		 {
-			 bitmap.stop();
-		 }
-	 }
-
-
-	override public function update(elapsed:Float) 
+	 * Stops the video immediately and triggers the onEndReached event.
+	 * Useful for skipping cutscenes.
+	 */
+	public function skip()
 	{
-		if (canSkip && controls.ACCEPT) 
+		if (bitmap != null && bitmap.isPlaying)
+		{
+			bitmap.stop();
+		}
+	}
+	
+	override public function update(elapsed:Float)
+	{
+		if (canSkip && PlayerSettings.player1.controls.ACCEPT)
 		{
 			skip();
 		}
 	}
 	
+	/**
+	 * Quickly scales and centers the video to fit the entire screen.
+	 * Best used inside the `onFormat` callback!
+	 */
+	public function fitToScreen()
+	{
+		setGraphicSize(FlxG.width, FlxG.height);
+		updateHitbox();
+		screenCenter();
+	}
+	
 	override function destroy()
 	{
+		if (instances.contains(this)) instances.remove(this);
+		
 		if (bitmap != null)
 		{
 			bitmap.stop();
@@ -176,6 +222,24 @@ class FunkinVideoSprite extends FlxVideoSprite
 		}
 		
 		super.destroy();
+	}
+	
+	/**
+	 * Iterates over `FunkinVideoSprite.instances` and calls a function on them
+	 */
+	public static function forEach(func:FunkinVideoSprite->Void)
+	{
+		for (video in instances)
+			if (video != null) func(video);
+	}
+	
+	/**
+	 * Iterates over `FunkinVideoSprite.instances` and calls a function on them
+	 */
+	public static function forEachAlive(func:FunkinVideoSprite->Void)
+	{
+		for (video in instances)
+			if (video != null && video.exists && video.alive) func(video);
 	}
 }
 #end

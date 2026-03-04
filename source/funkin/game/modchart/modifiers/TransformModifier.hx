@@ -1,12 +1,5 @@
 package funkin.game.modchart.modifiers;
 
-import math.Vector3;
-
-import flixel.FlxSprite;
-
-import funkin.game.modchart.*;
-import funkin.states.*;
-
 class TransformModifier extends NoteModifier
 { // this'll be transformX in ModManager
 	inline function lerp(a:Float, b:Float, c:Float)

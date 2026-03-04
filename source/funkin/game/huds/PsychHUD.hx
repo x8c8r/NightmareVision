@@ -11,7 +11,7 @@ import funkin.objects.HealthIcon;
 @:access(funkin.states.PlayState)
 class PsychHUD extends BaseHUD
 {
-	var ratingGroup:FlxTypedGroup<FlxSprite>;
+	var ratingGraphic:FlxSprite;
 	var ratingNumGroup:FlxTypedGroup<FlxSprite>;
 	
 	var healthBar:Bar;
@@ -26,9 +26,9 @@ class PsychHUD extends BaseHUD
 	var ratingPrefix:String = "";
 	var ratingSuffix:String = '';
 	var textDivider = '|';
-	var showRating:Bool = true;
-	var showRatingNum:Bool = true;
-	var showCombo:Bool = true;
+	var showRating:Bool = ClientPrefs.showRatings;
+	var showRatingNum:Bool = ClientPrefs.showRatings;
+	var showCombo:Bool = ClientPrefs.showRatings;
 	var updateIconPos:Bool = true;
 	var updateIconScale:Bool = true;
 	var comboOffsets:Null<Array<Int>> = null; // So u can overwrite the users combo offset if needed without messing with clientprefs
@@ -43,32 +43,33 @@ class PsychHUD extends BaseHUD
 		healthBar.leftToRight = false;
 		healthBar.scrollFactor.set();
 		healthBar.visible = !ClientPrefs.hideHud;
-		healthBar.alpha = ClientPrefs.healthBarAlpha;
+		healthBar.alphaMultipler = ClientPrefs.healthBarAlpha;
+		
 		reloadHealthBarColors();
 		add(healthBar);
 		
 		iconP1 = new HealthIcon(parent.boyfriend.healthIcon, true);
 		iconP1.y = healthBar.y - 75;
 		iconP1.visible = !ClientPrefs.hideHud;
-		iconP1.alpha = ClientPrefs.healthBarAlpha;
+		iconP1.alphaMultipler = ClientPrefs.healthBarAlpha;
 		add(iconP1);
 		
 		iconP2 = new HealthIcon(parent.dad.healthIcon, false);
 		iconP2.y = healthBar.y - 75;
 		iconP2.visible = !ClientPrefs.hideHud;
-		iconP2.alpha = ClientPrefs.healthBarAlpha;
+		iconP2.alphaMultipler = ClientPrefs.healthBarAlpha;
 		add(iconP2);
 		
 		scoreTxt = new FlxText(0, healthBar.y + 40, FlxG.width, "", 20);
-		scoreTxt.setFormat(Paths.font("vcr.ttf"), 20, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		scoreTxt.setFormat(Paths.DEFAULT_FONT, 20, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		scoreTxt.scrollFactor.set();
 		scoreTxt.borderSize = 1.25;
 		scoreTxt.visible = !ClientPrefs.hideHud;
 		add(scoreTxt);
 		
 		var showTime:Bool = (ClientPrefs.timeBarType != 'Disabled');
-		timeTxt = new FlxText(PlayState.STRUM_X + (FlxG.width / 2) - 248, 19, 400, "", 32);
-		timeTxt.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		timeTxt = new FlxText(0, 19, FlxG.width, "", 32);
+		timeTxt.setFormat(Paths.DEFAULT_FONT, 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		timeTxt.scrollFactor.set();
 		timeTxt.alpha = 0;
 		timeTxt.borderSize = 2;
@@ -84,25 +85,24 @@ class PsychHUD extends BaseHUD
 		add(timeBar);
 		add(timeTxt);
 		
-		ratingGroup = new FlxTypedGroup();
-		add(ratingGroup);
+		ratingGraphic = new FlxSprite();
+		ratingGraphic.alpha = 0;
+		add(ratingGraphic);
 		
 		ratingNumGroup = new FlxTypedGroup();
 		add(ratingNumGroup);
 		
-		cachePopUpScore();
-		
 		onUpdateScore(0, 0, 0);
 		
-		parent.setOnScripts('healthBar', healthBar);
-		parent.setOnScripts('iconP1', iconP1);
-		parent.setOnScripts('iconP2', iconP2);
-		parent.setOnScripts('scoreTxt', scoreTxt);
-		parent.setOnScripts('timeBar', timeBar);
-		parent.setOnScripts('timeTxt', timeTxt);
-		parent.setOnScripts('ratingPrefix', ratingPrefix);
-		parent.setOnScripts('ratingSuffix', ratingSuffix);
-		parent.setOnScripts('comboOffsets', comboOffsets);
+		parent.scripts.set('healthBar', healthBar);
+		parent.scripts.set('iconP1', iconP1);
+		parent.scripts.set('iconP2', iconP2);
+		parent.scripts.set('scoreTxt', scoreTxt);
+		parent.scripts.set('timeBar', timeBar);
+		parent.scripts.set('timeTxt', timeTxt);
+		parent.scripts.set('ratingPrefix', ratingPrefix);
+		parent.scripts.set('ratingSuffix', ratingSuffix);
+		parent.scripts.set('comboOffsets', comboOffsets);
 		
 		if (comboOffsets == null)
 		{
@@ -127,19 +127,21 @@ class PsychHUD extends BaseHUD
 		final tempScore:String = 'Score: ${FlxStringUtil.formatMoney(score, false)}'
 			+ (!parent.instakillOnMiss ? ' $textDivider Misses: ${misses}' : "")
 			+ ' $textDivider Accuracy: ${str}';
-		
+			
 		if (!missed && !parent.cpuControlled) doScoreBop();
 		
 		scoreTxt.text = '${tempScore}\n';
 	}
 	
+	var scoreTextTwn:Null<FlxTween> = null;
+	
 	public function doScoreBop():Void
 	{
 		if (!ClientPrefs.scoreZoom) return;
 		
-		FlxTween.cancelTweensOf(scoreTxt);
+		scoreTextTwn?.cancel();
 		scoreTxt.scale.set(1.075, 1.075);
-		FlxTween.tween(scoreTxt.scale, {x: 1, y: 1}, 0.2);
+		scoreTextTwn = FlxTween.tween(scoreTxt.scale, {x: 1, y: 1}, 0.2);
 	}
 	
 	public function updateIconsPosition()
@@ -163,13 +165,19 @@ class PsychHUD extends BaseHUD
 	{
 		if (!updateIconScale) return;
 		
-		var mult:Float = FlxMath.lerp(1, iconP1.scale.x, Math.exp(-elapsed * 9));
+		final mult:Float = MathUtil.decayLerp(iconP1.scale.x, 1, 9, elapsed);
 		iconP1.scale.set(mult, mult);
 		iconP1.updateHitbox();
 		
-		var mult:Float = FlxMath.lerp(1, iconP2.scale.x, Math.exp(-elapsed * 9));
+		final mult:Float = MathUtil.decayLerp(iconP2.scale.x, 1, 9, elapsed);
 		iconP2.scale.set(mult, mult);
 		iconP2.updateHitbox();
+	}
+	
+	public function updateIconsAnimation()
+	{
+		iconP1.updateIconAnim(healthBar.percent * 0.01);
+		iconP2.updateIconAnim((100 - healthBar.percent) * 0.01);
 	}
 	
 	public function reloadHealthBarColors()
@@ -199,6 +207,7 @@ class PsychHUD extends BaseHUD
 		
 		updateIconsPosition();
 		updateIconsScale(elapsed);
+		updateIconsAnimation();
 		
 		if (!parent.startingSong && !parent.paused && parent.updateTime && !parent.endingSong)
 		{
@@ -237,9 +246,6 @@ class PsychHUD extends BaseHUD
 	{
 		final newPercent:Null<Float> = FlxMath.remapToRange(FlxMath.bound(healthBar.valueFunction(), healthBar.bounds.min, healthBar.bounds.max), healthBar.bounds.min, healthBar.bounds.max, 0, 100);
 		healthBar.percent = (newPercent != null ? newPercent : 0);
-		
-		iconP1.animation.curAnim.curFrame = (healthBar.percent < 20) ? 1 : 0; // If health is under 20%, change player icon to frame 1 (losing icon), otherwise, frame 0 (normal)
-		iconP2.animation.curAnim.curFrame = (healthBar.percent > 80) ? 1 : 0; // If health is over 80%, change opponent icon to frame 1 (losing icon), otherwise, frame 0 (normal)
 	}
 	
 	override function popUpScore(ratingImage:String,
@@ -251,48 +257,39 @@ class PsychHUD extends BaseHUD
 		
 		if (showRating)
 		{
-			var rating:FlxSprite = ratingGroup.recycle(FlxSprite);
-			rating.alpha = 1;
-			rating.loadGraphic(Paths.image(ratingPrefix + ratingImage + ratingSuffix));
-			rating.screenCenter();
-			rating.x = posX - 40;
-			rating.y -= 60;
-			rating.acceleration.y = 550;
-			rating.velocity.y = -FlxG.random.int(140, 175);
-			rating.velocity.x = -FlxG.random.int(0, 10);
-			rating.x += comboOffsets[0];
-			rating.y -= comboOffsets[1];
-			rating.zIndex = 999;
-			if (ratingGroup.members.length > 1) for (i in ratingGroup.members)
-				ratingGroup.zIndex = ratingGroup.zIndex - 1;
-
-			ratingGroup.add(rating);
-			ratingGroup.sort(funkin.utils.SortUtil.sortByZ, flixel.util.FlxSort.ASCENDING);
-
+			FlxTween.cancelTweensOf(ratingGraphic, ['scale.x', 'scale.y', 'alpha']);
+			ratingGraphic.alpha = 1;
+			ratingGraphic.loadGraphic(Paths.image(ratingPrefix + ratingImage + ratingSuffix));
+			ratingGraphic.screenCenter();
+			ratingGraphic.x = posX - 40;
+			ratingGraphic.y -= 60;
+			ratingGraphic.x += comboOffsets[0];
+			ratingGraphic.y -= comboOffsets[1];
+			
 			if (!PlayState.isPixelStage)
 			{
-				rating.antialiasing = ClientPrefs.globalAntialiasing;
-				rating.scale.set(0.785, 0.785);
-				FlxTween.cancelTweensOf(rating, ['scale.x', 'scale.y']);
-				FlxTween.tween(rating.scale, {x: 0.7, y: 0.7}, 0.5, {ease: FlxEase.expoOut});
+				ratingGraphic.scale.set(0.785, 0.785);
+				FlxTween.tween(ratingGraphic.scale, {x: 0.7, y: 0.7}, 0.5, {ease: FlxEase.expoOut});
 			}
 			else
 			{
-				rating.setGraphicSize(Std.int(rating.width * pixelZoom * 0.85));
+				ratingGraphic.antialiasing = false;
+				ratingGraphic.setGraphicSize(Std.int(ratingGraphic.width * pixelZoom * 0.85));
 			}
-			rating.updateHitbox();
-			
-			FlxTween.tween(rating, {alpha: 0}, 0.2,
-				{
-					onComplete: function(tween:FlxTween) {
-						rating.kill();
-					},
-					startDelay: Conductor.crotchet * 0.001
-				});
+			ratingGraphic.updateHitbox();
+			FlxTween.tween(ratingGraphic, {alpha: 0}, 0.5, {startDelay: Conductor.stepCrotchet * 0.01, ease: FlxEase.expoOut});
 		}
 		
 		if (showRatingNum)
 		{
+			for (i in ratingNumGroup)
+			{
+				if (i.alive)
+				{
+					i.kill();
+				}
+			}
+			
 			var seperatedScore:Array<Int> = [];
 			
 			if (combo >= 1000)
@@ -307,62 +304,50 @@ class PsychHUD extends BaseHUD
 			for (i in seperatedScore)
 			{
 				var numScore:FlxSprite = ratingNumGroup.recycle(FlxSprite);
+				FlxTween.cancelTweensOf(numScore);
+				
 				numScore.loadGraphic(Paths.image(ratingPrefix + 'num' + Std.int(i) + ratingSuffix));
 				numScore.alpha = 1;
-				
 				numScore.screenCenter();
 				numScore.x = posX + (43 * daLoop) - 90;
 				numScore.y += 80;
-				
 				numScore.x += comboOffsets[2];
 				numScore.y -= comboOffsets[3];
 				
 				if (!PlayState.isPixelStage)
 				{
-					numScore.antialiasing = ClientPrefs.globalAntialiasing;
 					numScore.scale.set(0.6, 0.6);
 					FlxTween.cancelTweensOf(numScore, ['scale.x', 'scale.y']);
 					FlxTween.tween(numScore.scale, {x: 0.5, y: 0.5}, 0.5, {ease: FlxEase.expoOut});
 				}
 				else
 				{
+					numScore.antialiasing = false;
+					
 					numScore.setGraphicSize(Std.int(numScore.width * pixelZoom));
 				}
 				numScore.updateHitbox();
-				
-				numScore.acceleration.y = FlxG.random.int(200, 300);
-				numScore.velocity.y = -FlxG.random.int(140, 160);
-				numScore.velocity.x = FlxG.random.float(-5, 5);
-				
 				ratingNumGroup.add(numScore);
+				FlxTween.tween(numScore, {alpha: 0}, 0.5, {startDelay: Conductor.stepCrotchet * 0.01, ease: FlxEase.expoOut});
 				
-				FlxTween.tween(numScore, {alpha: 0}, 0.2,
-					{
-						onComplete: function(tween:FlxTween) {
-							numScore.kill();
-						},
-						startDelay: Conductor.crotchet * 0.002
-					});
-					
 				daLoop++;
 			}
 		}
 	}
 	
-	function cachePopUpScore()
+	override function cachePopUpScore()
 	{
-		final folder:String = PlayState.isPixelStage ? 'pixelUI' : "";
-		
 		var ratings = ["sick", "good", "bad", "shit"];
 		if (ClientPrefs.useEpicRankings) ratings.push('epic');
+		
 		for (rating in ratings)
 		{
-			Paths.image('$folder$rating$ratingSuffix');
+			ratingGraphic.loadGraphic(Paths.image('$ratingPrefix$rating$ratingSuffix'));
 		}
 		
 		for (i in 0...10)
 		{
-			Paths.image('${folder}num$i$ratingSuffix');
+			Paths.image('${ratingPrefix}num$i$ratingSuffix');
 		}
 	}
 }

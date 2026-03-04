@@ -1,36 +1,105 @@
 package funkin;
 
+import haxe.Json;
+import haxe.DynamicAccess;
+
+import grig.audio.SampleRate;
+
+import lime.graphics.Image;
+
 import openfl.utils.Assets;
 
-import haxe.Json;
+import funkin.states.transitions.*;
 
 // modified from modern psych
 // much love okay
 
+/**
+ * Struct defining a mod
+ */
 typedef ModMeta =
 {
-	name:String,
-	global:Bool
+	/**
+	 * The displayed name of the mod
+	 */
+	var name:String;
+	
+	/**
+	 * If true, this mod will be enabled along side the current loaded mod
+	 */
+	var global:Bool;
+	
+	/**
+	 * The description of the credit
+	 */
+	var description:String;
+	
+	/**
+	 * Optional custom discord ID
+	 */
+	var ?discordClientID:String;
+	
+	/**
+	 * Optional custom title for the application
+	 */
+	var ?windowTitle:String;
+	
+	/**
+	 * Optional path to a icon to be used for the application
+	 */
+	var ?iconFile:String;
+	
+	/**
+	 * Optional path to a transition state to be used by default
+	 */
+	var ?defaultTransition:String; // 50 / 50 on this idunno
+	
+	/**
+	 * Optional map of state overrides.
+	 * 
+	 * Any state added here will be redirected to your custom state
+	 * 
+	 * Usage:
+	 * ```json
+	 *     "stateRedirects": 
+	 *      {
+	 *          "TitleState": "myCustomState"
+	 *      }
+	 * ```
+	 */
+	var ?stateRedirects:DynamicAccess<String>;
+	
+	/**
+	 * Optional font that will replace most seen text in the game.
+	 */
+	var ?defaultFont:String;
 }
 
 typedef ModsList =
 {
-	enabled:Array<String>,
-	disabled:Array<String>,
-	all:Array<String>
+	var enabled:Array<String>;
+	var disabled:Array<String>;
+	var all:Array<String>;
 }
+
+// add docs later
 
 class Mods
 {
 	/**
-	 * The current primary loaded mod
+	 * The primary loaded mod's directory
 	 */
-	static public var currentModDirectory:String = '';
+	public static var currentModDirectory:Null<String> = '';
+	
+	/**
+	 * The primary loaded mod's config data
+	 */
+	public static var currentModConfig:Null<ModMeta> = null;
 	
 	public static final ignoreModFolders:Array<String> = [
 		'characters',
-		'custom_events',
-		'custom_notetypes',
+		'events',
+		'notetypes',
 		'data',
 		'songs',
 		'music',
@@ -42,14 +111,13 @@ class Mods
 		'weeks',
 		'fonts',
 		'scripts',
-		'achievements',
-		'noteskins'
+		'noteskins',
 	];
 	
 	/**
 	 * makes `modsList.txt` in the case it doesnt exist
 	 */
-	static function checkFile()
+	static function ensureModsListExists()
 	{
 		if (!FunkinAssets.exists('modsList.txt'))
 		{
@@ -96,7 +164,7 @@ class Mods
 	
 	public static inline function mergeAllTextsNamed(path:String, ?defaultDirectory:String = null, allowDuplicates:Bool = false)
 	{
-		if (defaultDirectory == null) defaultDirectory = Paths.getPrimaryPath();
+		if (defaultDirectory == null) defaultDirectory = Paths.getCorePath();
 		defaultDirectory = defaultDirectory.trim();
 		if (!defaultDirectory.endsWith('/')) defaultDirectory += '/';
 		if (!defaultDirectory.startsWith('assets/')) defaultDirectory = 'assets/$defaultDirectory';
@@ -125,13 +193,6 @@ class Mods
 		var foldersToCheck:Array<String> = [];
 		if (FileSystem.exists(path + fileToFind)) foldersToCheck.push(path + fileToFind);
 		
-		if (Paths.currentLevel != null && Paths.currentLevel != path)
-		{
-			@:privateAccess
-			var pth:String = Paths.getLibraryPathForce(fileToFind, Paths.currentLevel);
-			if (FileSystem.exists(pth)) foldersToCheck.push(pth);
-		}
-		
 		#if MODS_ALLOWED
 		if (mods)
 		{
@@ -157,18 +218,19 @@ class Mods
 		return foldersToCheck;
 	}
 	
-	public static function getPack(?folder:String = null):ModMeta
+	public static function getPack(?folder:String):Null<ModMeta>
 	{
 		#if MODS_ALLOWED
 		if (folder == null) folder = Mods.currentModDirectory;
 		
 		var path = Paths.mods(folder + '/meta.json');
-		if (FileSystem.exists(path))
+		if (FunkinAssets.exists(path))
 		{
-			try
+			final raw = FunkinAssets.getContent(path);
+			if (raw != null && raw.length > 0)
 			{
-				final json = FunkinAssets.getContent(path);
-				if (json != null && json.length > 0) return Json.parse(json);
+				final json:Null<ModMeta> = FunkinAssets.parseJson5(raw);
+				if (json != null) return json;
 			}
 		}
 		#end
@@ -183,7 +245,6 @@ class Mods
 		#if MODS_ALLOWED
 		for (mod in CoolUtil.coolTextFile('modsList.txt'))
 		{
-			// trace('Mod: $mod');
 			if (mod.trim().length < 1) continue;
 			
 			var dat = mod.split("|");
@@ -195,15 +256,20 @@ class Mods
 		return list;
 	}
 	
-	static function updateModList()
+	public static function getListAsArray(?top:String = ''):Array<{folder:String, enabled:Bool}>
 	{
-		#if MODS_ALLOWED
-		checkFile();
-		
-		// Find all that are already ordered
 		var list:Array<{folder:String, enabled:Bool}> = [];
 		var added:Array<String> = [];
+		if (top == null || top == '') top = currentModDirectory;
 		
+		if (top.length >= 1)
+		{
+			if (FileSystem.exists(Paths.mods(top)) && FileSystem.isDirectory(Paths.mods(top)) && !added.contains(top))
+			{
+				added.push(top);
+				list.push({folder: top, enabled: true});
+			}
+		}
 		for (mod in CoolUtil.coolTextFile('modsList.txt'))
 		{
 			var dat:Array<String> = mod.split("|");
@@ -211,13 +277,12 @@ class Mods
 			if (folder.trim().length > 0
 				&& FileSystem.exists(Paths.mods(folder))
 				&& FileSystem.isDirectory(Paths.mods(folder))
-				&& !added.contains(folder))
+				&& !added.contains(folder) && folder != top)
 			{
 				added.push(folder);
 				list.push({folder: folder, enabled: (dat[1] == "1")});
 			}
 		}
-		
 		// Scan for folders that aren't on modsList.txt yet
 		for (folder in getModDirectories())
 		{
@@ -225,34 +290,125 @@ class Mods
 				&& FileSystem.exists(Paths.mods(folder))
 				&& FileSystem.isDirectory(Paths.mods(folder))
 				&& !ignoreModFolders.contains(folder.toLowerCase())
-				&& !added.contains(folder))
+				&& !added.contains(folder) && folder != top)
 			{
 				added.push(folder);
-				list.push({folder: folder, enabled: true}); // i like it false by default. -bb //Well, i like it True! -Shadow Mario (2022)
-				// Shadow Mario (2023): What the fuck was bb thinking
+				list.push({folder: folder, enabled: true});
 			}
 		}
 		
+		return list;
+	}
+	
+	public static function updateModList(top:String = '')
+	{
+		#if MODS_ALLOWED
+		ensureModsListExists();
+		// Find all that are already ordered
+		var list = getListAsArray();
+		
 		// Now save file
+		
 		var fileStr:String = '';
 		for (values in list)
 		{
-			// trace(values);
 			if (fileStr.length > 0) fileStr += '\n';
 			fileStr += values.folder + '|' + (values.enabled ? '1' : '0');
 		}
-		
 		File.saveContent('modsList.txt', fileStr);
 		#end
 	}
 	
 	public static function loadTopMod()
 	{
-		Mods.currentModDirectory = '';
-		
+		currentModDirectory = '';
 		#if MODS_ALLOWED
 		var list:Array<String> = Mods.parseList().enabled;
 		if (list != null && list[0] != null) Mods.currentModDirectory = list[0];
+		applyModConfig();
 		#end
+	}
+	
+	public static function applyModConfig(?directory:String):Void
+	{
+		var pack = getPack(directory);
+		if (pack == null) return;
+		
+		currentModConfig = pack;
+		
+		WindowUtil.setTitle(pack.windowTitle ?? 'Friday Night Funkin');
+		
+		inline function resetIcon()
+		{
+			final path = Paths.getPath('images/branding/icon/icon64.png', null, true);
+			
+			FlxG.stage.window.setIcon(Image.fromBytes(FunkinAssets.getBytes(path)));
+		}
+		
+		if (pack.iconFile != null)
+		{
+			final path = Paths.getPath('images/${pack.iconFile}.png', null, true);
+			
+			if (FunkinAssets.exists(path)) FlxG.stage.window.setIcon(Image.fromBytes(FunkinAssets.getBytes(path)));
+			else
+			{
+				resetIcon();
+				Logger.log('Could not find Icon ${pack.iconFile}', ERROR);
+			}
+		}
+		else resetIcon();
+		
+		if (pack.defaultTransition != null)
+		{
+			switch (pack.defaultTransition.toLowerCase())
+			{
+				case 'base', 'swipe':
+					MusicBeatState.transitionInState = SwipeTransition;
+					MusicBeatState.transitionOutState = SwipeTransition;
+				case 'fade':
+					MusicBeatState.transitionInState = FadeTransition;
+					MusicBeatState.transitionOutState = FadeTransition;
+				default:
+					ScriptedTransition.setTransition(pack.defaultTransition);
+			}
+		}
+		else
+		{
+			MusicBeatState.transitionInState = SwipeTransition;
+			MusicBeatState.transitionOutState = SwipeTransition;
+		}
+		
+		if (pack.discordClientID != null) funkin.api.DiscordClient.rpcId = pack.discordClientID;
+		else funkin.api.DiscordClient.rpcId = DiscordClient.NMV_ID;
+		
+		Paths.DEFAULT_FONT = pack.defaultFont != null && FunkinAssets.exists(Paths.font(pack.defaultFont)) ? Paths.font(pack.defaultFont) : Paths.font('vcr.ttf');
+	}
+	
+	public static function getModIcon(mod:String):String
+	{
+		if (mod.length < 1) mod = currentModDirectory;
+		var retVal = 'branding/icon/fallback';
+		var pack = getPack(mod);
+		if (pack != null && pack.iconFile != null) retVal = pack.iconFile;
+		return retVal;
+	}
+	
+	public static function getModName(mod:String):String
+	{
+		if (mod.length < 1) mod = currentModDirectory;
+		var retVal = mod;
+		var pack = getPack(mod);
+		if (pack != null && pack.name != null) retVal = pack.name;
+		return retVal;
+	}
+	
+	public static function getModFont(mod:String):String
+	{
+		if (mod.length < 1) mod = currentModDirectory;
+		var retVal = Paths.font('vcr.ttf');
+		var pack = getPack(mod);
+		if (pack != null && pack.defaultFont != null) retVal = Paths.font(pack.defaultFont);
+		trace(retVal);
+		return retVal;
 	}
 }

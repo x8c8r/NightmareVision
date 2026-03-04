@@ -9,7 +9,6 @@ import funkin.video.FunkinVideoSprite;
 using StringTools;
 
 @:access(flixel.FlxGame)
-@:access(Main)
 class Splash extends FlxState
 {
 	var _cachedAutoPause:Bool;
@@ -34,7 +33,9 @@ class Splash extends FlxState
 			video.onEnd(finish);
 			if (video.load(Paths.video('intro'))) video.delayAndStart();
 			else
-			#end logoFunc();
+			#end
+			
+			logoFunc();
 		});
 	}
 	
@@ -56,11 +57,19 @@ class Splash extends FlxState
 	
 	function logoFunc()
 	{
-		var folder = FileSystem.readDirectory('assets/images/branding');
-		var img = folder[FlxG.random.int(0, folder.length - 1)];
+		var folder:Array<String> = [];
+		if (!FileSystem.isDirectory('assets/images/branding') || (folder = FileSystem.readDirectory('assets/images/branding')).length == 0)
+		{
+			finish();
+			return;
+		}
+		
+		folder = folder.filter(str -> !FileSystem.isDirectory('assets/images/branding/$str'));
+		
+		var img = FlxG.random.getObject(folder);
 		trace(folder);
 		
-		logo = new FlxSprite().loadGraphic(Paths.image('branding/${img.replace('.png', '')}'));
+		logo = new FlxSprite().loadGraphic(Paths.image('branding/${Path.withoutExtension(img)}'));
 		logo.screenCenter();
 		logo.visible = false;
 		add(logo);
@@ -110,6 +119,6 @@ class Splash extends FlxState
 	function complete()
 	{
 		FlxG.autoPause = _cachedAutoPause;
-		FlxG.switchState(TitleState.new);
+		FlxG.switchState(() -> Type.createInstance(Main.startMeta.initialState, []));
 	}
 }

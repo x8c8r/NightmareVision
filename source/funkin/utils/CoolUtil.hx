@@ -1,81 +1,22 @@
 package funkin.utils;
 
-import flixel.util.typeLimit.NextState;
+import openfl.display.BlendMode;
+
 import flixel.addons.transition.FlxTransitionableState;
-import flixel.math.FlxPoint;
 import flixel.FlxG;
-
-import openfl.utils.Assets;
-
-import funkin.data.StageData;
 
 /**
 	General Utility class for more one off functions
 **/
+@:nullSafety(Strict)
 class CoolUtil
 {
-	/**
-	 * Remaps a value from a range to a new range
-	 * 
-	 * Akin to `FlxMath.remapToRange`
-	 * @param x Input value
-	 * @param l1 Low bound of range 1
-	 * @param h1 High bound of range 1
-	 * @param l2 Low bound of range 2
-	 * @param h2 High bound of range 2
-	 * @return Input value remapped to range 2
-	 */
-	inline public static function scale(x:Float, l1:Float, h1:Float, l2:Float, h2:Float):Float return ((x - l1) * (h2 - l2) / (h1 - l1) + l2);
-	
-	/**
-	 * Clamps/Bounds a value between a range that it cannot go below or over
-	 * 
-	 * Akin to `FlxMath.bound`
-	 * @param n Input value
-	 * @param l Low boundary
-	 * @param h High Boundary
-	 * @return Clamped value
-	 */
-	inline public static function clamp(n:Float, l:Float, h:Float)
-	{
-		if (n > h) n = h;
-		if (n < l) n = l;
-		return n;
-	}
-	
-	/**
-	 * Creates or uses a provided point and rotates it around a given `x` and `y` by radians
-	 * 
-	 * Akin to `new FlxPoint(x,y).radians += angle`
-	 * @param x 
-	 * @param y 
-	 * @param angle 
-	 * @param point 
-	 * @return A rotated FlxPoint
-	 */
-	public static function rotate(x:Float, y:Float, angle:Float, ?point:FlxPoint):FlxPoint
-	{
-		var p = point == null ? FlxPoint.weak() : point;
-		p.set((x * Math.cos(angle)) - (y * Math.sin(angle)), (x * Math.sin(angle)) + (y * Math.cos(angle)));
-		return p;
-	}
-	
-	inline public static function quantizeAlpha(f:Float, interval:Float)
-	{
-		return Std.int((f + interval / 2) / interval) * interval;
-	}
-	
-	inline public static function quantize(f:Float, interval:Float)
-	{
-		return Std.int((f + interval / 2) / interval) * interval;
-	}
-	
 	//-----------------------------------------------------------------//
 	
 	/**
 		capitalizes the first letter of a given `String`
 	**/
-	inline public static function capitalize(text:String):String return text.charAt(0).toUpperCase() + text.substr(1).toLowerCase();
+	public static inline function capitalize(text:String):String return text.charAt(0).toUpperCase() + text.substr(1).toLowerCase();
 	
 	/**
 		Helper Function to Fix Save Files for Flixel 5
@@ -87,8 +28,9 @@ class CoolUtil
 		@crowplexus
 	**/
 	@:access(flixel.util.FlxSave.validate)
-	inline public static function getSavePath():String
+	public static inline function getSavePath():String
 	{
+		@:nullSafety(Off)
 		return '${FlxG.stage.application.meta.get('company')}/${flixel.util.FlxSave.validate(FlxG.stage.application.meta.get('file'))}';
 	}
 	
@@ -128,38 +70,37 @@ class CoolUtil
 
 		should be used lightly as its very performance heavy
 	**/
-	public static function dominantColor(sprite:flixel.FlxSprite):Int
+	public static inline function dominantColor(sprite:Null<flixel.FlxSprite>):Int
 	{
+		if (sprite == null || sprite.pixels.image == null) return FlxColor.BLACK;
+		
 		var countByColor:Map<Int, Int> = [];
 		for (col in 0...sprite.frameWidth)
 		{
 			for (row in 0...sprite.frameHeight)
 			{
-				var colorOfThisPixel:Int = sprite.pixels.getPixel32(col, row);
-				if (colorOfThisPixel != 0)
+				var colorOfThisPixel:FlxColor = sprite.pixels.getPixel32(col, row);
+				if (colorOfThisPixel.alphaFloat > 0.05)
 				{
-					if (countByColor.exists(colorOfThisPixel))
-					{
-						countByColor[colorOfThisPixel] = countByColor[colorOfThisPixel] + 1;
-					}
-					else if (countByColor[colorOfThisPixel] != 13520687 - (2 * 13520687))
-					{
-						countByColor[colorOfThisPixel] = 1;
-					}
+					colorOfThisPixel = FlxColor.fromRGB(colorOfThisPixel.red, colorOfThisPixel.green, colorOfThisPixel.blue, 255);
+					var count:Int = countByColor.get(colorOfThisPixel) ?? 0;
+					countByColor.set(colorOfThisPixel, count + 1);
 				}
 			}
 		}
+		
 		var maxCount = 0;
-		var maxKey:Int = 0; // after the loop this will store the max color
-		countByColor[flixel.util.FlxColor.BLACK] = 0;
-		for (key in countByColor.keys())
+		var maxKey:Int = 0;
+		countByColor.set(FlxColor.BLACK, 0);
+		for (key => count in countByColor)
 		{
-			if (countByColor[key] >= maxCount)
+			if (count >= maxCount)
 			{
-				maxCount = countByColor[key];
+				maxCount = count;
 				maxKey = key;
 			}
 		}
+		
 		return maxKey;
 	}
 	
@@ -255,12 +196,54 @@ class CoolUtil
 			case 'sineout': FlxEase.sineOut;
 			case 'smoothstepin': FlxEase.smoothStepIn;
 			case 'smoothstepinout': FlxEase.smoothStepInOut;
-			case 'smoothstepout': FlxEase.smoothStepInOut;
+			case 'smoothstepout': FlxEase.smoothStepOut;
 			case 'smootherstepin': FlxEase.smootherStepIn;
 			case 'smootherstepinout': FlxEase.smootherStepInOut;
 			case 'smootherstepout': FlxEase.smootherStepOut;
 			default: FlxEase.linear;
 		}
+	}
+	
+	/**
+	 * Gets a `openfl.display.BlendMode` from a string
+	 */
+	public static function getBlendFromString(blend:Null<String>):BlendMode
+	{
+		if (blend == null) return BlendMode.NORMAL;
+		return switch (blend.toLowerCase().trim())
+		{
+			case 'add': BlendMode.ADD;
+			case 'alpha': BlendMode.ALPHA;
+			case 'darken': BlendMode.DARKEN;
+			case 'difference': BlendMode.DIFFERENCE;
+			case 'erase': BlendMode.ERASE;
+			case 'hardlight': BlendMode.HARDLIGHT;
+			case 'invert': BlendMode.INVERT;
+			case 'layer': BlendMode.LAYER;
+			case 'lighten': BlendMode.LIGHTEN;
+			case 'multiply': BlendMode.MULTIPLY;
+			case 'normal': BlendMode.NORMAL;
+			case 'overlay': BlendMode.OVERLAY;
+			case 'screen': BlendMode.SCREEN;
+			case 'shader': BlendMode.SHADER;
+			case 'subtract': BlendMode.SUBTRACT;
+			default: BlendMode.NORMAL;
+		}
+	}
+	
+	/**
+	 * Ensures an array at min has the amount of fields in a fallback
+	 * 
+	 * If the fallback is longer than the input, values in the fallback will be used.
+	 */
+	public static function correctArray<T>(input:Array<T>, fallback:Array<T>) // todo have a good name...
+	{
+		for (i in 0...input.length)
+		{
+			fallback[i] = input[i];
+		}
+		
+		return fallback;
 	}
 	
 	/**
@@ -289,23 +272,5 @@ class CoolUtil
 			@:nullSafety(Off)
 			FlxG.sound.music.fadeTween = null;
 		}
-	}
-	
-	/**
-	 * Switches the currentState and sets the working directory. 
-	 */
-	public static inline function loadAndSwitchState(target:NextState, stopMusic:Bool = false)
-	{
-		var directory:Null<String> = null;
-		var weekDir:Null<String> = StageData.forceNextDirectory;
-		StageData.forceNextDirectory = null;
-		
-		if (weekDir != null && weekDir.length > 0 && weekDir != '') directory = weekDir;
-		
-		Paths.setCurrentLevel(directory);
-		
-		if (stopMusic && FlxG.sound.music != null) FlxG.sound.music.stop();
-		
-		FlxG.switchState(target);
 	}
 }

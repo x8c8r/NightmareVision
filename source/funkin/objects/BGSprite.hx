@@ -2,6 +2,7 @@ package funkin.objects;
 
 import flixel.FlxSprite;
 
+@:nullSafety
 class BGSprite extends FlxSprite
 {
 	var idleAnim:Null<String> = null;
@@ -33,7 +34,6 @@ class BGSprite extends FlxSprite
 			active = false;
 		}
 		scrollFactor.set(scrollX, scrollY);
-		antialiasing = ClientPrefs.globalAntialiasing;
 	}
 	
 	public function dance(?forceplay:Bool = false)
