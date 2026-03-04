@@ -219,6 +219,9 @@ class ModManager
 	
 	public function updateObject(beat:Float, obj:FlxSprite, pos:Vector3, player:Int)
 	{
+		obj.x = pos.x;
+		obj.y = pos.y;
+		
 		if (activeMods[player] != null)
 		{
 			for (name in activeMods[player])
@@ -248,14 +251,14 @@ class ModManager
 				strum.offset.y += offsetsAdd[1];
 			}
 			
-			strum.offset.x += ((strum.width - Note.swagWidth * strum.scale.x / strum.defScale.x) * .5 + strum.miniOffset.x);
-			strum.offset.y += ((strum.height - Note.swagWidth * strum.scale.y / strum.defScale.y) * .5 + strum.miniOffset.y);
+			strum.offset.x += ((strum.width - Note.swagWidth * strum.scale.x / strum.defScale.x) * .5);
+			strum.offset.y += ((strum.height - Note.swagWidth * strum.scale.y / strum.defScale.y) * .5);
 		}
 		else if ((obj is Note))
 		{
 			var cum:Note = cast obj;
-			cum.offset.x += (cum.typeOffsetX + cum.miniOffset.x);
-			cum.offset.y += (cum.typeOffsetY + cum.miniOffset.y);
+			cum.offset.x += cum.typeOffsetX;
+			cum.offset.y += cum.typeOffsetY;
 		}
 	}
 	

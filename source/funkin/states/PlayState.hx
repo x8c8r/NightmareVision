@@ -2071,8 +2071,9 @@ class PlayState extends MusicBeatState
 				strums.forEachAlive(strum -> {
 					final pos = modManager.getPos(0, 0, 0, curDecBeat, strum.noteData, i, strum, tempVector);
 					modManager.updateObject(curDecBeat, strum, pos, i);
-					strum.x = (pos.x + script_STRUMOffsets[strum.noteData].x * strum.scale.x / strum.defScale.x);
-					strum.y = (pos.y + script_STRUMOffsets[strum.noteData].y * strum.scale.y / strum.defScale.y);
+					
+					strum.x += (script_STRUMOffsets[strum.noteData].x * strum.scale.x / strum.defScale.x);
+					strum.y += (script_STRUMOffsets[strum.noteData].y * strum.scale.y / strum.defScale.y);
 				});
 			}
 		}
@@ -2096,9 +2097,6 @@ class PlayState extends MusicBeatState
 				final pos = modManager.getPos(daNote.strumTime, visPos, daNote.strumTime - Conductor.songPosition, curDecBeat, daNote.noteData, daNote.lane, daNote, tempVector);
 				
 				modManager.updateObject(curDecBeat, daNote, pos, daNote.lane);
-				
-				daNote.x = pos.x;
-				daNote.y = pos.y;
 				
 				var scaleXMult:Float = (daNote.scale.x / daNote.defScale.x), scaleYMult:Float = (daNote.scale.y / daNote.defScale.y);
 				
