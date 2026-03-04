@@ -55,6 +55,7 @@ class Note extends FlxSprite
 	
 	public var mustPress:Bool = false;
 	public var noteData:Int = 0;
+	public var hitPriority:Int = 1;
 	public var canBeHit:Bool = false;
 	public var tooLate:Bool = false;
 	public var wasGoodHit:Bool = false;
@@ -206,6 +207,7 @@ class Note extends FlxSprite
 				case 'Alt Animation':
 					animSuffix = '-alt';
 				case 'Hurt Note':
+					hitPriority = 0;
 					ignoreNote = mustPress;
 					missHealth = isSustainNote ? 0.1 : 0.3;
 					hitCausesMiss = true;

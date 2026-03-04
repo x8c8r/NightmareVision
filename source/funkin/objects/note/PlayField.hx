@@ -40,8 +40,8 @@ class PlayField extends FlxTypedContainer<StrumNote>
 	{
 		owner = value;
 		
-		if (singers.length <= 1) singers = [owner];
-		else singers[0] = owner;
+		singers.remove(owner);
+		singers.unshift(owner);
 		
 		return value;
 	}
@@ -489,6 +489,11 @@ class PlayField extends FlxTypedContainer<StrumNote>
 				PlayState.instance.scripts.call('onSpawnNoteSplash', [splash, note]);
 			}
 		}
+	}
+	
+	public inline function canInput():Bool
+	{
+		return (playerControls && inControl && !autoPlayed && (owner == null || !owner.stunned));
 	}
 	
 	override function destroy()

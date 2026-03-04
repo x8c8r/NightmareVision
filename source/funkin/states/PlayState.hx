@@ -624,6 +624,8 @@ class PlayState extends MusicBeatState
 	
 	override public function create():Void
 	{
+		FlxG.sound.music?.stop();
+		
 		FunkinAssets.cache.clearStoredMemory();
 		
 		skipCountdown = false;
@@ -1155,8 +1157,6 @@ class PlayState extends MusicBeatState
 				RecalculateRating(true);
 			});
 			strums.onMissPress.add((key) -> {
-				if (ClientPrefs.ghostTapping) return;
-				
 				audio.miss();
 				
 				if (instakillOnMiss) doDeathCheck(true);
@@ -1529,32 +1529,7 @@ class PlayState extends MusicBeatState
 			}
 		}
 		
-		for (event in getEventsDirect())
-		{
-			final eventName = event.event;
-			
-			if (!eventsPushed.contains(eventName))
-			{
-				var baseScriptFile:String = 'data/events/$eventName';
-				if (!FunkinAssets.exists(FunkinScript.getPath(baseScriptFile), TEXT)) baseScriptFile = 'events/$eventName';
-				
-				final scriptFile = FunkinScript.getPath(baseScriptFile);
-				
-				if (FunkinAssets.exists(scriptFile, TEXT)) eventScripts.addScript(initFunkinScript(scriptFile, eventName));
-				
-				firstEventPush(event);
-				
-				eventsPushed.push(eventName);
-			}
-			
-			event.strumTime -= eventNoteEarlyTrigger(event);
-			eventNotes.push(event);
-			eventPushed(event);
-		}
-		// No need to sort if there's a single one or none at all
-		if (eventNotes.length > 1) eventNotes.sort(SortUtil.sortByTime);
-		
-		speedChanges.sort(SortUtil.svSort);
+		var events = getEventsDirect();
 		
 		var lastPlayfieldNotes:Array<Array<Note>> = [for (i in 0...songData.lanes) [for (i in 0...songData.keys) null]];
 		noteRows = [for (i in 0...songData.lanes) []];
@@ -1571,17 +1546,23 @@ class PlayState extends MusicBeatState
 				var daNoteData:Int = Std.int(songNotes[1] % SONG.keys);
 				var playfield:Int = 0;
 				
-				if (songData.lanes > 1)
+				playfield = Std.int(songNotes[1] / SONG.keys);
+				
+				if (playfield < 0) // legacy event notes
 				{
-					var row:Int = songNotes[1];
+					events.push({
+						strumTime: daStrumTime + ClientPrefs.noteOffset,
+						event: songNotes[2],
+						value1: songNotes[3],
+						value2: songNotes[4]
+					});
 					
-					playfield = Std.int(Math.max(Math.floor(row / SONG.keys), -1));
-					
-					if (playfield >= SONG.lanes) continue;
+					continue;
 				}
 				
-				var realTime = daStrumTime + ClientPrefs.noteOffset,
-					last:Note = lastPlayfieldNotes[playfield][daNoteData];
+				if (playfield >= SONG.lanes) continue;
+				
+				var realTime = daStrumTime - ClientPrefs.noteOffset, last:Note = lastPlayfieldNotes[playfield][daNoteData];
 				if (last != null && Math.abs(realTime - last.strumTime) <= 3) continue;
 				
 				var oldNote:Note = null;
@@ -1651,6 +1632,34 @@ class PlayState extends MusicBeatState
 				}
 			}
 		}
+		
+		for (event in events)
+		{
+			final eventName = event.event;
+			
+			if (!eventsPushed.contains(eventName))
+			{
+				var baseScriptFile:String = 'data/events/$eventName';
+				if (!FunkinAssets.exists(FunkinScript.getPath(baseScriptFile), TEXT)) baseScriptFile = 'events/$eventName';
+				
+				final scriptFile = FunkinScript.getPath(baseScriptFile);
+				
+				if (FunkinAssets.exists(scriptFile, TEXT)) eventScripts.addScript(initFunkinScript(scriptFile, eventName));
+				
+				firstEventPush(event);
+				
+				eventsPushed.push(eventName);
+			}
+			
+			event.strumTime -= eventNoteEarlyTrigger(event);
+			eventNotes.push(event);
+			eventPushed(event);
+		}
+		
+		// No need to sort if there's a single one or none at all
+		if (eventNotes.length > 1) eventNotes.sort(SortUtil.sortByTime);
+		
+		speedChanges.sort(SortUtil.svSort);
 		
 		#if debug
 		trace('loadingChart took: ' + (Sys.time() - cpuTime));
@@ -2942,62 +2951,73 @@ class PlayState extends MusicBeatState
 	
 	function onKeyPress(event:KeyboardEvent):Void
 	{
-		var eventKey:FlxKey = event.keyCode;
-		var key:Int = input.getKeyFromEvent(eventKey);
-		final char = playerStrums?.owner ?? boyfriend;
-		
 		if (cpuControlled || paused || !startedCountdown) return;
 		
-		if (key > -1 && (FlxG.keys.checkStatus(eventKey, JUST_PRESSED) || ClientPrefs.controllerMode))
+		var eventKey:FlxKey = event.keyCode;
+		var key:Int = input.getKeyFromEvent(eventKey);
+		
+		if (key <= -1 || (!FlxG.keys.checkStatus(eventKey, JUST_PRESSED) && !ClientPrefs.controllerMode)) return;
+		
+		var prevTime:Float = Conductor.songPosition;
+		if (audio.inst?.playing) Conductor.songPosition = @:privateAccess audio.inst._channel.position;
+		
+		if (generatedMusic && !endingSong)
 		{
-			if (!char.stunned && generatedMusic && !endingSong)
-			{
-				var canMiss:Bool = !ClientPrefs.ghostTapping;
-				
-				var pressNotes:Array<Note> = [];
-				
-				var ghostTapped:Bool = true;
-				for (field in playFields.members)
-				{
-					if (field.playerControls && field.inControl && !field.autoPlayed)
-					{
-						var sortedNotesList:Array<Note> = field.getTapNotes(key);
-						sortedNotesList.sort((a, b) -> Std.int(a.strumTime - b.strumTime));
-						
-						if (sortedNotesList.length > 0)
-						{
-							pressNotes.push(sortedNotesList[0]);
-							field.onNoteHit.dispatch(sortedNotesList[0], field);
-						}
-					}
-					
-					if (pressNotes.length == 0)
-					{
-						scripts.call('onGhostTap', [key]);
-						if (canMiss)
-						{
-							field.onMissPress.dispatch(key);
-							scripts.call('noteMissPress', [key]);
-						}
-					}
-				}
-			}
+			var anyInput:Bool = false;
+			var ghostTapped:Bool = true;
 			
 			for (field in playFields.members)
 			{
-				if (field.inControl && !field.autoPlayed && field.playerControls && field.playAnims)
+				if (!field.canInput()) continue;
+				
+				anyInput = true;
+				
+				var topNote:Note = null; // we only need the top most note !
+				
+				for (note in field.getTapNotes(key))
 				{
-					var spr:StrumNote = field.members[key];
-					if (spr != null && spr.animation.curAnim != null && spr.animation.curAnim.name != 'confirm')
+					final higherPriority:Bool = (topNote == null || note.hitPriority > topNote.hitPriority);
+					if (higherPriority || (!higherPriority && note.strumTime < topNote.strumTime))
+						topNote = note;
+				}
+				
+				if (topNote != null)
+				{
+					field.onNoteHit.dispatch(topNote, field);
+					
+					ghostTapped = false;
+				}
+				else if (field.playAnims)
+				{
+					var strum = field.members[key];
+					
+					if (strum != null)
 					{
-						spr.playAnim('pressed');
-						spr.resetAnim = 0;
+						strum.playAnim('pressed');
+						strum.resetAnim = 0;
 					}
 				}
 			}
 			
-			scripts.call('onKeyPress', [key]);
+			if (ghostTapped && anyInput)
+			{
+				scripts.call('onGhostTap', [key]);
+				
+				if (!ClientPrefs.ghostTapping)
+				{
+					for (field in playFields.members)
+					{
+						if (field.canInput()) field.onMissPress.dispatch(key);
+					}
+					
+					scripts.call('noteMissPress', [key]);
+				}
+			}
 		}
+		
+		Conductor.songPosition = prevTime;
+		
+		scripts.call('onKeyPress', [key]);
 	}
 	
 	function onKeyRelease(event:KeyboardEvent):Void
