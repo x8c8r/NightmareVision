@@ -1191,6 +1191,7 @@ class PlayState extends MusicBeatState
 		modManager.receptors = [for (i in playFields) i.members];
 		
 		modManager.lanes = SONG.lanes;
+		modManager.keys = SONG.keys;
 		
 		generatedFields = true;
 		scripts.call('postReceptorGeneration');

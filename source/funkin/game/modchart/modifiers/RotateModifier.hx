@@ -33,7 +33,8 @@ class RotateModifier extends NoteModifier
 		var rotateY = MathUtil.rotate(offX.x, offX.z, yA);
 		var offY = Vector3.get(rotateY.x, offX.y, rotateY.y);
 		
-		offZ.put(); offX.put();
+		offZ.put();
+		offX.put();
 		
 		rotateZ.putWeak();
 		rotateX.putWeak();

@@ -43,13 +43,13 @@ class LocalRotateModifier extends NoteModifier
 	
 	override function getPos(time:Float, visualDiff:Float, timeDiff:Float, beat:Float, pos:Vector3, data:Int, player:Int, obj:FlxSprite)
 	{
-		var x:Float = (FlxG.width * 0.5) - Note.swagWidth - 54 + Note.swagWidth * 1.5;
+		var x:Float = (FlxG.width * 0.5);
 		switch (player)
 		{
 			case 0:
-				x += FlxG.width * 0.5 - Note.swagWidth * 2 - 100;
+				x += FlxG.width * 0.5 - Note.swagWidth * (modMgr.keys / 2) - 100;
 			case 1:
-				x -= FlxG.width * 0.5 - Note.swagWidth * 2 - 100;
+				x -= FlxG.width * 0.5 - Note.swagWidth * (modMgr.keys / 2) - 100;
 		}
 		
 		x -= 56;
@@ -62,7 +62,10 @@ class LocalRotateModifier extends NoteModifier
 		var out = rotateV3(diff, getValue(player), getSubmodValue('${prefix}rotateY', player), getSubmodValue('${prefix}rotateZ', player));
 		out.z /= scale;
 		
-		return origin.add(out);
+		origin.add(out, pos);
+		out.put();
+		
+		return pos;
 	}
 	
 	override function getSubmods()

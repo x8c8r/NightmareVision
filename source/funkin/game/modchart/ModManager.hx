@@ -59,6 +59,7 @@ class ModManager
 	private var state:PlayState;
 	
 	public var lanes:Int = 2;
+	public var keys:Int = 4;
 	public var receptors:Array<Array<StrumNote>> = []; // for modifiers to be able to access receptors directly if they need to
 	public var timeline:EventTimeline = new EventTimeline();
 	
@@ -202,13 +203,13 @@ class ModManager
 	
 	public function getBaseX(direction:Int, player:Int):Float
 	{
-		var x:Float = (FlxG.width * 0.5) - Note.swagWidth - 54 + Note.swagWidth * direction;
+		var x:Float = (FlxG.width * 0.5) + Note.swagWidth * (direction - (keys / 2) + .5) - 3;
 		switch (player)
 		{
 			case 0:
-				x += FlxG.width * 0.5 - Note.swagWidth * 2 - 100;
+				x += FlxG.width * 0.5 - Note.swagWidth * (keys / 2) - 100;
 			case 1:
-				x -= FlxG.width * 0.5 - Note.swagWidth * 2 - 100;
+				x -= FlxG.width * 0.5 - Note.swagWidth * (keys / 2) - 100;
 		}
 		
 		x -= 56;
