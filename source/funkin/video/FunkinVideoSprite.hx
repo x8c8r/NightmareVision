@@ -50,7 +50,7 @@ class FunkinVideoSprite extends FlxVideoSprite
 	 * ```
 	 */
 	public static final muted:String = ':no-audio';
-	
+
 	/**
 	 * Manually initiates the Libvlc instance
 	 */
@@ -65,6 +65,11 @@ class FunkinVideoSprite extends FlxVideoSprite
 	 * Disable this if you dont want your video to pause when paused in `PlayState`
 	 */
 	public var isStateAffected:Bool = true;
+
+	/**
+    * Bool that decides if the video can be skipped.
+    */
+	public static var canSkip:Bool = false;
 	
 	/**
 	 * Creates a new FunkinVideoSprite
@@ -72,10 +77,10 @@ class FunkinVideoSprite extends FlxVideoSprite
 	 * @param y `y` position
 	 * @param oneTimeUse if `true` on video complete, the video will self destroy
 	 */
-	public function new(x:Float = 0, y:Float = 0, oneTimeUse:Bool = true)
+	public function new(x:Float = 0, y:Float = 0, oneTimeUse:Bool = true, isSkippable = false)
 	{
 		super(x, y);
-		
+		canSkip = isSkippable;
 		if (oneTimeUse) bitmap.onEndReached.add(this.destroy, true, -10);
 	}
 	
@@ -87,7 +92,9 @@ class FunkinVideoSprite extends FlxVideoSprite
 	 */
 	public function delayAndStart(delay:Float = 0)
 	{
-		FlxTimer.wait(delay, play);
+		FlxTimer.wait(delay, function() {
+			if (bitmap != null) play();
+		});
 	}
 	
 	/**
@@ -128,6 +135,24 @@ class FunkinVideoSprite extends FlxVideoSprite
 	public function onFormat(func:Void->Void, once:Bool = false, priority:Int = 0)
 	{
 		bitmap.onFormatSetup.add(func, once, priority);
+	}
+
+	/**
+     * Stops the video immediately and triggers the onEndReached event.
+     * Useful for skipping cutscenes.
+     */
+     public function skip() {
+		 if (bitmap != null && bitmap.isPlaying)
+		 {
+			 bitmap.stop();
+		 }
+	 }
+
+
+	override public function update(elapsed:Float) {
+		if (controls.ACCEPT) {
+			skip();
+		}
 	}
 	
 	override function destroy()
