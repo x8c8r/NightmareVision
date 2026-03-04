@@ -129,9 +129,9 @@ class Paths
 	/**
 	 * Searches for a video file wihin the `videos` directory.
 	 * 
-	 * Automatically will attempt to append .mp4 and .mov extensions.
+	 * Automatically will attempt to append .mp4, .mov, and .webm extensions.
 	 */
-	public static function video(key:String, ?ext:String, checkMods:Bool = true):String
+	public static function video(key:String, checkMods:Bool = true):String
 	{
 		return findFileWithExts('videos/$key', ['mp4', 'mov', 'webm'], null, checkMods);
 	}
@@ -140,6 +140,7 @@ class Paths
 	{
 		return getPath('images/$key', parentFolder, checkMods);
 	}
+	
 	/**
 	 * Searches for a file within the `sounds` directory and caches a `Sound` instance.
 	 * 
