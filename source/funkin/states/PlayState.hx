@@ -2071,8 +2071,8 @@ class PlayState extends MusicBeatState
 				strums.forEachAlive(strum -> {
 					final pos = modManager.getPos(0, 0, 0, curDecBeat, strum.noteData, i, strum, tempVector);
 					modManager.updateObject(curDecBeat, strum, pos, i);
-					strum.x = pos.x + script_STRUMOffsets[strum.noteData].x;
-					strum.y = pos.y + script_STRUMOffsets[strum.noteData].y;
+					strum.x = (pos.x + script_STRUMOffsets[strum.noteData].x * strum.scale.x / strum.defScale.x);
+					strum.y = (pos.y + script_STRUMOffsets[strum.noteData].y * strum.scale.y / strum.defScale.y);
 				});
 			}
 		}
@@ -2096,10 +2096,11 @@ class PlayState extends MusicBeatState
 				final pos = modManager.getPos(daNote.strumTime, visPos, daNote.strumTime - Conductor.songPosition, curDecBeat, daNote.noteData, daNote.lane, daNote, tempVector);
 				
 				modManager.updateObject(curDecBeat, daNote, pos, daNote.lane);
-				pos.x += daNote.offsetX;
-				pos.y += daNote.offsetY;
+				
 				daNote.x = pos.x;
 				daNote.y = pos.y;
+				
+				var scaleXMult:Float = (daNote.scale.x / daNote.defScale.x), scaleYMult:Float = (daNote.scale.y / daNote.defScale.y);
 				
 				if (daNote.isSustainNote)
 				{
@@ -2108,8 +2109,6 @@ class PlayState extends MusicBeatState
 					final vDiff = -((futureSongPos - daNote.visualTime) * songSpeed);
 					
 					var nextPos = modManager.getPos(daNote.strumTime, vDiff, diff, Conductor.getStep(futureSongPos) / 4, daNote.noteData, daNote.lane, daNote);
-					nextPos.x += daNote.offsetX;
-					nextPos.y += daNote.offsetY;
 					
 					final diffX = (nextPos.x - pos.x);
 					final diffY = (nextPos.y - pos.y);
@@ -2121,19 +2120,19 @@ class PlayState extends MusicBeatState
 					if (deg != 0) daNote.mAngle = (deg + 90);
 					else daNote.mAngle = 0;
 					
-					daNote.x += script_SUSTAINOffsets[daNote.noteData].x;
-					daNote.y += script_SUSTAINOffsets[daNote.noteData].y;
+					daNote.x += (script_SUSTAINOffsets[daNote.noteData].x * scaleXMult);
+					daNote.y += (script_SUSTAINOffsets[daNote.noteData].y * scaleYMult);
 					if (daNote.isSustainEnd)
 					{
-						daNote.x += script_SUSTAINENDOffsets[daNote.noteData].x;
-						daNote.y += script_SUSTAINENDOffsets[daNote.noteData].y;
+						daNote.x += (script_SUSTAINENDOffsets[daNote.noteData].x * scaleXMult);
+						daNote.y += (script_SUSTAINENDOffsets[daNote.noteData].y * scaleYMult);
 					}
 					
 					nextPos.put();
 				}
 				
-				daNote.x += script_NOTEOffsets[daNote.noteData].x;
-				daNote.y += script_NOTEOffsets[daNote.noteData].y;
+				daNote.x += ((script_NOTEOffsets[daNote.noteData].x + daNote.offsetX) * scaleXMult);
+				daNote.y += ((script_NOTEOffsets[daNote.noteData].y + daNote.offsetY) * scaleYMult);
 				
 				if (field.inControl && field.autoPlayed)
 				{

@@ -62,7 +62,8 @@ class ScaleModifier extends NoteModifier
 	
 	override function ignoreUpdateNote() return false;
 	
-	override function updateNote(beat:Float, note:Note, pos:Vector3, player:Int)
+	// note : if anyone can help me fix the mini offset without having to make a whole fuking post function would be greatly appreciated
+	override function postUpdateNote(beat:Float, note:Note, pos:Vector3, player:Int)
 	{
 		var scale:FlxPoint = null;
 		if (getSubmodValue('noteScaleX', player) > 0 || getSubmodValue('noteScaleY', player) > 0)
@@ -77,11 +78,14 @@ class ScaleModifier extends NoteModifier
 		
 		if (note.isSustainNote) scale.y = note.defScale.y;
 		
+		note.offset.x -= (Note.swagWidth * (1 - scale.x / note.defScale.x) * .5);
+		note.offset.y -= (Note.swagWidth * (1 - scale.y / note.defScale.y) * .5);
+		
 		note.scale.copyFrom(scale);
 		scale.putWeak();
 	}
 	
-	override function updateReceptor(beat:Float, receptor:StrumNote, pos:Vector3, player:Int)
+	override function postUpdateReceptor(beat:Float, receptor:StrumNote, pos:Vector3, player:Int)
 	{
 		var scale:FlxPoint = null;
 		if (getSubmodValue('receptorScaleX', player) > 0 || getSubmodValue('receptorScaleY', player) > 0)
@@ -94,8 +98,12 @@ class ScaleModifier extends NoteModifier
 		}
 		else scale = getScale(receptor, FlxPoint.weak(receptor.defScale.x, receptor.defScale.y), receptor.noteData, player);
 		
+		receptor.offset.x -= (Note.swagWidth * (1 - scale.x / receptor.defScale.x) * .5);
+		receptor.offset.y -= (Note.swagWidth * (1 - scale.y / receptor.defScale.y) * .5);
+		
 		var scale = getScale(receptor, FlxPoint.weak(receptor.defScale.x, receptor.defScale.y), receptor.noteData, player);
 		receptor.scale.copyFrom(scale);
+		
 		scale.putWeak();
 	}
 	

@@ -403,7 +403,7 @@ class Note extends FlxSprite
 		{
 			scale.y = lastScaleY;
 		}
-		updateHitbox();
+		
 		baseScaleX = scale.x;
 		baseScaleY = scale.y;
 		
@@ -412,10 +412,12 @@ class Note extends FlxSprite
 		if (inEditor && !skipScale)
 		{
 			setGraphicSize(ChartEditorState.GRID_SIZE, ChartEditorState.GRID_SIZE);
-			updateHitbox();
+			
 			baseScaleX = scale.x;
 			baseScaleY = scale.y;
 		}
+		
+		updateHitbox();
 		
 		if (!NoteSkinHelper.instance.data.antialiasing) antialiasing = false;
 		
@@ -456,7 +458,7 @@ class Note extends FlxSprite
 		for (anim in directionAnims) animation.addByPrefix(anim.anim, '${anim.xmlName}0', anim.fps, true);
 		
 		setGraphicSize(Std.int(width * NoteSkinHelper.instance.data.scale));
-		updateHitbox();
+		
 		baseScaleX = scale.x;
 		baseScaleY = scale.y;
 	}

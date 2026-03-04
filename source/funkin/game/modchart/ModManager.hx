@@ -225,41 +225,49 @@ class ModManager
 			{
 				var mod:Modifier = notemodRegister.get(name);
 				if (mod == null || !obj.active) continue;
-				if ((obj is Note))
-				{
-					var o:Note = cast obj;
-					mod.updateNote(beat, o, pos, player);
-				}
-				else if ((obj is StrumNote))
-				{
-					var o:StrumNote = cast obj;
-					mod.updateReceptor(beat, o, pos, player);
-				}
+				
+				if ((obj is Note)) mod.updateNote(beat, cast obj, pos, player);
+				else if ((obj is StrumNote)) mod.updateReceptor(beat, cast obj, pos, player);
 			}
 		}
 		
-		if ((obj is Note)) obj.updateHitbox();
-		
+		obj.updateHitbox();
 		obj.centerOrigin();
 		obj.centerOffsets();
 		
-		if (obj is StrumNote && obj.animation.curAnim != null)
+		if (obj is StrumNote)
 		{
 			var strum:StrumNote = cast obj;
-			final strumAnim = strum.animation.curAnim.name;
+			
+			final strumAnim = strum.animation.name;
 			final offsetsAdd = strum.animOffsets.get(strumAnim);
+			
 			if (offsetsAdd != null)
 			{
 				strum.offset.x += offsetsAdd[0];
 				strum.offset.y += offsetsAdd[1];
 			}
+			
+			strum.offset.x += ((strum.width - Note.swagWidth * strum.scale.x / strum.defScale.x) * .5);
+			strum.offset.y += ((strum.height - Note.swagWidth * strum.scale.y / strum.defScale.y) * .5);
 		}
-		
-		if ((obj is Note))
+		else if ((obj is Note))
 		{
 			var cum:Note = cast obj;
 			cum.offset.x += cum.typeOffsetX;
 			cum.offset.y += cum.typeOffsetY;
+		}
+		
+		if (activeMods[player] != null)
+		{
+			for (name in activeMods[player])
+			{
+				var mod:Modifier = notemodRegister.get(name);
+				if (mod == null || !obj.active) continue;
+				
+				if ((obj is Note)) mod.postUpdateNote(beat, cast obj, pos, player);
+				else if ((obj is StrumNote)) mod.postUpdateReceptor(beat, cast obj, pos, player);
+			}
 		}
 	}
 	
