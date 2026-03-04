@@ -6,6 +6,8 @@ import funkin.FunkinAssets;
 import funkin.states.TitleState;
 import funkin.video.FunkinVideoSprite;
 
+import flixel.addons.display.FlxPieDial;
+
 using StringTools;
 
 @:access(flixel.FlxGame)
@@ -15,6 +17,10 @@ class Splash extends FlxState
 	
 	var spriteEvents:FlxTimer;
 	var logo:FlxSprite;
+
+	var skipTime:Float = 0;
+	var skipLoad:FlxPieDial;
+	var video:FunkinVideoSprite;
 	
 	override function create()
 	{
@@ -23,7 +29,7 @@ class Splash extends FlxState
 		
 		FlxTimer.wait(1, () -> {
 			#if VIDEOS_ALLOWED
-			var video = new FunkinVideoSprite();
+			video = new FunkinVideoSprite();
 			add(video);
 			video.onFormat(() -> {
 				video.setGraphicSize(0, FlxG.height);
@@ -31,6 +37,11 @@ class Splash extends FlxState
 				video.screenCenter();
 			});
 			video.onEnd(finish);
+			//FOR ONLY VIDEO
+			skipLoad = new FlxPieDial(0, 0, 30, FlxColor.WHITE, 60, FlxPieDialShape.SQUARE, true, 16);
+			skipLoad.setPosition(FlxG.width - (skipLoad.width + 30), FlxG.height - (skipLoad.height + 22));
+			add(skipLoad);
+			//
 			if (video.load(Paths.video('intro'))) video.delayAndStart();
 			else
 			#end
@@ -51,7 +62,22 @@ class Splash extends FlxState
 				finish();
 			}
 		}
-		
+				if (video != null)
+			{
+				if (FlxG.keys.pressed.SPACE || FlxG.keys.pressed.ENTER)
+				{
+					skipTime = Math.max(0, Math.min(1, skipTime + elapsed));
+				}
+				else if (skipTime > 0)
+					{
+						skipTime = Math.max(0, FlxMath.lerp(skipTime, -0.1, FlxMath.bound(elapsed * 3, 0, 1)));
+					}
+					skipLoad.amount = Math.min(1, Math.max(0, (skipTime / 1) * 1.025));
+					if(skipTime >= 1)
+						{
+							finish();
+						}
+			}
 		super.update(elapsed);
 	}
 	
@@ -113,6 +139,9 @@ class Splash extends FlxState
 			spriteEvents.cancel();
 			spriteEvents.destroy();
 		}
+		video.stop();
+		video.destroy();
+		skipLoad.destroy();
 		complete();
 	}
 	
