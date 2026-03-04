@@ -131,16 +131,15 @@ class Paths
 	 * 
 	 * Automatically will attempt to append .mp4 and .mov extensions.
 	 */
-	public static function video(key:String, checkMods:Bool = true):String
+	public static function video(key:String, ?ext:String, checkMods:Bool = true):String
 	{
-		return findFileWithExts('videos/$key', ['mp4', 'mov'], null, checkMods);
+		return findFileWithExts('videos/$key', ['mp4', 'mov', 'webm'], null, checkMods);
 	}
 	
 	public static function textureAtlas(key:String, ?parentFolder:String, checkMods:Bool = true):String
 	{
 		return getPath('images/$key', parentFolder, checkMods);
 	}
-	
 	/**
 	 * Searches for a file within the `sounds` directory and caches a `Sound` instance.
 	 * 
