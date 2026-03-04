@@ -131,26 +131,15 @@ class Paths
 	 * 
 	 * Automatically will attempt to append .mp4 and .mov extensions.
 	 */
-	public static function video(key:String, checkMods:Bool = true):String
+	public static function video(key:String, ?ext:String, checkMods:Bool = true):String
 	{
-		return findFileWithExts('videos/$key', ['mp4', 'mov'], null, checkMods);
+		return findFileWithExts('videos/$key', ['mp4', 'mov', 'webm'], null, checkMods);
 	}
 	
 	public static function textureAtlas(key:String, ?parentFolder:String, checkMods:Bool = true):String
 	{
 		return getPath('images/$key', parentFolder, checkMods);
 	}
-	
-	static public function video(key:String, ?ext:String):String
-	{
-		#if MODS_ALLOWED
-		var file:String = modsVideo(key, ext);
-		if (FileSystem.exists(file))
-		{
-			return file;
-		}
-		#end
-		return '$CORE_DIRECTORY/videos/$key.${ext == null ? VIDEO_EXT : ext}';
 	/**
 	 * Searches for a file within the `sounds` directory and caches a `Sound` instance.
 	 * 
@@ -344,9 +333,6 @@ class Paths
 		}
 	}
 	
-	public static inline function modsVideo(key:String, ?ext:String):String
-	{
-		return modFolders('videos/' + key + '.' + ext == null ? VIDEO_EXT : ext);
 	public static inline function getSparrowAtlas(key:String, ?parentFolder:String, ?allowGPU:Bool = true, checkMods:Bool = true):FlxAtlasFrames
 	{
 		final directPath = getPath('images/$key.png', parentFolder, checkMods).withoutExtension();
