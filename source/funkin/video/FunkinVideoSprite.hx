@@ -79,6 +79,23 @@ class FunkinVideoSprite extends FlxVideoSprite
 	public var canSkip:Bool = false;
 	
 	/**
+	 * The playback speed of the video. 1.0 is normal speed.
+	 */
+	public var playbackRate(default, set):Float = 1.0;
+	
+	function set_playbackRate(value:Float):Float
+	{
+		if (bitmap != null) bitmap.rate = value;
+		
+		return playbackRate = value;
+	}
+	
+	/** Returns whether the video is currently playing. */
+	public var isPlaying(get, never):Bool;
+	
+	inline function get_isPlaying():Bool return bitmap != null && bitmap.isPlaying;
+	
+	/**
 	 * Creates a new FunkinVideoSprite
 	 * @param x `x` position
 	 * @param y `y` position
@@ -103,6 +120,18 @@ class FunkinVideoSprite extends FlxVideoSprite
 			if (bitmap != null) play();
 		});
 	}
+	
+	// flxvideosprite already contains these 2
+	// /** Pauses the video. */
+	// public function pause()
+	// {
+	// 	if (bitmap != null) bitmap.pause();
+	// }
+	// /** Resumes the video. */
+	// public function resume()
+	// {
+	// 	if (bitmap != null) bitmap.resume();
+	// }
 	
 	/**
 	 * Adds a event to be dispatched when the video reaches its end
@@ -162,6 +191,17 @@ class FunkinVideoSprite extends FlxVideoSprite
 		{
 			skip();
 		}
+	}
+	
+	/**
+	 * Quickly scales and centers the video to fit the entire screen.
+	 * Best used inside the `onFormat` callback!
+	 */
+	public function fitToScreen()
+	{
+		setGraphicSize(FlxG.width, FlxG.height);
+		updateHitbox();
+		screenCenter();
 	}
 	
 	override function destroy()
