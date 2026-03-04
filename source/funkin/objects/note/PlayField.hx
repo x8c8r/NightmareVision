@@ -226,7 +226,10 @@ class PlayField extends FlxTypedContainer<StrumNote>
 		note.scale.set(note.baseScaleX, note.baseScaleY);
 		note.defScale.copyFrom(note.scale);
 		note.updateHitbox();
+		
 		if (note.playField == this) note.playField = null;
+		
+		if (PlayState.instance != null) PlayState.instance.notes.remove(note, true);
 	}
 	
 	public inline function addNote(note:Note)
@@ -251,7 +254,6 @@ class PlayField extends FlxTypedContainer<StrumNote>
 		removeNote(note);
 		
 		note.kill();
-		notes.remove(note);
 		note.destroy();
 	}
 	
@@ -288,73 +290,62 @@ class PlayField extends FlxTypedContainer<StrumNote>
 		final noteRows = PlayState.instance.noteRows;
 		final noteSkin = PlayState.noteSkin;
 		
+		if (note.noAnimation) return;
+		
 		for (char in chars)
 		{
-			if (char != null)
+			if (char == null) continue;
+			
+			if (!note.hitCausesMiss)
 			{
-				if (!note.hitCausesMiss)
+				final animToPlay = noteSkin.data.singAnimations[Std.int(Math.abs(note.noteData))] + note.animSuffix;
+				
+				char.holdTimer = 0;
+				
+				// ghost stuff
+				final chord = noteRows[field.ID][note.row];
+				
+				if (!(char.vSliceSustains && note.isSustainNote))
 				{
-					if (!note.noAnimation)
+					if (ClientPrefs.jumpGhosts && char.ghostsEnabled && chord != null && chord.length > 1 && note.noteType != "Ghost Note")
 					{
-						final animToPlay = noteSkin.data.singAnimations[Std.int(Math.abs(note.noteData))] + note.animSuffix;
+						final animNote = chord[0];
+						final realAnim = noteSkin.data.singAnimations[Std.int(Math.abs(animNote.noteData))] + note.animSuffix;
 						
-						char.holdTimer = 0;
+						if (char.mostRecentRow != note.row) char.playAnim(realAnim, true);
 						
-						// ghost stuff
-						final chord = noteRows[field.ID][note.row];
-						
-						if (!(char.vSliceSustains && note.isSustainNote))
+						if (note.nextNote != null && note.prevNote != null)
 						{
-							if (ClientPrefs.jumpGhosts && char.ghostsEnabled && chord != null && chord.length > 1 && note.noteType != "Ghost Note")
+							if (note != animNote && !note.nextNote.isSustainNote) char.playGhostAnim(chord.indexOf(note), animToPlay, true);
+							else if (note.nextNote.isSustainNote)
 							{
-								final animNote = chord[0];
-								final realAnim = noteSkin.data.singAnimations[Std.int(Math.abs(animNote.noteData))] + note.animSuffix;
-								
-								if (char.mostRecentRow != note.row) char.playAnim(realAnim, true);
-								
-								if (note.nextNote != null && note.prevNote != null)
-								{
-									if (note != animNote && !note.nextNote.isSustainNote) char.playGhostAnim(chord.indexOf(note), animToPlay, true);
-									else if (note.nextNote.isSustainNote)
-									{
-										char.playAnim(realAnim, true);
-										char.playGhostAnim(chord.indexOf(note), animToPlay, true);
-									}
-								}
-								char.mostRecentRow = note.row;
-							}
-							else
-							{
-								if (note.noteType != "Ghost Note") char.playAnim(animToPlay, true);
-								else char.playGhostAnim(note.noteData, animToPlay, true);
+								char.playAnim(realAnim, true);
+								char.playGhostAnim(chord.indexOf(note), animToPlay, true);
 							}
 						}
-						
-						switch (note.noteType)
-						{
-							case 'Hey!':
-								if (char.animation.exists('hey'))
-								{
-									char.playAnimForDuration('hey', 0.6);
-									char.specialAnim = true;
-								}
-						}
+						char.mostRecentRow = note.row;
+					}
+					else
+					{
+						if (note.noteType != "Ghost Note") char.playAnim(animToPlay, true);
+						else char.playGhostAnim(note.noteData, animToPlay, true);
 					}
 				}
-				else
+				
+				switch (note.noteType)
 				{
-					if (!note.noAnimation)
-					{
-						switch (note.noteType)
-						{
-							case 'Hurt Note':
-								if (char.animation.exists('hurt'))
-								{
-									char.playAnim('hurt', true);
-									char.specialAnim = true;
-								}
-						}
-					}
+					case 'Hey!' if (char.animation.exists('hey')):
+						char.playAnimForDuration('hey', 0.6);
+						char.specialAnim = true;
+				}
+			}
+			else
+			{
+				switch (note.noteType)
+				{
+					case 'Hurt Note' if (char.animation.exists('hurt')):
+						char.playAnim('hurt', true);
+						char.specialAnim = true;
 				}
 			}
 		}
@@ -373,15 +364,9 @@ class PlayField extends FlxTypedContainer<StrumNote>
 			});
 		}
 		
-		if (ClientPrefs.guitarHeroSustains)
+		if (ClientPrefs.guitarHeroSustains && !note.isSustainNote)
 		{
-			if (!note.isSustainNote)
-			{
-				for (sustain in note.tail)
-				{
-					sustain.blockHit = false; // makes the hold note active when you press the base note
-				}
-			}
+			for (sustain in note.tail) sustain.blockHit = false; // makes the hold note active when you press the base note
 		}
 		
 		note.wasGoodHit = true;

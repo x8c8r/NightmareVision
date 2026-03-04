@@ -2089,7 +2089,7 @@ class PlayState extends MusicBeatState
 			}
 			
 			notes.forEachAlive(function(daNote:Note) {
-				if (daNote.lane > (SONG.lanes - 1) || !modifiersRegistered) return;
+				if (!modifiersRegistered) return;
 				
 				final field = daNote.playField;
 				
