@@ -147,9 +147,7 @@ class FunkinVideoSprite extends FlxVideoSprite
 	 */
 	public function onEnd(func:Void->Void, once:Bool = false, priority:Int = 0)
 	{
-		if (bitmap != null)
-			bitmap.onEndReached.add(func, once, priority);
-		if (bitmap != null) bitmap.onEndReached.add(func, o
+		if (bitmap != null) bitmap.onEndReached.add(func, once, priority);
 	}
 	
 	/**
