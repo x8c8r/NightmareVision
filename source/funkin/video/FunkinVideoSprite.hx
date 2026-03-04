@@ -69,7 +69,7 @@ class FunkinVideoSprite extends FlxVideoSprite
 	/**
     * Bool that decides if the video can be skipped.
     */
-	public static var canSkip:Bool = false;
+	public var canSkip:Bool = false;
 	
 	/**
 	 * Creates a new FunkinVideoSprite
@@ -150,7 +150,8 @@ class FunkinVideoSprite extends FlxVideoSprite
 
 
 	override public function update(elapsed:Float) {
-		if (controls.ACCEPT) {
+		if (canSkip && controls.ACCEPT) 
+		{
 			skip();
 		}
 	}
