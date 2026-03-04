@@ -70,6 +70,24 @@ class FunkinVideoSprite extends FlxVideoSprite
     * Bool that decides if the video can be skipped.
     */
 	public var canSkip:Bool = false;
+
+	/**
+	 * The playback speed of the video. 1.0 is normal speed.
+	 */
+	public var playbackRate(default, set):Float = 1.0;
+
+	function set_playbackRate(value:Float):Float
+	{
+		if (bitmap != null)
+			bitmap.rate = value;
+		
+		return playbackRate = value;
+	}
+
+	/** Returns whether the video is currently playing. */
+	public var isPlaying(get, never):Bool;
+	inline function get_isPlaying():Bool return bitmap != null && bitmap.isPlaying;
+	
 	
 	/**
 	 * Creates a new FunkinVideoSprite
@@ -95,6 +113,18 @@ class FunkinVideoSprite extends FlxVideoSprite
 		FlxTimer.wait(delay, function() {
 			if (bitmap != null) play();
 		});
+	}
+
+	/** Pauses the video. */
+	public function pause()
+	{
+		if (bitmap != null) bitmap.pause();
+	}
+
+	/** Resumes the video. */
+	public function resume()
+	{
+		if (bitmap != null) bitmap.resume();
 	}
 	
 	/**
@@ -136,7 +166,7 @@ class FunkinVideoSprite extends FlxVideoSprite
 	 */
 	public function onFormat(func:Void->Void, once:Bool = false, priority:Int = 0)
 	{
-		if (bitmap != null)
+		if (bitmap != null) 
 			bitmap.onFormatSetup.add(func, once, priority);
 	}
 
@@ -154,10 +184,21 @@ class FunkinVideoSprite extends FlxVideoSprite
 
 	override public function update(elapsed:Float) 
 	{
-		if (canSkip && controls.ACCEPT) 
+		if (canSkip && controls.ACCEPT && bitmap != null) 
 		{
 			skip();
 		}
+	}
+
+	/**
+	 * Quickly scales and centers the video to fit the entire screen.
+	 * Best used inside the `onFormat` callback!
+	 */
+	public function fitToScreen()
+	{
+		setGraphicSize(FlxG.width, FlxG.height);
+		updateHitbox();
+		screenCenter();
 	}
 	
 	override function destroy()
