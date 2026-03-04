@@ -248,26 +248,14 @@ class ModManager
 				strum.offset.y += offsetsAdd[1];
 			}
 			
-			strum.offset.x += ((strum.width - Note.swagWidth * strum.scale.x / strum.defScale.x) * .5);
-			strum.offset.y += ((strum.height - Note.swagWidth * strum.scale.y / strum.defScale.y) * .5);
+			strum.offset.x += ((strum.width - Note.swagWidth * strum.scale.x / strum.defScale.x) * .5 + strum.miniOffset.x);
+			strum.offset.y += ((strum.height - Note.swagWidth * strum.scale.y / strum.defScale.y) * .5 + strum.miniOffset.y);
 		}
 		else if ((obj is Note))
 		{
 			var cum:Note = cast obj;
-			cum.offset.x += cum.typeOffsetX;
-			cum.offset.y += cum.typeOffsetY;
-		}
-		
-		if (activeMods[player] != null)
-		{
-			for (name in activeMods[player])
-			{
-				var mod:Modifier = notemodRegister.get(name);
-				if (mod == null || !obj.active) continue;
-				
-				if ((obj is Note)) mod.postUpdateNote(beat, cast obj, pos, player);
-				else if ((obj is StrumNote)) mod.postUpdateReceptor(beat, cast obj, pos, player);
-			}
+			cum.offset.x += (cum.typeOffsetX + cum.miniOffset.x);
+			cum.offset.y += (cum.typeOffsetY + cum.miniOffset.y);
 		}
 	}
 	

@@ -15,6 +15,7 @@ class StrumNote extends FlxSprite
 {
 	public var intThing:Int = 0;
 	
+	public var miniOffset:FlxPoint = FlxPoint.get(); // TEMP should probably change up
 	public var defScale:FlxPoint = FlxPoint.get(); // for modcharts to keep the scaling
 	
 	public var resetAnim:Float = 0;
@@ -243,6 +244,7 @@ class StrumNote extends FlxSprite
 	override function destroy()
 	{
 		defScale.put();
+		miniOffset.put();
 		super.destroy();
 	}
 }
