@@ -122,16 +122,16 @@ class Paths
 		return getPath('$key.lua', TEXT, library);
 	}
 	
-	static public function video(key:String):String
+	static public function video(key:String, ?ext:String):String
 	{
 		#if MODS_ALLOWED
-		var file:String = modsVideo(key);
+		var file:String = modsVideo(key, ext);
 		if (FileSystem.exists(file))
 		{
 			return file;
 		}
 		#end
-		return '$CORE_DIRECTORY/videos/$key.$VIDEO_EXT';
+		return '$CORE_DIRECTORY/videos/$key.${ext == null ? VIDEO_EXT : ext}';
 	}
 	
 	static public function textureAtlas(key:String, ?library:String):String
@@ -302,9 +302,9 @@ class Paths
 		return modFolders('songs/' + key + '.json');
 	}
 	
-	public static inline function modsVideo(key:String):String
+	public static inline function modsVideo(key:String, ?ext:String):String
 	{
-		return modFolders('videos/' + key + '.' + VIDEO_EXT);
+		return modFolders('videos/' + key + '.' + ext == null ? VIDEO_EXT : ext);
 	}
 	
 	public static inline function modsSounds(path:String, key:String):String
