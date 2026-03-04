@@ -21,7 +21,8 @@ class WindowUtil
 	
 	public static function setTitle(?arg:String, append:Bool = false)
 	{
-		if (arg == null) arg = defaultAppTitle;
+  // unholy..
+		arg ??= defaultAppTitle;
 		
 		if (append) FlxG.stage.window.title += arg;
 		else FlxG.stage.window.title = arg;
