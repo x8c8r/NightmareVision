@@ -8,6 +8,7 @@ import haxe.ui.core.Screen;
 import flixel.util.typeLimit.OneOfTwo;
 import flixel.FlxG;
 
+import haxe.ui.core.*;
 import haxe.ui.components.DropDown;
 import haxe.ui.containers.dialogs.Dialog;
 import haxe.ui.notifications.NotificationData;
@@ -135,12 +136,72 @@ class ToolKitUtils
 		}
 	}
 	
+	static var _hitTest:flixel.math.FlxPoint = null;
+	
 	public static function isHaxeUIHovered(camera:FlxCamera)
 	{
 		// ok just dont fucking work sure
 		// trace(FocusManager.instance.focus);
-		var mousePos = FlxG.mouse.getViewPosition(camera);
-		return Screen.instance.hasSolidComponentUnderPoint(mousePos.x, mousePos.y);
+		_hitTest = FlxG.mouse.getViewPosition(camera, _hitTest);
+		return Screen.instance.hasSolidComponentUnderPoint(_hitTest.x, _hitTest.y);
+	}
+	
+	public static var currentFocus:InteractiveComponent = null;
+	
+	static var iterated:Array<Component> = [];
+	
+	public static function update():Void
+	{
+		// some duct tape
+		// to make using haxe ui more stable
+		
+		if (FlxG.mouse.justMoved || FlxG.mouse.justPressed || FlxG.mouse.justReleased)
+		{
+			iterated.resize(0);
+			currentFocus = null;
+			
+			if (FlxG.mouse.justPressed) for (component in Screen.instance.rootComponents) unfocusIter(component);
+			
+			iterated.resize(0);
+			
+			for (component in Screen.instance.rootComponents) focusIter(component);
+		}
+	}
+	
+	static function unfocusIter(component:Component):Void
+	{
+		if (iterated.contains(component)) return;
+		
+		if (component is InteractiveComponent && cast(component, InteractiveComponent).focus)
+		{
+			_hitTest = FlxG.mouse.getViewPosition(funkin.utils.CameraUtil.lastCamera, _hitTest);
+			
+			if (!component.hasComponentUnderPoint(_hitTest.x, _hitTest.y))
+			{
+				cast(component, InteractiveComponent).focus = false;
+				return;
+			}
+		}
+		
+		@:privateAccess if (component._children != null) for (child in component._children) unfocusIter(child);
+	}
+	
+	static function focusIter(component:Component):Void
+	{
+		if (iterated.contains(component) || currentFocus != null) return;
+		
+		var focusable:Bool = (
+			component is InteractiveComponent &&
+			(!(component is haxe.ui.components.Button) || component is haxe.ui.components.DropDown) // fuck you TabButton
+		);
+		
+		if (focusable && cast(component, InteractiveComponent).focus)
+		{
+			currentFocus = cast component;
+			return;
+		}
+		
+		@:privateAccess if (component._children != null) for (child in component._children) focusIter(child);
 	}
 }
 

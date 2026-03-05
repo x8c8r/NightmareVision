@@ -205,7 +205,7 @@ class CharacterEditorState extends UIState // MUST EXTEND UI STATE needed for ac
 	}
 	
 	public function buildUI()
-	{
+	{	
 		root.cameras = [camHUD]; // this tells every single component to use this camera
 		
 		uiElements = new CharEditorUI();
@@ -659,17 +659,6 @@ class CharacterEditorState extends UIState // MUST EXTEND UI STATE needed for ac
 		uiElements.characterDialogBox.animationsDropdown.onChange = (ui) -> {
 			if (ui.data.isDropDownItem()) fillAnimationFields(ui.data.id);
 		}
-		
-		// textfield fuckery
-		final dialog = uiElements.characterDialogBox;
-		
-		// UGHHHHHHH
-		for (i in [dialog.imageFileTextField, dialog.healthIconTextField, dialog.animationNameTextField, dialog.animationPrefixTextField, dialog.animationIndicesTextField, dialog.gameoverCharTextField, dialog.gameoverConfirmDeathSoundTextField, dialog.gameoverInitialDeathSoundTextField, dialog.gameoverLoopDeathSoundTextField])
-		{
-			i.onClick = (ui) -> {
-				isTextFieldFocused = true;
-			}
-		}
 	}
 	
 	function triggerClipboardAction(isUndo:Bool = true)
@@ -806,6 +795,9 @@ class CharacterEditorState extends UIState // MUST EXTEND UI STATE needed for ac
 		updateBounds(elapsed);
 		
 		super.update(elapsed);
+		ToolKitUtils.update();
+		
+		isTextFieldFocused = (ToolKitUtils.currentFocus != null);
 		
 		if (!isTextFieldFocused)
 		{
@@ -825,10 +817,6 @@ class CharacterEditorState extends UIState // MUST EXTEND UI STATE needed for ac
 				controlCamera(elapsed);
 				playSings();
 			}
-		}
-		else
-		{
-			if (!ToolKitUtils.isHaxeUIHovered(camHUD)) isTextFieldFocused = false;
 		}
 		
 		if ((ToolKitUtils.isHaxeUIHovered(camHUD) && FlxG.mouse.justPressed) || FlxG.mouse.justPressedRight)
