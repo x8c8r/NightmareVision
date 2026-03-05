@@ -81,13 +81,28 @@ class MathUtil
 	public static function decayLerp(a:Float, b:Float, decay:Float, elapsed:Float) return b + (a - b) * Math.exp(-decay * elapsed);
 	
 	/**
-		crude version of FlxMath.wrap. supports floats though
+		Similar to FlxMath.wrap, but also supports floats.
+		
+		@param n Number to wrap.
+		@param min Minimum number (inclusive).
+		@param max Maximum number (up to but excluding max + 1).
+		@result Result of wrap.
 	**/
-	public static function wrap(value:Float, min:Float, max:Float):Float
-	{
-		if (value < min) return max;
-		else if (value > max) return min;
-		else return value;
+	public static inline function wrap(n:Float, min:Float, max:Float):Float return (euclideanMod(n - min, max - min + 1) + min);
+	
+	/**
+		https://en.wikipedia.org/wiki/Modulo
+		
+		Simulates modulo with euclidean division.
+		(Unlike Haxe's modulo operator, which uses truncated division, the result will never be negative)
+		
+		@param n Dividend of the operation.
+		@param div Divisor of the operator.
+		@result Result of euclidean division.
+	**/
+	public static inline function euclideanMod(n:Float, div:Float):Float {
+		var mod:Float = (n % div);
+		return (mod < 0 ? mod + Math.abs(div) : mod);
 	}
 	
 	/**
