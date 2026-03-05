@@ -105,8 +105,10 @@ class Chart
 			if (Reflect.hasField(songJson, 'player3')) Reflect.deleteField(songJson, 'player3');
 		}
 		
-		if (songJson.keys == null) songJson.keys = 4;
-		if (songJson.lanes == null) songJson.lanes = 2;
+		songJson.keys ??= 4;
+		songJson.lanes ??= 2;
+		if (songJson.arrowSkin == null || songJson.arrowSkin.length == 0) songJson.arrowSkin = 'default';
+		// if (songJson.splashSkin == null || songJson.splashSkin.length == 0) songJson.splashSkin = 'default';
 		
 		final sectionsData:Array<SwagSection> = songJson.notes;
 		

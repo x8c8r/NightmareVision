@@ -51,6 +51,8 @@ import funkin.objects.note.*;
 import funkin.states.editors.ui.*;
 import funkin.backend.MusicBeatSubstate;
 
+import funkin.states.editors.ui.ChartEditorKit;
+
 #if sys
 import openfl.media.Sound;
 
@@ -121,7 +123,7 @@ class OurLittleFriend extends FlxSprite
 
 @:access(flixel.sound.FlxSound._sound)
 @:access(openfl.media.Sound.__buffer)
-class ChartEditorState extends MusicBeatState
+class ChartEditorState extends haxe.ui.backend.flixel.UIState
 {
 	public static var instance:ChartEditorState;
 	
@@ -217,6 +219,8 @@ class ChartEditorState extends MusicBeatState
 	public var variables:Map<String, Dynamic> = new Map();
 	
 	var _file:FileReference;
+	
+	public var ui:ChartEditorUI;
 	
 	public static var UI_box:FlxUITabMenu;
 	
@@ -326,7 +330,6 @@ class ChartEditorState extends MusicBeatState
 	
 	var bg:FlxSprite;
 	var gradient:FlxBackdrop;
-	var canAddNotes:Bool = true;
 	
 	var littleBF:OurLittleFriend;
 	var littleDad:OurLittleFriend;
@@ -341,6 +344,8 @@ class ChartEditorState extends MusicBeatState
 	
 	override function create()
 	{
+		super.create();
+		
 		instance = this;
 		if (PlayState.SONG != null) _song = PlayState.SONG;
 		else
@@ -356,7 +361,7 @@ class ChartEditorState extends MusicBeatState
 					bpm: 100.0,
 					needsVoices: true,
 					arrowSkin: 'default',
-					splashSkin: 'noteSplashes',
+					splashSkin: 'default',
 					player1: 'bf',
 					player2: 'bf',
 					gfVersion: 'gf',
@@ -380,6 +385,7 @@ class ChartEditorState extends MusicBeatState
 		// DiscordClient.changePresence("Chart Editor", StringTools.replace(_song.song, '-', ' '));
 		DiscordClient.changePresence("Chart Editor", "Uhm idk mane burp");
 		
+		FlxG.cameras.reset();
 		camHUD = new FlxCamera();
 		camHUD.bgColor = 0x0;
 		FlxG.cameras.add(camHUD, false);
@@ -523,7 +529,7 @@ class ChartEditorState extends MusicBeatState
 		// 	tipText.scrollFactor.set();
 		// 	add(tipText);
 		// }
-		add(UI_box);
+		//add(UI_box);
 		
 		addSongUI();
 		addSectionUI();
@@ -575,7 +581,14 @@ class ChartEditorState extends MusicBeatState
 		
 		updateGrid();
 		
-		super.create();
+		buildUI();
+	}
+	
+	public function buildUI():Void
+	{	
+		root.cameras = [camHUD];
+		
+		add(ui = new ChartEditorUI(this));
 	}
 	
 	function createFriends()
@@ -1991,37 +2004,6 @@ class ChartEditorState extends MusicBeatState
 				_song.notes[curSec].sectionBeats = Std.int(nums.value);
 				reloadGridLayer();
 			}
-			else if (wname == 'song_speed')
-			{
-				_song.speed = nums.value;
-			}
-			else if (wname == 'song_bpm')
-			{
-				tempBpm = nums.value;
-				Conductor.mapBPMChanges(_song);
-				Conductor.bpm = nums.value;
-			}
-			else if (wname == 'song_strums')
-			{
-				_song.lanes = Std.int(nums.value);
-				lanes = Std.int(nums.value);
-				
-				reloadStrumShit();
-				updateGrid();
-				reloadGridLayer();
-				
-				gridZoom();
-			}
-			else if (wname == 'song_keys')
-			{
-				_song.keys = Std.int(nums.value);
-				
-				reloadStrumShit();
-				updateGrid();
-				reloadGridLayer();
-				
-				gridZoom();
-			}
 			else if (wname == 'note_susLength')
 			{
 				var changed:Bool = false;
@@ -2159,8 +2141,14 @@ class ChartEditorState extends MusicBeatState
 	
 	override function update(elapsed:Float)
 	{
+		final mouseControl:Bool = (!ToolKitUtils.isHaxeUIHovered(camHUD));
+		
+		ToolKitUtils.update();
+		
+		final keyboardControl:Bool = (ToolKitUtils.currentFocus == null);
+		
 		curStep = recalculateSteps();
-		if (camPos != null) camPos.setPosition(strumLine.x + CAM_OFFSET, strumLine.y);
+		camPos?.setPosition(strumLine.x + CAM_OFFSET, strumLine.y);
 		
 		bg.scale.x = bg.scale.y = (1 / FlxG.camera.zoom);
 		
@@ -2183,7 +2171,6 @@ class ChartEditorState extends MusicBeatState
 		}
 		
 		Conductor.songPosition = FlxG.sound.music.time;
-		_song.song = UI_songTitle.text;
 		
 		strumLineUpdateY();
 		for (strum in strumLineNotes)
@@ -2232,318 +2219,6 @@ class ChartEditorState extends MusicBeatState
 			dummyArrow.visible = false;
 		}
 		
-		if (canAddNotes)
-		{
-			var rightSelect:Bool = FlxG.mouse.justReleasedRight;
-			
-			if (!selectionBox.alive && FlxG.mouse.justPressed)
-			{
-				if (FlxG.mouse.overlaps(curRenderedNotes))
-				{
-					for (note in curRenderedNotes) {
-						if (!FlxG.mouse.overlaps(note)) continue;
-						
-						if (FlxG.keys.pressed.CONTROL)
-						{
-							selectNote(note);
-						}
-						else if (FlxG.keys.pressed.ALT)
-						{
-							selectNote(note);
-							note.chartData[3] = noteTypeIntMap.get(currentType);
-							updateGrid();
-						}
-						else
-						{
-							deleteNote(note);
-							break;
-						}
-					}
-				}
-				else
-				{
-					if (FlxG.mouse.x > gridBG.x
-						&& FlxG.mouse.x < gridBG.x + gridBG.width
-						&& FlxG.mouse.y > gridBG.y
-						&& FlxG.mouse.y < gridBG.y + (GRID_SIZE * getSectionBeats() * 4) * zoomList[curZoom])
-					{
-						FlxG.log.add('added note');
-						addNote();
-					}
-				}
-			}
-			
-			if (!selectionBox.alive && FlxG.mouse.justPressedRight)
-			{
-				selectionBox.revive();
-				selectionBox.setPosition(FlxG.mouse.x, FlxG.mouse.y);
-			}
-			if (selectionBox.alive)
-			{
-				if (rightSelect)
-				{
-					selectionBox.kill();
-					
-					if (!FlxG.keys.pressed.SHIFT) curSelectedNotes.resize(0);
-					
-					final pad:Float = (GRID_SIZE / 4);
-					final hitbox = selectionBox.getHitbox();
-					final testRect = flixel.math.FlxRect.get();
-					
-					for (note in curRenderedNotes) {
-						testRect.set(note.x + pad, note.y + pad, note.width - pad * 2, note.height - pad * 2);
-						
-						if (!hitbox.overlaps(testRect)) continue;
-						
-						if (!curSelectedNotes.contains(note.chartData)) curSelectedNotes.push(note.chartData);
-					}
-					
-					testRect.put();
-					hitbox.put();
-					
-					updateGrid();
-					updateNoteUI();
-				}
-				else
-				{
-					selectionBox.setSize(FlxG.mouse.x - selectionBox.x, FlxG.mouse.y - selectionBox.y);
-				}
-			}
-		}
-		
-		var blockInput:Bool = false;
-		for (inputText in blockPressWhileTypingOn)
-		{
-			if (inputText.hasFocus)
-			{
-				FlxG.sound.muteKeys = [];
-				FlxG.sound.volumeDownKeys = [];
-				FlxG.sound.volumeUpKeys = [];
-				blockInput = true;
-				break;
-			}
-		}
-		
-		if (!blockInput)
-		{
-			for (stepper in blockPressWhileTypingOnStepper)
-			{
-				@:privateAccess
-				var leText:Dynamic = stepper.text_field;
-				var leText:FlxUIInputText = leText;
-				if (leText.hasFocus)
-				{
-					FlxG.sound.muteKeys = [];
-					FlxG.sound.volumeDownKeys = [];
-					FlxG.sound.volumeUpKeys = [];
-					blockInput = true;
-					break;
-				}
-			}
-		}
-		
-		if (!blockInput)
-		{
-			FlxG.sound.muteKeys = ClientPrefs.muteKeys;
-			FlxG.sound.volumeDownKeys = ClientPrefs.volumeDownKeys;
-			FlxG.sound.volumeUpKeys = ClientPrefs.volumeUpKeys;
-			
-			for (dropDownMenu in blockPressWhileScrolling)
-			{
-				if (dropDownMenu.dropPanel.visible)
-				{
-					blockInput = true;
-					break;
-				}
-			}
-		}
-		
-		if (!blockInput)
-		{
-			var prevControlArray:Array<Dynamic> = vortexControlArray;
-			if (vortex)
-			{
-				vortexControlArray = [
-					 FlxG.keys.pressed.ONE, FlxG.keys.pressed.TWO, FlxG.keys.pressed.THREE, FlxG.keys.pressed.FOUR,
-					FlxG.keys.pressed.FIVE, FlxG.keys.pressed.SIX, FlxG.keys.pressed.SEVEN, FlxG.keys.pressed.EIGHT
-				];
-			}
-			
-			if (FlxG.keys.justPressed.ENTER)
-			{
-				enterSong();
-			}
-			
-			if (FlxG.keys.justPressed.E)
-			{
-				changeNoteSustain(Conductor.stepCrotchet);
-			}
-			if (FlxG.keys.justPressed.Q)
-			{
-				changeNoteSustain(-Conductor.stepCrotchet);
-			}
-			
-			if (FlxG.keys.justPressed.BACKSPACE)
-			{
-				PlayState.chartingMode = false;
-				FlxG.switchState(funkin.states.editors.MasterEditorMenu.new);
-				FunkinSound.playMusic(Paths.music('freakyMenu'));
-				FlxG.mouse.visible = false;
-				return;
-			}
-			
-			if (FlxG.keys.justPressed.Z && FlxG.keys.pressed.CONTROL)
-			{
-				undo();
-			}
-			
-			if (FlxG.keys.justPressed.Z && curZoom > 0 && !FlxG.keys.pressed.CONTROL)
-			{
-				--curZoom;
-				updateZoom();
-			}
-			if (FlxG.keys.justPressed.X && curZoom < zoomList.length - 1)
-			{
-				curZoom++;
-				updateZoom();
-			}
-			
-			if (FlxG.keys.justPressed.ESCAPE && FlxG.keys.pressed.SHIFT)
-			{
-				if (startTime == 0) playSongFromTimestamp(FlxG.sound.music.time);
-				else playSongFromTimestamp(startTime);
-			}
-			if (FlxG.keys.justPressed.ESCAPE)
-			{
-				autosaveSong();
-				toggleMusic(false);
-				openSubState(new ChartingOptionsSubmenu());
-			}
-			
-			if (FlxG.keys.justPressed.TAB)
-			{
-				if (FlxG.keys.pressed.SHIFT)
-				{
-					UI_box.selected_tab -= 1;
-					if (UI_box.selected_tab < 0) UI_box.selected_tab = 2;
-				}
-				else
-				{
-					UI_box.selected_tab += 1;
-					if (UI_box.selected_tab >= 3) UI_box.selected_tab = 0;
-				}
-			}
-			
-			if (FlxG.keys.justPressed.SPACE && FlxG.sound.music.time < (FlxG.sound.music.length - endOffset)) togglePause();
-			
-			if (!FlxG.keys.pressed.ALT && FlxG.keys.justPressed.R)
-			{
-				if (FlxG.keys.pressed.SHIFT) resetSection(true);
-				else resetSection();
-			}
-			
-			if (FlxG.mouse.wheel != 0)
-			{
-				toggleMusic(false);
-				
-				if (!mouseQuant) FlxG.sound.music.time -= (FlxG.mouse.wheel * Conductor.stepCrotchet * 0.8);
-				else scrollQuantized(FlxG.mouse.wheel > 0);
-			}
-			
-			// ARROW VORTEX SHIT NO DEADASS
-			
-			if (FlxG.keys.pressed.W || FlxG.keys.pressed.S)
-			{
-				toggleMusic(false);
-				
-				var holdingShift:Float = 1;
-				if (FlxG.keys.pressed.CONTROL) holdingShift = 0.25;
-				else if (FlxG.keys.pressed.SHIFT) holdingShift = 4;
-				
-				var delta:Float = (700 * FlxG.elapsed * holdingShift);
-				
-				FlxG.sound.music.time = FlxMath.bound(FlxG.sound.music.time + delta * (FlxG.keys.pressed.W ? -1 : 1), 0, FlxG.sound.music.length - endOffset);
-			}
-			
-			if (!blockInput)
-			{
-				if (FlxG.keys.justPressed.RIGHT)
-				{
-					curQuant++;
-					if (curQuant > quantizations.length - 1) curQuant = 0;
-					
-					quantization = quantizations[curQuant];
-				}
-				
-				if (FlxG.keys.justPressed.LEFT)
-				{
-					curQuant--;
-					if (curQuant < 0) curQuant = quantizations.length - 1;
-					
-					quantization = quantizations[curQuant];
-				}
-				quant.animation.play('q', true, false, curQuant);
-			}
-			
-			if (FlxG.keys.justPressed.UP || FlxG.keys.justPressed.DOWN) scrollQuantized(FlxG.keys.justPressed.UP);
-			
-			var style = currentType;
-			
-			if (FlxG.keys.pressed.SHIFT)
-			{
-				style = 3;
-			}
-			
-			var shiftThing:Int = 1;
-			if (FlxG.keys.pressed.SHIFT) shiftThing = 4;
-			
-			if (FlxG.keys.justPressed.D) changeSection(curSec + shiftThing);
-			if (FlxG.keys.justPressed.A) changeSection(curSec - shiftThing);
-			
-			if (FlxG.keys.justPressed.DELETE)
-			{
-				for (note in curSelectedNotes)
-				{
-					if (note[2] != null)
-					{
-						_song.notes[curSec].sectionNotes.remove(note);
-					}
-					else
-					{
-						_song.events.remove(note);
-					}
-				}
-				
-				curSelectedNotes.resize(0);
-			}
-			
-			if (vortex && !blockInput)
-			{
-				for (i in 0...vortexControlArray.length)
-				{
-					if (!vortexControlArray[i])
-					{
-						holdingNotes[i] = null;
-					}
-					else if (prevControlArray != null && vortexControlArray[i] != prevControlArray[i])
-					{
-						doANoteThing(quantize(FlxG.sound.music.time), i, style);
-					}
-				}
-				
-				stretchNotes();
-			}
-		}
-		else if (FlxG.keys.justPressed.ENTER)
-		{
-			for (i in 0...blockPressWhileTypingOn.length)
-			{
-				if (blockPressWhileTypingOn[i].hasFocus)
-				{
-					blockPressWhileTypingOn[i].hasFocus = false;
-				}
-			}
-		}
 		// textBox.updateHitbox();
 		// if (FlxG.mouse.overlaps(clickForInfo))
 		// {
@@ -2576,24 +2251,22 @@ class ChartEditorState extends MusicBeatState
 		// 	clickForInfo.color = 0xFF8c8c8c;
 		// }
 		
-		_song.bpm = tempBpm;
+		if (mouseControl) mouseInput(elapsed);
+		
+		if (keyboardControl)
+		{
+			FlxG.sound.muteKeys = ClientPrefs.muteKeys;
+			FlxG.sound.volumeUpKeys = ClientPrefs.volumeUpKeys;
+			FlxG.sound.volumeDownKeys = ClientPrefs.volumeDownKeys;
+			
+			keyboardInput(elapsed);
+		}
+		else if (FlxG.sound.muteKeys.length > 0)
+		{
+			FlxG.sound.muteKeys = FlxG.sound.volumeUpKeys = FlxG.sound.volumeDownKeys = [];
+		}
 		
 		strumLineNotes.visible = quant.visible = vortex;
-		
-		// PLAYBACK SPEED CONTROLS //
-		var holdingShift = FlxG.keys.pressed.SHIFT;
-		var holdingLB = FlxG.keys.pressed.LBRACKET;
-		var holdingRB = FlxG.keys.pressed.RBRACKET;
-		var pressedLB = FlxG.keys.justPressed.LBRACKET;
-		var pressedRB = FlxG.keys.justPressed.RBRACKET;
-		
-		if (!holdingShift && pressedLB || holdingShift && holdingLB) playbackSpeed -= 0.01;
-		if (!holdingShift && pressedRB || holdingShift && holdingRB) playbackSpeed += 0.01;
-		if (FlxG.keys.pressed.ALT && (pressedLB || pressedRB || holdingLB || holdingRB)) playbackSpeed = 1;
-		//
-		
-		if (playbackSpeed <= 0.5) playbackSpeed = 0.5;
-		if (playbackSpeed >= 3) playbackSpeed = 3;
 		
 		FlxG.sound.music.pitch = playbackSpeed;
 		vocals.pitch = playbackSpeed;
@@ -2659,8 +2332,264 @@ class ChartEditorState extends MusicBeatState
 			}
 		}
 		
+		if (playbackSpeed <= 0.5) playbackSpeed = 0.5;
+		if (playbackSpeed >= 3) playbackSpeed = 3;
+		
 		lastConductorPos = Conductor.songPosition;
 		super.update(elapsed);
+	}
+	
+	public function mouseInput(elapsed:Float):Void
+	{
+		var rightSelect:Bool = FlxG.mouse.justReleasedRight;
+		
+		if (!selectionBox.alive && FlxG.mouse.justPressed)
+		{
+			if (FlxG.mouse.overlaps(curRenderedNotes))
+			{
+				for (note in curRenderedNotes) {
+					if (!FlxG.mouse.overlaps(note)) continue;
+					
+					if (FlxG.keys.pressed.CONTROL)
+					{
+						selectNote(note);
+					}
+					else if (FlxG.keys.pressed.ALT)
+					{
+						selectNote(note);
+						note.chartData[3] = noteTypeIntMap.get(currentType);
+						updateGrid();
+					}
+					else
+					{
+						deleteNote(note);
+						break;
+					}
+				}
+			}
+			else
+			{
+				if (FlxG.mouse.x > gridBG.x
+					&& FlxG.mouse.x < gridBG.x + gridBG.width
+					&& FlxG.mouse.y > gridBG.y
+					&& FlxG.mouse.y < gridBG.y + (GRID_SIZE * getSectionBeats() * 4) * zoomList[curZoom])
+				{
+					FlxG.log.add('added note');
+					addNote();
+				}
+			}
+		}
+		
+		if (!selectionBox.alive && FlxG.mouse.justPressedRight)
+		{
+			selectionBox.revive();
+			selectionBox.setPosition(FlxG.mouse.x, FlxG.mouse.y);
+		}
+		if (selectionBox.alive)
+		{
+			if (rightSelect) deselect();
+			else selectionBox.setSize(FlxG.mouse.x - selectionBox.x, FlxG.mouse.y - selectionBox.y);
+		}
+		
+		if (FlxG.mouse.wheel != 0)
+		{
+			toggleMusic(false);
+			
+			var delta:Float = (FlxG.mouse.wheel * Conductor.stepCrotchet * .8);
+			
+			if (!mouseQuant) FlxG.sound.music.time = FlxMath.bound(FlxG.sound.music.time - delta, 0, FlxG.sound.music.length - endOffset);
+			else scrollQuantized(FlxG.mouse.wheel > 0);
+		}
+	}
+	
+	public function deselect():Void
+	{
+		if (!selectionBox.alive) return;
+		
+		selectionBox.kill();
+		
+		if (!FlxG.keys.pressed.SHIFT) curSelectedNotes.resize(0);
+		
+		final pad:Float = (GRID_SIZE / 4);
+		final hitbox = selectionBox.getHitbox();
+		final testRect = flixel.math.FlxRect.get();
+		
+		for (note in curRenderedNotes) {
+			testRect.set(note.x + pad, note.y + pad, note.width - pad * 2, note.height - pad * 2);
+			
+			if (!hitbox.overlaps(testRect)) continue;
+			
+			if (!curSelectedNotes.contains(note.chartData)) curSelectedNotes.push(note.chartData);
+		}
+		
+		testRect.put();
+		hitbox.put();
+		
+		updateGrid();
+		updateNoteUI();
+	}
+	
+	public function keyboardInput(elapsed:Float):Void
+	{
+		var prevControlArray:Array<Dynamic> = vortexControlArray;
+		if (vortex)
+		{
+			vortexControlArray = [ // TODO : make this better im crying
+				 FlxG.keys.pressed.ONE, FlxG.keys.pressed.TWO, FlxG.keys.pressed.THREE, FlxG.keys.pressed.FOUR,
+				FlxG.keys.pressed.FIVE, FlxG.keys.pressed.SIX, FlxG.keys.pressed.SEVEN, FlxG.keys.pressed.EIGHT
+			];
+		}
+		
+		if (FlxG.keys.justPressed.ENTER) return enterSong();
+		
+		if (FlxG.keys.justPressed.E) changeNoteSustain(Conductor.stepCrotchet);
+		if (FlxG.keys.justPressed.Q) changeNoteSustain(-Conductor.stepCrotchet);
+		
+		if (FlxG.keys.justPressed.BACKSPACE)
+		{
+			PlayState.chartingMode = false;
+			FlxG.switchState(funkin.states.editors.MasterEditorMenu.new);
+			FunkinSound.playMusic(Paths.music('freakyMenu'));
+			FlxG.mouse.visible = false;
+			return;
+		}
+		
+		if (FlxG.keys.justPressed.Z && FlxG.keys.pressed.CONTROL)
+		{
+			undo();
+		}
+		
+		if (FlxG.keys.justPressed.Z && curZoom > 0 && !FlxG.keys.pressed.CONTROL)
+		{
+			--curZoom;
+			updateZoom();
+		}
+		if (FlxG.keys.justPressed.X && curZoom < zoomList.length - 1)
+		{
+			curZoom++;
+			updateZoom();
+		}
+		
+		if (FlxG.keys.justPressed.ESCAPE && FlxG.keys.pressed.SHIFT)
+		{
+			if (startTime == 0) playSongFromTimestamp(FlxG.sound.music.time);
+			else playSongFromTimestamp(startTime);
+		}
+		if (FlxG.keys.justPressed.ESCAPE)
+		{
+			autosaveSong();
+			toggleMusic(false);
+			openSubState(new ChartingOptionsSubmenu());
+		}
+		
+		if (FlxG.keys.justPressed.TAB)
+		{
+			if (FlxG.keys.pressed.SHIFT)
+			{
+				UI_box.selected_tab -= 1;
+				if (UI_box.selected_tab < 0) UI_box.selected_tab = 2;
+			}
+			else
+			{
+				UI_box.selected_tab += 1;
+				if (UI_box.selected_tab >= 3) UI_box.selected_tab = 0;
+			}
+		}
+		
+		if (FlxG.keys.justPressed.SPACE && FlxG.sound.music.time < (FlxG.sound.music.length - endOffset)) togglePause();
+		
+		if (!FlxG.keys.pressed.ALT && FlxG.keys.justPressed.R)
+		{
+			if (FlxG.keys.pressed.SHIFT) resetSection(true);
+			else resetSection();
+		}
+		
+		// ARROW VORTEX SHIT NO DEADASS
+		
+		if (FlxG.keys.pressed.W || FlxG.keys.pressed.S)
+		{
+			toggleMusic(false);
+			
+			var holdingShift:Float = 1;
+			if (FlxG.keys.pressed.CONTROL) holdingShift = 0.25;
+			else if (FlxG.keys.pressed.SHIFT) holdingShift = 4;
+			
+			var delta:Float = (700 * FlxG.elapsed * holdingShift);
+			
+			FlxG.sound.music.time = FlxMath.bound(FlxG.sound.music.time + delta * (FlxG.keys.pressed.W ? -1 : 1), 0, FlxG.sound.music.length - endOffset);
+		}
+		
+		if (FlxG.keys.justPressed.RIGHT) changeQuantization(1);
+		if (FlxG.keys.justPressed.LEFT) changeQuantization(-1);
+		
+		if (FlxG.keys.justPressed.UP || FlxG.keys.justPressed.DOWN) scrollQuantized(FlxG.keys.justPressed.UP);
+		
+		var style = currentType;
+		
+		if (FlxG.keys.pressed.SHIFT)
+		{
+			style = 3;
+		}
+		
+		var shiftThing:Int = 1;
+		if (FlxG.keys.pressed.SHIFT) shiftThing = 4;
+		
+		if (FlxG.keys.justPressed.D) changeSection(curSec + shiftThing);
+		if (FlxG.keys.justPressed.A) changeSection(curSec - shiftThing);
+		
+		if (FlxG.keys.justPressed.DELETE)
+		{
+			for (note in curSelectedNotes)
+			{
+				if (note[2] != null)
+				{
+					_song.notes[curSec].sectionNotes.remove(note);
+				}
+				else
+				{
+					_song.events.remove(note);
+				}
+			}
+			
+			curSelectedNotes.resize(0);
+		}
+		
+		if (vortex)
+		{
+			for (i in 0...vortexControlArray.length)
+			{
+				if (!vortexControlArray[i])
+				{
+					holdingNotes[i] = null;
+				}
+				else if (prevControlArray != null && vortexControlArray[i] != prevControlArray[i])
+				{
+					doANoteThing(quantize(FlxG.sound.music.time), i, style);
+				}
+			}
+			
+			stretchNotes();
+		}
+		
+		// PLAYBACK SPEED CONTROLS //
+		var holdingShift = FlxG.keys.pressed.SHIFT;
+		var holdingLB = FlxG.keys.pressed.LBRACKET;
+		var holdingRB = FlxG.keys.pressed.RBRACKET;
+		var pressedLB = FlxG.keys.justPressed.LBRACKET;
+		var pressedRB = FlxG.keys.justPressed.RBRACKET;
+		
+		if (!holdingShift && pressedLB || holdingShift && holdingLB) playbackSpeed -= 0.01;
+		if (!holdingShift && pressedRB || holdingShift && holdingRB) playbackSpeed += 0.01;
+		if (FlxG.keys.pressed.ALT && (pressedLB || pressedRB || holdingLB || holdingRB)) playbackSpeed = 1;
+	}
+	
+	public function changeQuantization(mod:Int = 0):Int
+	{
+		curQuant = Std.int(MathUtil.euclideanMod(curQuant + mod, quantizations.length));
+		
+		quant.animation.play('q', true, false, curQuant);
+		
+		return quantization = quantizations[curQuant];
 	}
 	
 	public function scrollQuantized(up:Bool):Void

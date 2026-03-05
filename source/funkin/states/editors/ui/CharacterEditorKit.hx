@@ -16,14 +16,14 @@ import haxe.ui.components.Image;
 import haxe.ui.core.ItemRenderer;
 import haxe.ui.components.CheckBox;
 
-import flixel.group.FlxSpriteContainer.FlxTypedSpriteContainer;
-
 import haxe.ui.containers.HBox;
 import haxe.ui.containers.Panel;
 import haxe.ui.containers.VBox;
 import haxe.ui.containers.dialogs.CollapsibleDialog;
 import haxe.ui.containers.menus.Menu;
 import haxe.ui.containers.menus.MenuBar;
+
+using funkin.states.editors.ui.ToolKitUtils;
 
 @:build(haxe.ui.ComponentBuilder.build("assets/excluded/ui/charEditor/CharacterSettings.xml"))
 class CharacterDialog extends CollapsibleDialog {}
@@ -56,7 +56,7 @@ class MiscInfo extends Panel {}
 ')
 class LegendWindow extends Window {}
 
-class CharEditorUI extends FlxTypedSpriteContainer<FlxSprite>
+class CharEditorUI extends flixel.group.FlxSpriteContainer
 {
 	// the primary components
 	public var characterDialogBox:CharacterDialog;
