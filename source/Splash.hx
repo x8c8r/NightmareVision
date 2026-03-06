@@ -17,8 +17,7 @@ class Splash extends FlxState
 	
 	var spriteEvents:FlxTimer;
 	var logo:FlxSprite;
-	var volumeForLogo:Bool = false;
-
+	
 	#if VIDEOS_ALLOWED
 	var video:FunkinVideoSprite;
 	#end
@@ -59,13 +58,13 @@ class Splash extends FlxState
 			}
 		}
 		#if VIDEOS_ALLOWED
-				if (video != null)
+		if (video != null)
+		{
+			if (FlxG.keys.justPressed.SPACE || FlxG.keys.justPressed.ENTER)
 			{
-				if (FlxG.keys.justPressed.SPACE || FlxG.keys.justPressed.ENTER)
-				{
-							finish();
-					}
+				finish();
 			}
+		}
 		#end
 		super.update(elapsed);
 	}
@@ -95,7 +94,6 @@ class Splash extends FlxState
 				switch (step++)
 				{
 					case 0:
-			            volumeForLogo = true;
 						FlxG.sound.volume = 1;
 						FlxG.sound.play(Paths.sound('intro'));
 						logo.visible = true;
@@ -138,11 +136,9 @@ class Splash extends FlxState
 	
 	function complete()
 	{
-	if (volumeForLogo == true)
-	{
 		FlxG.sound.muted = FlxG.save.data.mute;
 		FlxG.sound.volume = FlxG.save.data.volume;
-	}
+		
 		FlxG.autoPause = _cachedAutoPause;
 		FlxG.switchState(() -> Type.createInstance(Main.startMeta.initialState, []));
 	}
