@@ -93,7 +93,9 @@
             
 
             <label text="Playback Rate"/>
-            <number-stepper pos="1" step="0.1" min="0.5" max="3"/>
+            <!-- <number-stepper pos="1" step="0.1" min="0.5" max="3"/> -->
+            <slider pos="1" min="0.5" max="3" precision="1" center="1" majorTicks="0.5"/>
+
 
 
 
