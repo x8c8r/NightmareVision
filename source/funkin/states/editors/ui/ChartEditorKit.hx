@@ -155,12 +155,13 @@ class ChartEditorUI extends flixel.group.FlxSpriteContainer
 				note[3] = charter.noteTypeIntMap.get(charter.currentType);
 				changed = true;
 			}
-				
+			
 			if (changed) charter.updateGrid();
 		}
 		songDialog.strumTimeStepper.onChange = function(event) {
-			for (note in charter.curSelectedNotes) note[0] = event.value;
-			
+			for (note in charter.curSelectedNotes)
+				note[0] = event.value;
+				
 			charter.updateGrid();
 		}
 		songDialog.sustainLengthStepper.onChange = function(event) {
@@ -293,17 +294,19 @@ class ChartEditorUI extends flixel.group.FlxSpriteContainer
 		songDialog.stageDropdown.dataSource.sort(null, ASCENDING);
 		songDialog.stageDropdown.selectedItem = song.stage;
 	}
-
+	
 	function refreshSkinDropdown():Void
 	{
 		var directories:Array<String> = [
 			#if MODS_ALLOWED
-			Paths.mods('data/noteskins/'),
-			Paths.mods(Mods.currentModDirectory + '/data/noteskins/'),
+			Paths.mods('data/noteskins/'), Paths.mods(Mods.currentModDirectory + '/data/noteskins/'),
 			#end
 			Paths.getCorePath('data/noteskins/')
 		];
-		#if MODS_ALLOWED for (mod in Mods.globalMods) directories.push(Paths.mods('$mod/data/noteskins/')); #end
+		#if MODS_ALLOWED
+		for (mod in Mods.globalMods)
+			directories.push(Paths.mods('$mod/data/noteskins/'));
+		#end
 		
 		var noteskins:Array<String> = ['default'];
 		
