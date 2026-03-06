@@ -13,6 +13,9 @@ import haxe.ui.components.DropDown;
 import haxe.ui.containers.dialogs.Dialog;
 import haxe.ui.notifications.NotificationData;
 
+/**
+ * Utility class to assist `haxe-ui` in the Editors.
+ */
 class ToolKitUtils
 {
 	/**
@@ -20,7 +23,7 @@ class ToolKitUtils
 	 * @param dropDown 
 	 * @param items 
 	 */
-	public static function populateList(container:Null<OneOfTwo<DropDown, ListView>>, items:Array<DropDownItem>)
+	public static function populateList(container:Null<OneOfTwo<DropDown, ListView>>, items:Array<DropDownItem>):Void
 	{
 		if (container == null) return;
 		
@@ -46,7 +49,10 @@ class ToolKitUtils
 		}
 	}
 	
-	public static function addToList(container:Null<OneOfTwo<DropDown, ListView>>, ...items:DropDownItem)
+	/**
+	 * Adds however many `DropDownItem`'s to a given container
+	 */
+	public static function addToList(container:Null<OneOfTwo<DropDown, ListView>>, ...items:DropDownItem):Void
 	{
 		if (container == null || items.length == 0) return;
 		
@@ -105,10 +111,19 @@ class ToolKitUtils
 		}
 	}
 	
+	/**
+	 * Helper function to create a basic DropDownItem
+	 */
 	public static function makeSimpleDropDownItem(id:String):DropDownItem return {id: id, text: id};
 	
 	public static function isDropDownItem(data:Dynamic):Bool return (data != null && data.id != null && data.text != null); // is this even necessary tbh ?
 	
+	/**
+	 * Creates a notification
+	 * @param title 
+	 * @param body 
+	 * @param type 
+	 */
 	public static function makeNotification(title:String, body:String, type:NotificationType = Default)
 	{
 		var data:NotificationData = switch (type)
@@ -136,8 +151,11 @@ class ToolKitUtils
 		}
 	}
 	
-	static var _hitTest:flixel.math.FlxPoint = null;
+	static var _hitTest:Null<flixel.math.FlxPoint> = null;
 	
+	/**
+	 * Checks if haxe ui element is currently being covered by the mouse
+	 */
 	public static function isHaxeUIHovered(camera:FlxCamera)
 	{
 		// ok just dont fucking work sure
@@ -146,10 +164,22 @@ class ToolKitUtils
 		return Screen.instance.hasSolidComponentUnderPoint(_hitTest.x, _hitTest.y);
 	}
 	
-	public static var currentFocus:InteractiveComponent = null;
+	/**
+	 * The currently focused haxe ui component. Will be null if there is nothing focused.
+	 * 
+	 * Must be updated by `ToolKitUitls.update`
+	 */
+	public static var currentFocus(default, null):Null<InteractiveComponent> = null;
 	
 	static var iterated:Array<Component> = [];
 	
+	/**
+	 *  Updates `ToolKitUtils.currentFocus` state
+	 * 
+	 *  Attempts to find a component that is currently focused and sets `currentFocus`
+	 * 
+	 *  This should be called each frame.
+	 */
 	public static function update():Void
 	{
 		// some duct tape
@@ -160,11 +190,13 @@ class ToolKitUtils
 			iterated.resize(0);
 			currentFocus = null;
 			
-			if (FlxG.mouse.justPressed) for (component in Screen.instance.rootComponents) unfocusIter(component);
-			
+			if (FlxG.mouse.justPressed) for (component in Screen.instance.rootComponents)
+				unfocusIter(component);
+				
 			iterated.resize(0);
 			
-			for (component in Screen.instance.rootComponents) focusIter(component);
+			for (component in Screen.instance.rootComponents)
+				focusIter(component);
 		}
 	}
 	
@@ -172,18 +204,18 @@ class ToolKitUtils
 	{
 		if (iterated.contains(component)) return;
 		
-		if (component is InteractiveComponent && cast(component, InteractiveComponent).focus)
+		if (component is InteractiveComponent && (cast component : InteractiveComponent).focus)
 		{
 			_hitTest = FlxG.mouse.getViewPosition(funkin.utils.CameraUtil.lastCamera, _hitTest);
 			
 			if (!component.hasComponentUnderPoint(_hitTest.x, _hitTest.y))
 			{
-				cast(component, InteractiveComponent).focus = false;
+				(cast component : InteractiveComponent).focus = false;
 				return;
 			}
 		}
-		
-		@:privateAccess if (component._children != null) for (child in component._children) unfocusIter(child);
+		@:privateAccess if (component._children != null) for (child in component._children)
+			unfocusIter(child);
 	}
 	
 	static function focusIter(component:Component):Void
@@ -196,13 +228,13 @@ class ToolKitUtils
 			(!(component is haxe.ui.components.Button) || component is haxe.ui.components.DropDown) // fuck you TabButton
 		);
 		
-		if (focusable && cast(component, InteractiveComponent).focus)
+		if (focusable && (cast component : InteractiveComponent).focus)
 		{
 			currentFocus = cast component;
 			return;
 		}
-		
-		@:privateAccess if (component._children != null) for (child in component._children) focusIter(child);
+		@:privateAccess if (component._children != null) for (child in component._children)
+			focusIter(child);
 	}
 }
 
