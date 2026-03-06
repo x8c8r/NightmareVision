@@ -60,6 +60,8 @@ import sys.FileSystem;
 import sys.io.File;
 #end
 
+using funkin.states.editors.ui.ToolKitUtils;
+
 // this was neat //probably will rewrite the uhhh sing4 being idle later
 class OurLittleFriend extends FlxSprite
 {
@@ -529,7 +531,8 @@ class ChartEditorState extends haxe.ui.backend.flixel.UIState
 		// 	tipText.scrollFactor.set();
 		// 	add(tipText);
 		// }
-		//add(UI_box);
+		
+		buildUI();
 		
 		addSongUI();
 		addSectionUI();
@@ -580,8 +583,6 @@ class ChartEditorState extends haxe.ui.backend.flixel.UIState
 		lastSong = currentSongName;
 		
 		updateGrid();
-		
-		buildUI();
 	}
 	
 	public function buildUI():Void
@@ -1138,7 +1139,132 @@ class ChartEditorState extends haxe.ui.backend.flixel.UIState
 	var check_altAnim:FlxUICheckBox;
 	
 	var sectionToCopy:Int = 0;
-	var notesCopied:Array<Dynamic>;
+	var notesCopied:Array<Dynamic> = [];
+	
+	function copySection():Void
+	{
+		notesCopied.resize(0);
+		sectionToCopy = curSec;
+		
+		for (i in 0..._song.notes[curSec].sectionNotes.length)
+		{
+			var note:Array<Dynamic> = _song.notes[curSec].sectionNotes[i];
+			notesCopied.push(note);
+		}
+		
+		var startThing:Float = sectionStartTime();
+		var endThing:Float = sectionStartTime(1);
+		for (event in _song.events)
+		{
+			var strumTime:Float = event[0];
+			if (endThing > event[0] && event[0] >= startThing)
+			{
+				var copiedEventArray:Array<Dynamic> = [];
+				for (i in 0...event[1].length)
+				{
+					var eventToPush:Array<Dynamic> = event[1][i];
+					copiedEventArray.push([eventToPush[0], eventToPush[1], eventToPush[2]]);
+				}
+				notesCopied.push([strumTime, -1, copiedEventArray]);
+			}
+		}
+	}
+	
+	function pasteSection():Void
+	{
+		if (notesCopied.length < 1) return;
+		
+		var addToTime:Float = Conductor.stepCrotchet * (getSectionBeats() * 4 * (curSec - sectionToCopy));
+		// ADDTOTIME HAS TO BE REWRITTEN
+		
+		for (note in notesCopied)
+		{
+			var copiedNote:Array<Dynamic> = [];
+			var newStrumTime:Float = note[0] + addToTime;
+			
+			if (note[1] < 0 && ui.songDialog.sectionEventsCheckbox.selected)
+			{
+				var copiedEventArray:Array<Dynamic> = [];
+				for (i in 0...note[2].length)
+				{
+					var eventToPush:Array<Dynamic> = note[2][i];
+					copiedEventArray.push([eventToPush[0], eventToPush[1], eventToPush[2]]);
+				}
+				_song.events.push([newStrumTime, copiedEventArray]);
+			}
+			else if (note[1] >= 0 && ui.songDialog.sectionNotesCheckbox.selected)
+			{
+				if (note[4] != null)
+				{
+					copiedNote = [newStrumTime, note[1], note[2], note[3], note[4]];
+				}
+				else
+				{
+					copiedNote = [newStrumTime, note[1], note[2], note[3]];
+				}
+				_song.notes[curSec].sectionNotes.push(copiedNote);
+			}
+		}
+		updateGrid();
+	}
+	
+	function clearSection():Void
+	{
+		if (ui.songDialog.sectionNotesCheckbox.selected) _song.notes[curSec].sectionNotes.resize(0);
+		
+		if (ui.songDialog.sectionEventsCheckbox.selected)
+		{
+			var i:Int = _song.events.length - 1;
+			var startThing:Float = sectionStartTime();
+			var endThing:Float = sectionStartTime(1);
+			while (i > -1)
+			{
+				var event:Array<Dynamic> = _song.events[i];
+				if (event != null && endThing > event[0] && event[0] >= startThing)
+				{
+					_song.events.remove(event);
+				}
+				--i;
+			}
+		}
+		
+		updateGrid();
+		updateNoteUI();
+	}
+	
+	function cloneSection(before:Int):Void
+	{
+		var copySec:Int = (curSec - before);
+		
+		if (before == 0 || _song.notes[copySec] == null) return;
+		
+		for (note in _song.notes[copySec].sectionNotes)
+		{
+			var strum = note[0] + Conductor.stepCrotchet * (getSectionBeats(curSec) * 4 * before);
+			
+			var copiedNote:Array<Dynamic> = [strum, note[1], note[2], note[3]];
+			_song.notes[curSec].sectionNotes.push(copiedNote);
+		}
+		
+		var startThing:Float = sectionStartTime(-before);
+		var endThing:Float = sectionStartTime(-before + 1);
+		for (event in _song.events)
+		{
+			var strumTime:Float = event[0];
+			if (endThing > event[0] && event[0] >= startThing)
+			{
+				strumTime += Conductor.stepCrotchet * (getSectionBeats(curSec) * 4 * before);
+				var copiedEventArray:Array<Dynamic> = [];
+				for (i in 0...event[1].length)
+				{
+					var eventToPush:Array<Dynamic> = event[1][i];
+					copiedEventArray.push([eventToPush[0], eventToPush[1], eventToPush[2]]);
+				}
+				_song.events.push([strumTime, copiedEventArray]);
+			}
+		}
+		updateGrid();
+	}
 	
 	function addSectionUI():Void
 	{
@@ -1182,100 +1308,15 @@ class ChartEditorState extends haxe.ui.backend.flixel.UIState
 		var check_eventsSec:FlxUICheckBox = null;
 		var check_notesSec:FlxUICheckBox = null;
 		var copyButton:FlxButton = new FlxButton(10, 190, "Copy Section", function() {
-			notesCopied = [];
-			sectionToCopy = curSec;
-			for (i in 0..._song.notes[curSec].sectionNotes.length)
-			{
-				var note:Array<Dynamic> = _song.notes[curSec].sectionNotes[i];
-				notesCopied.push(note);
-			}
 			
-			var startThing:Float = sectionStartTime();
-			var endThing:Float = sectionStartTime(1);
-			for (event in _song.events)
-			{
-				var strumTime:Float = event[0];
-				if (endThing > event[0] && event[0] >= startThing)
-				{
-					var copiedEventArray:Array<Dynamic> = [];
-					for (i in 0...event[1].length)
-					{
-						var eventToPush:Array<Dynamic> = event[1][i];
-						copiedEventArray.push([eventToPush[0], eventToPush[1], eventToPush[2]]);
-					}
-					notesCopied.push([strumTime, -1, copiedEventArray]);
-				}
-			}
 		});
 		
 		var pasteButton:FlxButton = new FlxButton(copyButton.x + 100, copyButton.y, "Paste Section", function() {
-			if (notesCopied == null || notesCopied.length < 1)
-			{
-				return;
-			}
 			
-			var addToTime:Float = Conductor.stepCrotchet * (getSectionBeats() * 4 * (curSec - sectionToCopy));
-			// trace('Time to add: ' + addToTime);
-			
-			for (note in notesCopied)
-			{
-				var copiedNote:Array<Dynamic> = [];
-				var newStrumTime:Float = note[0] + addToTime;
-				if (note[1] < 0)
-				{
-					if (check_eventsSec.checked)
-					{
-						var copiedEventArray:Array<Dynamic> = [];
-						for (i in 0...note[2].length)
-						{
-							var eventToPush:Array<Dynamic> = note[2][i];
-							copiedEventArray.push([eventToPush[0], eventToPush[1], eventToPush[2]]);
-						}
-						_song.events.push([newStrumTime, copiedEventArray]);
-					}
-				}
-				else
-				{
-					if (check_notesSec.checked)
-					{
-						if (note[4] != null)
-						{
-							copiedNote = [newStrumTime, note[1], note[2], note[3], note[4]];
-						}
-						else
-						{
-							copiedNote = [newStrumTime, note[1], note[2], note[3]];
-						}
-						_song.notes[curSec].sectionNotes.push(copiedNote);
-					}
-				}
-			}
-			updateGrid();
 		});
 		
 		var clearSectionButton:FlxButton = new FlxButton(pasteButton.x + 100, pasteButton.y, "Clear", function() {
-			if (check_notesSec.checked)
-			{
-				_song.notes[curSec].sectionNotes = [];
-			}
 			
-			if (check_eventsSec.checked)
-			{
-				var i:Int = _song.events.length - 1;
-				var startThing:Float = sectionStartTime();
-				var endThing:Float = sectionStartTime(1);
-				while (i > -1)
-				{
-					var event:Array<Dynamic> = _song.events[i];
-					if (event != null && endThing > event[0] && event[0] >= startThing)
-					{
-						_song.events.remove(event);
-					}
-					--i;
-				}
-			}
-			updateGrid();
-			updateNoteUI();
 		});
 		clearSectionButton.color = FlxColor.RED;
 		clearSectionButton.label.color = FlxColor.WHITE;
@@ -1309,37 +1350,7 @@ class ChartEditorState extends haxe.ui.backend.flixel.UIState
 		
 		var stepperCopy:FlxUINumericStepper = null;
 		var copyLastButton:FlxButton = new FlxButton(10, swapSection.y + 30, "Copy last section", function() {
-			var value:Int = Std.int(stepperCopy.value);
-			if (value == 0) return;
 			
-			var daSec = FlxMath.maxInt(curSec, value);
-			
-			for (note in _song.notes[daSec - value].sectionNotes)
-			{
-				var strum = note[0] + Conductor.stepCrotchet * (getSectionBeats(daSec) * 4 * value);
-				
-				var copiedNote:Array<Dynamic> = [strum, note[1], note[2], note[3]];
-				_song.notes[daSec].sectionNotes.push(copiedNote);
-			}
-			
-			var startThing:Float = sectionStartTime(-value);
-			var endThing:Float = sectionStartTime(-value + 1);
-			for (event in _song.events)
-			{
-				var strumTime:Float = event[0];
-				if (endThing > event[0] && event[0] >= startThing)
-				{
-					strumTime += Conductor.stepCrotchet * (getSectionBeats(daSec) * 4 * value);
-					var copiedEventArray:Array<Dynamic> = [];
-					for (i in 0...event[1].length)
-					{
-						var eventToPush:Array<Dynamic> = event[1][i];
-						copiedEventArray.push([eventToPush[0], eventToPush[1], eventToPush[2]]);
-					}
-					_song.events.push([strumTime, copiedEventArray]);
-				}
-			}
-			updateGrid();
 		});
 		copyLastButton.setGraphicSize(80, 30);
 		copyLastButton.updateHitbox();
@@ -1353,25 +1364,7 @@ class ChartEditorState extends haxe.ui.backend.flixel.UIState
 			updateGrid();
 		});
 		var mirrorButton:FlxButton = new FlxButton(duetButton.x + 100, duetButton.y, "Mirror Notes", function() {
-			if (curSelectedNotes.length > 0)
-			{
-				var minData:Int = Lambda.fold(curSelectedNotes, (note:Array<Dynamic>, r:Int) -> (note[1] < r && note[1] > -1 ? note[1] : r), 9999);
-				var maxData:Int = Lambda.fold(curSelectedNotes, (note:Array<Dynamic>, r:Int) -> (note[1] > r ? note[1] : r), 0);
-				
-				for (note in curSelectedNotes)
-				{
-					if (note[1] < 0) continue;
-					
-					note[1] = (maxData - note[1] + minData);
-				}
-			}
-			else
-			{
-				for (note in _song.notes[curSec].sectionNotes)
-				{
-					note[1] = ((_song.keys - (note[1] % _song.keys) - 1) + Std.int(note[1] / _song.keys) * _song.keys);
-				}
-			}
+			
 			
 			updateGrid();
 		});
@@ -1443,41 +1436,36 @@ class ChartEditorState extends haxe.ui.backend.flixel.UIState
 		}
 		#end
 		
-		for (i in 0...directories.length)
+		for (directory in directories)
 		{
-			var directory:String = directories[i];
-			if (FunkinAssets.exists(directory))
+			if (!FunkinAssets.exists(directory)) continue;
+			
+			for (file in FunkinAssets.readDirectory(directory))
 			{
-				for (file in FunkinAssets.readDirectory(directory))
+				var path = haxe.io.Path.join([directory, file]);
+				if (FunkinAssets.isDirectory(path)) continue;
+				
+				for (ext in FunkinScript.H_EXTS)
 				{
-					var path = haxe.io.Path.join([directory, file]);
-					if (!FunkinAssets.isDirectory(path))
-					{
-						for (ext in FunkinScript.H_EXTS)
-						{
-							if (file.endsWith(ext))
-							{
-								var fileToCheck:String = file.substr(0, file.length - ext.length - 1);
-								
-								if (!noteTypeMap.exists(fileToCheck))
-								{
-									displayNameList.push(fileToCheck);
-									noteTypeMap.set(fileToCheck, key);
-									noteTypeIntMap.set(key, fileToCheck);
-									
-									key++;
-								}
-							}
-						}
-					}
+					if (!file.endsWith(ext)) continue;
+					
+					var fileToCheck:String = file.substr(0, file.length - ext.length - 1);
+					
+					if (noteTypeMap.exists(fileToCheck)) continue;
+					
+					displayNameList.push(fileToCheck);
+					noteTypeMap.set(fileToCheck, key);
+					noteTypeIntMap.set(key, fileToCheck);
+					
+					key++;
 				}
 			}
 		}
 		
-		for (i in 1...displayNameList.length)
-		{
-			displayNameList[i] = i + '. ' + displayNameList[i];
-		}
+		for (i => name in displayNameList) displayNameList[i] = (name.length == 0 ? '$i. None' : '$i. $name');
+		
+		ui.songDialog.noteTypeDropdown.populateList([for (name in displayNameList) ToolKitUtils.makeSimpleDropDownItem(name)]);
+		ui.songDialog.noteTypeDropdown.selectedItem = displayNameList[0];
 		
 		noteTypeDropDown = new FlxUIDropDownMenuEx(10, 105, FlxUIDropDownMenu.makeStrIdLabelArray(displayNameList, true), function(character:String) {
 			currentType = Std.parseInt(character);
@@ -1494,16 +1482,6 @@ class ChartEditorState extends haxe.ui.backend.flixel.UIState
 				
 			if (changed) updateGrid();
 		});
-		blockPressWhileScrolling.push(noteTypeDropDown);
-		
-		tab_group_note.add(new FlxText(10, 10, 0, 'Sustain length:'));
-		tab_group_note.add(new FlxText(10, 50, 0, 'Strum time (in miliseconds):'));
-		tab_group_note.add(new FlxText(10, 90, 0, 'Note type:'));
-		tab_group_note.add(stepperSusLength);
-		tab_group_note.add(strumTimeInputText);
-		tab_group_note.add(noteTypeDropDown);
-		
-		UI_box.addGroup(tab_group_note);
 	}
 	
 	var eventDropDown:FlxUIDropDownMenuEx;
@@ -1537,36 +1515,36 @@ class ChartEditorState extends haxe.ui.backend.flixel.UIState
 		for (i in 0...directories.length)
 		{
 			var directory:String = directories[i];
-			if (FunkinAssets.exists(directory))
+			if (!FunkinAssets.exists(directory)) continue;
+			
+			for (file in FunkinAssets.readDirectory(directory))
 			{
-				for (file in FunkinAssets.readDirectory(directory))
+				var path = haxe.io.Path.join([directory, file]);
+				for (ext in 0...eventexts.length)
 				{
-					var path = haxe.io.Path.join([directory, file]);
-					for (ext in 0...eventexts.length)
+					if (FunkinAssets.isDirectory(path) || file == 'readme.txt' || !file.endsWith(eventexts[ext])) continue;
+					
+					var fileToCheck:String = file.substr(0, file.length - removeShit[ext]);
+					
+					if (eventPushedMap.exists(fileToCheck)) break;
+					
+					eventPushedMap.set(fileToCheck, true);
+					
+					for (x in ['.hx', '.hxs', '.hscript'])
 					{
-						if (!FunkinAssets.isDirectory(path) && file != 'readme.txt' && file.endsWith(eventexts[ext]))
+						if (file.endsWith(x))
 						{
-							var fileToCheck:String = file.substr(0, file.length - removeShit[ext]);
-							if (!eventPushedMap.exists(fileToCheck))
-							{
-								eventPushedMap.set(fileToCheck, true);
-								for (x in ['.hx', '.hxs', '.hscript'])
-								{
-									if (file.endsWith(x))
-									{
-										eventStuff.push([fileToCheck, 'scripted description']);
-										break;
-									}
-									else
-									{
-										eventStuff.push([fileToCheck, File.getContent(path)]);
-										break;
-									}
-								}
-							}
+							eventStuff.push([fileToCheck, 'scripted description']);
+							break;
+						}
+						else
+						{
+							eventStuff.push([fileToCheck, File.getContent(path)]);
 							break;
 						}
 					}
+					
+					break;
 				}
 			}
 		}
@@ -1576,27 +1554,14 @@ class ChartEditorState extends haxe.ui.backend.flixel.UIState
 		
 		descText = new FlxText(20, 200, 0, eventStuff[0][0]);
 		
-		var leEvents:Array<String> = [];
-		for (i in 0...eventStuff.length)
-		{
-			leEvents.push(eventStuff[i][0]);
-		}
+		var eventNameList:Array<String> = [for (ev in eventStuff) ev[0]];
+		
+		ui.songDialog.eventDropdown.populateList([for (name in eventNameList) ToolKitUtils.makeSimpleDropDownItem(name)]);
+		ui.songDialog.eventDropdown.selectedItem = eventNameList[0];
 		
 		var text:FlxText = new FlxText(20, 30, 0, "Event:");
 		tab_group_event.add(text);
-		eventDropDown = new FlxUIDropDownMenuEx(20, 50, FlxUIDropDownMenu.makeStrIdLabelArray(leEvents, true), function(pressed:String) {
-			var selectedEvent:Int = Std.parseInt(pressed);
-			descText.text = eventStuff[selectedEvent][1];
-			
-			var event = curSelectedNotes[0];
-			if (curSelectedNotes.length == 1 && eventStuff != null)
-			{
-				if (event[2] == null)
-				{
-					event[1][curEventSelected][0] = eventStuff[selectedEvent][0];
-				}
-				updateGrid();
-			}
+		eventDropDown = new FlxUIDropDownMenuEx(20, 50, FlxUIDropDownMenu.makeStrIdLabelArray(eventNameList, true), function(pressed:String) {
 		});
 		blockPressWhileScrolling.push(eventDropDown);
 		
@@ -1641,7 +1606,6 @@ class ChartEditorState extends haxe.ui.backend.flixel.UIState
 		removeButton.label.color = FlxColor.WHITE;
 		removeButton.label.size = 12;
 		setAllLabelsOffset(removeButton, -30, 0);
-		tab_group_event.add(removeButton);
 		
 		var addButton:FlxButton = new FlxButton(removeButton.x + removeButton.width + 10, removeButton.y, '+', function() {
 			var event = curSelectedNotes[0];
@@ -1660,7 +1624,6 @@ class ChartEditorState extends haxe.ui.backend.flixel.UIState
 		addButton.label.color = FlxColor.WHITE;
 		addButton.label.size = 12;
 		setAllLabelsOffset(addButton, -30, 0);
-		tab_group_event.add(addButton);
 		
 		var moveLeftButton:FlxButton = new FlxButton(addButton.x + addButton.width + 20, addButton.y, '<', function() {
 			changeEventSelected(-1);
@@ -1669,7 +1632,6 @@ class ChartEditorState extends haxe.ui.backend.flixel.UIState
 		moveLeftButton.updateHitbox();
 		moveLeftButton.label.size = 12;
 		setAllLabelsOffset(moveLeftButton, -30, 0);
-		tab_group_event.add(moveLeftButton);
 		
 		var moveRightButton:FlxButton = new FlxButton(moveLeftButton.x + moveLeftButton.width + 10, moveLeftButton.y, '>', function() {
 			changeEventSelected(1);
@@ -1678,18 +1640,9 @@ class ChartEditorState extends haxe.ui.backend.flixel.UIState
 		moveRightButton.updateHitbox();
 		moveRightButton.label.size = 12;
 		setAllLabelsOffset(moveRightButton, -30, 0);
-		tab_group_event.add(moveRightButton);
 		
 		selectedEventText = new FlxText(addButton.x - 100, addButton.y + addButton.height + 6, (moveRightButton.x - addButton.x) + 186, 'Selected Event: None');
 		selectedEventText.alignment = CENTER;
-		tab_group_event.add(selectedEventText);
-		
-		tab_group_event.add(descText);
-		tab_group_event.add(value1InputText);
-		tab_group_event.add(value2InputText);
-		tab_group_event.add(eventDropDown);
-		
-		UI_box.addGroup(tab_group_event);
 	}
 	
 	function changeEventSelected(change:Int = 0)
@@ -2440,6 +2393,8 @@ class ChartEditorState extends haxe.ui.backend.flixel.UIState
 			];
 		}
 		
+		if (FlxG.keys.pressed.CONTROL && FlxG.keys.justPressed.S) return saveLevel();
+		
 		if (FlxG.keys.justPressed.ENTER) return enterSong();
 		
 		if (FlxG.keys.justPressed.E) changeNoteSustain(Conductor.stepCrotchet);
@@ -2539,19 +2494,26 @@ class ChartEditorState extends haxe.ui.backend.flixel.UIState
 		
 		if (FlxG.keys.justPressed.DELETE)
 		{
+			var deleteNotes:Array<Array<Dynamic>> = [];
+			
 			for (note in curSelectedNotes)
 			{
-				if (note[2] != null)
+				if (note[2] != null) deleteNotes.push(note);
+				else _song.events.remove(note);
+			}
+			
+			if (deleteNotes.length > 0)
+			{
+				for (section in _song.notes)
 				{
-					_song.notes[curSec].sectionNotes.remove(note);
-				}
-				else
-				{
-					_song.events.remove(note);
+					final secnotes = section.sectionNotes;
+					for (note in deleteNotes) secnotes.remove(note);
 				}
 			}
 			
 			curSelectedNotes.resize(0);
+			
+			updateGrid();
 		}
 		
 		if (vortex)
@@ -3211,12 +3173,11 @@ class ChartEditorState extends haxe.ui.backend.flixel.UIState
 	{
 		var sec = _song.notes[curSec];
 		
-		stepperBeats.value = getSectionBeats();
-		check_mustHitSection.checked = sec.mustHitSection;
-		check_gfSection.checked = sec.gfSection;
-		check_altAnim.checked = sec.altAnim;
-		check_changeBPM.checked = sec.changeBPM;
-		stepperSectionBPM.value = sec.bpm;
+		ui.songDialog.sectionBeatsStepper.value = getSectionBeats();
+		ui.songDialog.mustHitCheckbox.selected = sec.mustHitSection;
+		ui.songDialog.gfSectionCheckbox.selected = sec.gfSection;
+		ui.songDialog.bpmCheckbox.selected = sec.changeBPM;
+		ui.songDialog.bpmStepper.value = sec.bpm;
 		
 		updateHeads();
 	}
@@ -3605,9 +3566,12 @@ class ChartEditorState extends haxe.ui.backend.flixel.UIState
 			_song.events.remove(note.chartData);
 		}
 		
-		curSelectedNotes.remove(note.chartData);
-		
-		updateGrid();
+		if (update)
+		{
+			curSelectedNotes.remove(note.chartData);
+			
+			updateGrid();
+		}
 	}
 	
 	public function doANoteThing(cs:Float, d:Int, style:Int)
@@ -3682,9 +3646,12 @@ class ChartEditorState extends haxe.ui.backend.flixel.UIState
 		return newNote;
 	}
 	
-	function choirNotes(notesArray:Array<Dynamic>) {
-		var notes:Array<Dynamic> = _song.notes[curSec].sectionNotes;
-		var duetNotes:Array<Array<Dynamic>> = [];
+	function choirNotes(notesArray:Array<Dynamic>):Void
+	{	
+		final notes:Array<Dynamic> = _song.notes[curSec].sectionNotes;
+		final duetNotes:Array<Array<Dynamic>> = [];
+		
+		if (notesArray.length == 0) notesArray = notes;
 		
 		for (note in notesArray)
 		{
@@ -3714,6 +3681,89 @@ class ChartEditorState extends haxe.ui.backend.flixel.UIState
 			notes.push(note);
 		}
 	}
+	
+	function mirrorNotes(notesArray:Array<Dynamic>, axes:flixel.util.FlxAxes = X):Void
+	{
+		if (notesArray.length > 0)
+		{
+			if (axes.x)
+			{
+				var minData:Int = Lambda.fold(notesArray, (note:Array<Dynamic>, r:Int) -> (note[1] > -1 ? FlxMath.minInt(note[1], r) : r), 9999);
+				var maxData:Int = Lambda.fold(notesArray, (note:Array<Dynamic>, r:Int) -> FlxMath.maxInt(note[1], r), 0);
+				
+				for (note in notesArray)
+				{
+					if (note[1] < 0) continue;
+					
+					note[1] = (maxData - note[1] + minData);
+				}
+			}
+			
+			if (axes.y)
+			{
+				var minTime:Float = Lambda.fold(notesArray, (note:Array<Dynamic>, r:Float) -> Math.min(note[0], r), Math.POSITIVE_INFINITY);
+				var maxTime:Float = Lambda.fold(notesArray, (note:Array<Dynamic>, r:Float) -> Math.max(note[0], r), Math.NEGATIVE_INFINITY);
+				
+				for (note in notesArray)
+				{
+					if (note[1] < 0) continue;
+					
+					note[0] = (maxTime - note[0] + minTime);
+				}
+			}
+		}
+		else
+		{
+			final minTime:Float = sectionStartTime();
+			final maxTime:Float = (startTime + getSectionBeats() * Conductor.crotchet);
+			
+			for (note in _song.notes[curSec].sectionNotes)
+			{
+				if (note[1] < 0) continue;
+				
+				if (axes.x) note[1] = ((_song.keys - (note[1] % _song.keys) - 1) + Std.int(note[1] / _song.keys) * _song.keys);
+				
+				if (axes.y) note[0] = (maxTime - note[0] + minTime);
+			}
+		}
+	}
+	
+	function transformNoteStrumlines(notesArray:Array<Dynamic>, fun:(noteStrumline:Int, minStrumline:Int, maxStrumline:Int) -> Int):Void
+	{
+		var minStrumline:Int, maxStrumline:Int;
+		
+		if (notesArray.length == 0)
+		{
+			minStrumline = 0;
+			maxStrumline = (_song.lanes - 1);
+			notesArray = _song.notes[curSec].sectionNotes;
+		}
+		else
+		{
+			minStrumline = Lambda.fold(notesArray, (note:Array<Dynamic>, r:Int) -> (note[1] > -1 ? FlxMath.minInt(getStrumline(note[1]), r) : r), 9999);
+			maxStrumline = Lambda.fold(notesArray, (note:Array<Dynamic>, r:Int) -> FlxMath.maxInt(getStrumline(note[1]), r), 0);
+		}
+		
+		for (note in notesArray)
+		{
+			if (note[1] < 0) continue;
+			
+			var newStrumline:Int = fun(getStrumline(note[1]), minStrumline, maxStrumline);
+			note[1] = ((note[1] % _song.keys) + newStrumline * _song.keys);
+		}
+	}
+	
+	function shiftStrumlineTransform(noteStrumline:Int, minStrumline:Int, maxStrumline:Int):Int
+	{
+		return ((noteStrumline + 1) % (maxStrumline - minStrumline + 1) + minStrumline);
+	}
+	
+	function swapStrumlineTransform(noteStrumline:Int, minStrumline:Int, maxStrumline:Int):Int
+	{
+		return (maxStrumline - noteStrumline + minStrumline);
+	}
+	
+	inline function getStrumline(index:Int):Int return Std.int(index / _song.keys);
 	
 	// will figure this out l8r
 	// lol you didnt so i had to

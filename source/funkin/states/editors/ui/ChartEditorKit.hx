@@ -39,11 +39,10 @@ class ChartEditorUI extends flixel.group.FlxSpriteContainer
 	{
 		if (charter == null) return;
 		
+		// METADATA
+		
 		songDialog.songNameField.value = song.song;
-		songDialog.songNameField.onChange = function(event) {
-			trace(song.song);
-			song.song = event.value;
-		}
+		songDialog.songNameField.onChange = function(event) song.song = songDialog.songNameField.value;
 		
 		songDialog.initialBpmStepper.value = song.bpm;
 		songDialog.initialBpmStepper.onChange = function(event) {
@@ -105,6 +104,117 @@ class ChartEditorUI extends flixel.group.FlxSpriteContainer
 			song.arrowSkin = event.data.id;
 			// todo
 		}
+		
+		// SECTION
+		
+		songDialog.mustHitCheckbox.onChange = function(event) {
+			song.notes[ChartEditorState.curSec].mustHitSection = event.value;
+			
+			charter.reloadGridLayer();
+			charter.updateHeads();
+		}
+		songDialog.gfSectionCheckbox.onChange = function(event) {
+			song.notes[ChartEditorState.curSec].gfSection = event.value;
+			
+			charter.reloadGridLayer();
+			charter.updateHeads();
+		}
+		
+		songDialog.sectionBeatsStepper.onChange = function(event) {
+			song.notes[ChartEditorState.curSec].sectionBeats = event.value;
+			
+			charter.reloadGridLayer();
+		}
+		songDialog.bpmCheckbox.onChange = function(event) {
+			song.notes[ChartEditorState.curSec].changeBPM = event.value;
+			
+			charter.reloadGridLayer();
+		}
+		songDialog.bpmStepper.onChange = function(event) {
+			song.notes[ChartEditorState.curSec].bpm = event.value;
+			
+			charter.updateGrid();
+		}
+		
+		songDialog.copySectionButton.onClick = function(event) charter.copySection();
+		songDialog.pasteSectionButton.onClick = function(event) charter.pasteSection();
+		songDialog.clearSectionButton.onClick = function(event) charter.clearSection();
+		songDialog.copyLastSectionButton.onClick = function(event) charter.cloneSection(songDialog.copyLastSectionStepper.value);
+		
+		// NOTES
+		
+		songDialog.noteTypeDropdown.onChange = function(event) {
+			charter.currentType = songDialog.noteTypeDropdown.selectedIndex;
+			
+			var changed:Bool = false;
+			
+			for (note in charter.curSelectedNotes)
+			{
+				if (note[2] == null) continue;
+				
+				note[3] = charter.noteTypeIntMap.get(charter.currentType);
+				changed = true;
+			}
+				
+			if (changed) charter.updateGrid();
+		}
+		songDialog.strumTimeStepper.onChange = function(event) {
+			for (note in charter.curSelectedNotes) note[0] = event.value;
+			
+			charter.updateGrid();
+		}
+		songDialog.sustainLengthStepper.onChange = function(event) {
+			var changed:Bool = false;
+			
+			for (note in charter.curSelectedNotes)
+			{
+				if (note[2] == null) continue;
+				
+				note[2] = event.value;
+				changed = true;
+			}
+			
+			if (changed) charter.updateGrid();
+		}
+		songDialog.mirrorHorizontalButton.onClick = function(event) {
+			charter.mirrorNotes(charter.curSelectedNotes, X);
+			
+			charter.updateGrid();
+		}
+		songDialog.mirrorVerticalButton.onClick = function(event) {
+			charter.mirrorNotes(charter.curSelectedNotes, Y);
+			
+			charter.updateGrid();
+		}
+		songDialog.choirNotesButton.onClick = function(event) {
+			charter.choirNotes(charter.curSelectedNotes);
+			
+			charter.updateGrid();
+		}
+		songDialog.shiftNotesButton.onClick = function(event) {
+			charter.transformNoteStrumlines(charter.curSelectedNotes, charter.shiftStrumlineTransform.bind());
+			
+			charter.updateGrid();
+		}
+		songDialog.swapNotesButton.onClick = function(event) {
+			charter.transformNoteStrumlines(charter.curSelectedNotes, charter.swapStrumlineTransform.bind());
+			
+			charter.updateGrid();
+		}
+		
+		// EVENTS
+		
+		songDialog.eventDropdown.onChange = function(event) {
+			var selectedEvent:Int = songDialog.eventDropdown.selectedIndex;
+			
+			var event = charter.curSelectedNotes[0];
+			if (charter.curSelectedNotes.length == 1 && event[2] == null)
+			{
+				event[1][charter.curEventSelected][0] = charter.eventStuff[selectedEvent][0];
+				
+				charter.updateGrid();
+			}
+		}
 	}
 	
 	function refreshCharacterDropdowns():Void
@@ -159,6 +269,11 @@ class ChartEditorUI extends flixel.group.FlxSpriteContainer
 		}
 		
 		var stages:Array<String> = ['stage'];
+		#else
+		var directories:Array<String> = [Paths.getCorePath('data/stages/'), Paths.getCorePath('stages/')];
+		
+		var stages:Array<String> = CoolUtil.coolTextFile(Paths.txt('stageList'));
+		#end
 		
 		for (directory in directories)
 		{
@@ -173,11 +288,6 @@ class ChartEditorUI extends flixel.group.FlxSpriteContainer
 				if (!stages.contains(stage)) stages.push(stage);
 			}
 		}
-		#else
-		var directories:Array<String> = [Paths.getCorePath('data/stages/'), Paths.getCorePath('stages/')];
-		
-		var stages:Array<String> = CoolUtil.coolTextFile(Paths.txt('stageList'));
-		#end
 		
 		songDialog.stageDropdown.populateList([for (stage in stages) ToolKitUtils.makeSimpleDropDownItem(stage)]);
 		songDialog.stageDropdown.dataSource.sort(null, ASCENDING);

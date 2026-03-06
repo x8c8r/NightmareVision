@@ -117,11 +117,11 @@
 			
 			<spacer height="5"/>
 			<hbox width="100%">
-				<label text="Copy / Paste inclusions:" verticalAlign="center" width="100%"/>
+				<label text="Section Inclusions:" verticalAlign="center" width="100%"/>
 
 				<vbox width="125" style="spacing: 10px;">
-					<checkbox text="Notes" selected="true" id="copyNotesCheckbox" tooltip="If unchecked, the section's notes will be excluded when copying."/>
-					<checkbox text="Events" selected="true" id="copyEventsCheckbox" tooltip="If unchecked, the section's events will be excluded when copying."/>
+					<checkbox text="Notes" selected="true" id="sectionNotesCheckbox" tooltip="Includes / copies notes when performing section operations."/>
+					<checkbox text="Events" selected="true" id="sectionEventsCheckbox" tooltip="Includes / copies events when performing section operations."/>
 				</vbox>
 			</hbox>
 			
@@ -129,7 +129,7 @@
 			<rule/>
 			<spacer height="5"/>
 
-			<button text="Clear Section" id="clearButton" horizontalAlign="center" style="background-color: #a01926;"/>
+			<button text="Clear Section" id="clearSectionButton" horizontalAlign="center" style="background-color: #a01926;" tooltip="Clears all notes and events in the current section, if their respective checkboxes in Inclusions are checked."/>
 		</vbox>
 		<vbox text="Notes" width="100%" style="padding: 5px;">
 			<grid width="100%" columns="2">
@@ -164,7 +164,7 @@
 			<hbox width="100%" style="spacing: 10px;">
 				<button text="Choir" id="choirNotesButton" width="100%" tooltip="Copies selected notes to all strumlines."/>
 				<button text="Shift" id="shiftNotesButton" width="100%" tooltip="Shifts all selected notes to the next strumline."/>
-				<button text="Swap" id="swapNotesButton" width="100%" tooltip="Swaps all selected notes to the strumline on the opposite side."/>
+				<button text="Swap" id="swapNotesButton" width="100%" tooltip="Swaps all selected notes to the opposite side, without mirroring their direction."/>
 			</hbox>
 			
 			<spacer height="5"/>

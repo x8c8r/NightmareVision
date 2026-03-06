@@ -192,6 +192,7 @@ class ToolKitUtils
 		
 		var focusable:Bool = (
 			component is InteractiveComponent &&
+			(!(component is haxe.ui.components.CheckBox)) &&
 			(!(component is haxe.ui.components.Button) || component is haxe.ui.components.DropDown) // fuck you TabButton
 		);
 		
