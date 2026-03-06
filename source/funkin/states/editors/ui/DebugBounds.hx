@@ -89,7 +89,7 @@ class DebugBounds extends flixel.FlxObject
 		
 		middle.alpha = ((top.alpha = right.alpha = left.alpha = bottom.alpha = alpha) * bgAlpha);
 		
-		middle.color = top.color =  right.color =  left.color = bottom.color = color;
+		middle.color = top.color = right.color = left.color = bottom.color = color;
 		
 		targetBounds.put();
 		
@@ -116,5 +116,11 @@ class DebugBounds extends flixel.FlxObject
 		FlxDestroyUtil.destroy(middle);
 		
 		super.destroy();
+	}
+	
+	override function setSize(width:Float, height:Float):Void
+	{
+		this.width = Math.max(1, width);
+		this.height = Math.max(1, height);
 	}
 }
