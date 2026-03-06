@@ -79,14 +79,14 @@ class ToolKitUtils
 	 * Binds the dialog to the screen size. prevents stupid people doing stupid things
 	 * @param dialog 
 	 */
-	public static function bindDialogToView(dialog:Dialog)
+	public static function bindDialogToView(dialog:Dialog, top:Float = 50)
 	{
 		if (dialog == null) return;
 		dialog.onDragEnd = (ui) -> {
 			var repositioned = false;
-			if (dialog.top < 50)
+			if (dialog.top < top)
 			{
-				dialog.y = 50;
+				dialog.y = top;
 				repositioned = true;
 			}
 			if ((dialog.top + dialog.dialogTitle.height) > FlxG.height)
