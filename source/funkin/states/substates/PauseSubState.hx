@@ -201,9 +201,10 @@ class PauseSubState extends MusicBeatSubstate
 					{
 						curTime += 45000 * elapsed * (controls.UI_LEFT ? -1 : 1);
 					}
+					var maxLength = PlayState.instance?.audio.inst?.length ?? 0.0;
 					
-					if (curTime >= FlxG.sound.music.length) curTime -= FlxG.sound.music.length;
-					else if (curTime < 0) curTime += FlxG.sound.music.length;
+					if (curTime >= maxLength) curTime -= maxLength;
+					else if (curTime < 0) curTime += maxLength;
 					updateSkipTimeText();
 				}
 		}
@@ -426,9 +427,10 @@ class PauseSubState extends MusicBeatSubstate
 	
 	function updateSkipTimeText()
 	{
+		final audioLength = PlayState.instance?.audio.inst?.length ?? 0.0;
 		skipTimeText.text = FlxStringUtil.formatTime(Math.max(0, Math.floor(curTime / 1000)), false)
 			+ ' / '
-			+ FlxStringUtil.formatTime(Math.max(0, Math.floor(FlxG.sound.music.length / 1000)), false);
+			+ FlxStringUtil.formatTime(Math.max(0, Math.floor(audioLength / 1000)), false);
 	}
 	
 	function deleteSkipTimeText()
