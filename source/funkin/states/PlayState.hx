@@ -2267,7 +2267,7 @@ class PlayState extends MusicBeatState
 	
 	function doDeathCheck(?skipHealthCheck:Bool = false):Bool
 	{
-		if (((skipHealthCheck && instakillOnMiss) || health <= healthBounds.min) && !practiceMode && !isDead)
+		if ((skipHealthCheck && instakillOnMiss) || ((healthBounds.max > healthBounds.min && health <= healthBounds.min) || (healthBounds.min > healthBounds.max && health >= healthBounds.min)) && !practiceMode && !isDead)
 		{
 			final ret:Dynamic = scripts.call('onGameOver', []);
 			if (ret != ScriptConstants.STOP_FUNC)
