@@ -229,7 +229,7 @@ class CharacterEditorState extends UIState // MUST EXTEND UI STATE needed for ac
 			characterBounds.target = character;
 		}
 		
-		uiElements.toolBar.openHelpWindow.onClick = (ui) -> {
+		uiElements.toolBar.helpButton.onClick = (ui) -> {
 			uiElements.legendWindow?.destroy();
 			uiElements.spawnLegend();
 		}
@@ -361,10 +361,20 @@ class CharacterEditorState extends UIState // MUST EXTEND UI STATE needed for ac
 			}
 		}
 		
+		var killGhostButton = uiElements.toolBar.ghostSettings.findComponent('killGhost', Button);
+		if (killGhostButton != null)
+		{
+			killGhostButton.onClick = (ui) -> {
+				killGhostButton.disabled = true;
+				characterGhost = FlxDestroyUtil.destroy(characterGhost);
+			}
+		}
+		
 		var ghostEnabledButton = uiElements.toolBar.ghostSettings.findComponent('enableGhost', Button);
 		if (ghostEnabledButton != null)
 		{
 			ghostEnabledButton.onClick = (ui) -> {
+				if (killGhostButton != null) killGhostButton.disabled = false;
 				spawnGhost();
 			}
 		}
@@ -720,6 +730,9 @@ class CharacterEditorState extends UIState // MUST EXTEND UI STATE needed for ac
 			default:
 		}
 		
+		uiElements.toolBar.undoButton.disabled = undoActions.length == 0;
+		uiElements.toolBar.redoButton.disabled = redoActions.length == 0;
+		
 		FlxG.sound.play(Paths.sound('ui/openPopup'), 0.5);
 		
 		ToolKitUtils.makeNotification((isUndo ? 'Undo' : 'Redo') + ' Action', popupText, Info);
@@ -738,11 +751,16 @@ class CharacterEditorState extends UIState // MUST EXTEND UI STATE needed for ac
 			var redo = redoActions.pop();
 			redo = null;
 		}
+		
+		uiElements.toolBar.undoButton.disabled = true;
+		uiElements.toolBar.redoButton.disabled = true;
 	}
 	
 	function addUndoAction(type:UndoType, object:UndoData, value:Dynamic)
 	{
 		undoActions.unshift({value: value, object: object, type: type});
+		
+		uiElements.toolBar.undoButton.disabled = false;
 		
 		while (undoActions.length > MAX_REMEMBERED_ACTIONS)
 		{
@@ -754,6 +772,8 @@ class CharacterEditorState extends UIState // MUST EXTEND UI STATE needed for ac
 	function addRedoAction(type:UndoType, object:UndoData, value:Dynamic) // THIS MAY BE WEIRD>?
 	{
 		redoActions.unshift({value: value, object: object, type: type});
+		
+		uiElements.toolBar.redoButton.disabled = false;
 		
 		while (redoActions.length > MAX_REMEMBERED_ACTIONS)
 		{

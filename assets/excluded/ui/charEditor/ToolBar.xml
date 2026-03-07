@@ -5,17 +5,20 @@
 
     <menu text="Options" id="optionsMenu">
         
-        <menu-item id="undoButton" text="Undo Previous Action" shortcutText='Ctrl+Z'/>
-        <menu-item id="redoButton" text="Redo Previous Action" shortcutText='Ctrl+X'/>
+        <menu-item id="undoButton" text="Undo Previous Action" shortcutText='Ctrl+Z' disabled="true"/>
+        <menu-item id="redoButton" text="Redo Previous Action" shortcutText='Ctrl+X' disabled="true"/>
         <menu-separator />
         <menu-item id="toggleCharBounds" text="Toggle Character Bounds"/>
-        <menu-item id="openHelpWindow" text="Open Help Window"/>
+        <!-- <menu-item id="openHelpWindow" text="Open Help Window"/> -->
         <menu-separator />
         <menu-item id="exitMenuButton" text="Exit"/>
         <!-- <vbox width="100%" horizontalAlign="center" verticalAlign="center">
             
         </vbox> -->
     </menu>
+
+    <button allowFocus="false" id="helpButton" text="Help" verticalAlign="center" tooltip="Opens a window that explains how to use the editor"/>
+
 
     <spacer width="50%"/>
 
@@ -40,7 +43,10 @@
 
             <hbox verticalAlign="center" horizontalAlign="center">
 
-                <button allowFocus="false" id="enableGhost" text="Spawn Ghost" verticalAlign="center" tooltip="Spanws a copy of the character"/>
+                <vbox>
+                    <button allowFocus="false" id="enableGhost" text="Spawn Ghost" verticalAlign="center" tooltip="Spanws a copy of the character"/>
+                    <button allowFocus="false" disabled="true" width="100%" id="killGhost" text="Kill Ghost" style="background-color: #a01926;" verticalAlign="center" tooltip="Destroys a copy of the character"/>
+               </vbox>
 
                 <vbox>
                     <checkbox text="Highlight it?" id="ghostBlend" tooltip="Sets the copy's colours to be lighter"/>
@@ -54,7 +60,7 @@
             <spacer height="1"/>
 
             <label text="Ghost Alpha" verticalAlign="center" horizontalAlign="center"/>
-            <slider pos="0.5" id="ghostAlphaSlider" min="0" max="1" verticalAlign="center" horizontalAlign="center" tooltip="Changes the character copy's transparency" />
+            <slider pos="0.5" id="ghostAlphaSlider" min="0" max="1"  majorTicks="0.25" verticalAlign="center" horizontalAlign="center" tooltip="Changes the character copy's transparency" />
 
         </vbox>
     </menu>
