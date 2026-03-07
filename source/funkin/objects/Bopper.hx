@@ -362,13 +362,27 @@ class Bopper extends FlxSprite
 	
 	public function addAnimByPrefix(anim:String, prefix:String, fps:Int = 24, looping:Bool = true, flipX:Bool = false, flipY:Bool = false)
 	{
-		if (animateAtlas != null) animateAtlas.anim.addBySymbol(anim, prefix, fps, looping, flipX, flipY);
+		if (animateAtlas != null)
+		{
+			if (animateAtlas.anim.findFrameLabelIndices(prefix).length > 0) // if this matches then its probably a frame label anim
+			{
+				animateAtlas.anim.addByFrameLabel(anim, prefix, fps, looping, flipX, flipY);
+			}
+			else animateAtlas.anim.addBySymbol(anim, prefix, fps, looping, flipX, flipY);
+		}
 		else animation.addByPrefix(anim, prefix, fps, looping, flipX, flipY);
 	}
 	
 	public function addAnimByIndices(anim:String, prefix:String, indices:Array<Int>, fps:Int = 24, looping:Bool = true, flipX:Bool = false, flipY:Bool = false)
 	{
-		if (animateAtlas != null) animateAtlas.anim.addBySymbolIndices(anim, prefix, indices, fps, looping, flipX, flipY);
+		if (animateAtlas != null)
+		{
+			if (animateAtlas.anim.findFrameLabelIndices(prefix).length > 0) // if this matches then its probably a frame label anim
+			{
+				animateAtlas.anim.addByFrameLabelIndices(anim, prefix, indices, fps, looping, flipX, flipY);
+			}
+			else animateAtlas.anim.addBySymbolIndices(anim, prefix, indices, fps, looping, flipX, flipY);
+		}
 		else animation.addByIndices(anim, prefix, indices, '', fps, looping, flipX, flipY);
 	}
 	
