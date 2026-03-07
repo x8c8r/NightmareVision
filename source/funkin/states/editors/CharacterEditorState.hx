@@ -205,7 +205,7 @@ class CharacterEditorState extends UIState // MUST EXTEND UI STATE needed for ac
 	}
 	
 	public function buildUI()
-	{	
+	{
 		root.cameras = [camHUD]; // this tells every single component to use this camera
 		
 		uiElements = new CharEditorUI();
@@ -1049,6 +1049,26 @@ class CharacterEditorState extends UIState // MUST EXTEND UI STATE needed for ac
 			FlxG.camera.zoom -= elapsed * FlxG.camera.zoom;
 		}
 		
+		final speedMult = FlxG.keys.pressed.SHIFT ? 2 : 1;
+		
+		if (FlxG.keys.pressed.I)
+		{
+			FlxG.camera.scroll.y -= 200 * elapsed * speedMult;
+		}
+		else if (FlxG.keys.pressed.K)
+		{
+			FlxG.camera.scroll.y += 200 * elapsed * speedMult;
+		}
+		
+		if (FlxG.keys.pressed.J)
+		{
+			FlxG.camera.scroll.x -= 200 * elapsed * speedMult;
+		}
+		if (FlxG.keys.pressed.L)
+		{
+			FlxG.camera.scroll.x += 200 * elapsed * speedMult;
+		}
+		
 		if (FlxG.mouse.justReleasedMiddle) isCameraDragging = false;
 		
 		if (ToolKitUtils.isHaxeUIHovered(camHUD) && !isCameraDragging) return;
@@ -1061,9 +1081,8 @@ class CharacterEditorState extends UIState // MUST EXTEND UI STATE needed for ac
 		
 		if (FlxG.mouse.pressedMiddle && FlxG.mouse.justMoved)
 		{
-			var mult = FlxG.keys.pressed.SHIFT ? 2 : 1;
-			FlxG.camera.scroll.x -= FlxG.mouse.deltaViewX * mult;
-			FlxG.camera.scroll.y -= FlxG.mouse.deltaViewY * mult;
+			FlxG.camera.scroll.x -= FlxG.mouse.deltaViewX * speedMult;
+			FlxG.camera.scroll.y -= FlxG.mouse.deltaViewY * speedMult;
 		}
 		
 		if (FlxG.mouse.wheel != 0)
