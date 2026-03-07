@@ -341,7 +341,7 @@ class ChartEditorState extends haxe.ui.backend.flixel.UIState
 	var bfIcon:String = 'bf';
 	var gfIcon:String = 'gf';
 	
-	var endOffset:Int = 17;
+	public static var endOffset:Int = 17;
 	var songEnded:Bool = false;
 	
 	override function create()
@@ -1458,7 +1458,7 @@ class ChartEditorState extends haxe.ui.backend.flixel.UIState
 		}
 		
 		for (i => name in displayNameList)
-			displayNameList[i] = (name.length == 0 ? '$i. None' : '$i. $name');
+			displayNameList[i] = (name.length == 0 ? 'None' : '$i. $name');
 			
 		ui.songDialog.noteTypeDropdown.populateList([for (name in displayNameList) ToolKitUtils.makeSimpleDropDownItem(name)]);
 		ui.songDialog.noteTypeDropdown.selectedItem = displayNameList[0];
@@ -1550,14 +1550,12 @@ class ChartEditorState extends haxe.ui.backend.flixel.UIState
 		
 		descText = new FlxText(20, 200, 0, eventStuff[0][0]);
 		
-		var eventNameList:Array<String> = [for (ev in eventStuff) ev[0]];
-		
-		ui.songDialog.eventDropdown.populateList([for (name in eventNameList) ToolKitUtils.makeSimpleDropDownItem(name)]);
-		ui.songDialog.eventDropdown.selectedItem = eventNameList[0];
+		ui.songDialog.eventDropdown.populateList([for (ev in eventStuff) {id: ev[0], text: (ev[0].length == 0 ? 'None' : ev[0])}]);
+		ui.songDialog.eventDropdown.selectedIndex = 0;
 		
 		var text:FlxText = new FlxText(20, 30, 0, "Event:");
 		tab_group_event.add(text);
-		eventDropDown = new FlxUIDropDownMenuEx(20, 50, FlxUIDropDownMenu.makeStrIdLabelArray(eventNameList, true), function(pressed:String) {
+		eventDropDown = new FlxUIDropDownMenuEx(20, 50, FlxUIDropDownMenu.makeStrIdLabelArray([''], true), function(pressed:String) {
 		});
 		blockPressWhileScrolling.push(eventDropDown);
 		
@@ -1639,6 +1637,8 @@ class ChartEditorState extends haxe.ui.backend.flixel.UIState
 		
 		selectedEventText = new FlxText(addButton.x - 100, addButton.y + addButton.height + 6, (moveRightButton.x - addButton.x) + 186, 'Selected Event: None');
 		selectedEventText.alignment = CENTER;
+		
+		ui.updateEventUI();
 	}
 	
 	function changeEventSelected(change:Int = 0)
@@ -2031,6 +2031,15 @@ class ChartEditorState extends haxe.ui.backend.flixel.UIState
 		// FlxG.log.add(id + " WEED " + sender + " WEED " + data + " WEED " + params);
 	}
 	
+	inline function getSelectedEvents():Array<Array<Dynamic>>
+	{
+		return [for (note in curSelectedNotes) if (note[2] == null) note];
+	}
+	inline function getSelectedNotes():Array<Array<Dynamic>>
+	{
+		return [for (note in curSelectedNotes) if (note[2] != null) note];
+	}
+	
 	function gridZoom(snap:Bool = false):Void
 	{
 		final defaultGridWidth:Float = (GRID_SIZE * (4 * 2 + 1));
@@ -2260,8 +2269,6 @@ class ChartEditorState extends haxe.ui.backend.flixel.UIState
 	
 	public function mouseInput(elapsed:Float):Void
 	{
-		var rightSelect:Bool = FlxG.mouse.justReleasedRight;
-		
 		if (!selectionBox.alive && FlxG.mouse.justPressed)
 		{
 			if (FlxG.mouse.overlaps(curRenderedNotes))
@@ -2307,7 +2314,7 @@ class ChartEditorState extends haxe.ui.backend.flixel.UIState
 		}
 		if (selectionBox.alive)
 		{
-			if (rightSelect) deselect();
+			if (!FlxG.mouse.pressedRight) deselect();
 			else selectionBox.setSize(FlxG.mouse.x - selectionBox.x, FlxG.mouse.y - selectionBox.y);
 		}
 		
@@ -3191,38 +3198,28 @@ class ChartEditorState extends haxe.ui.backend.flixel.UIState
 	
 	function updateNoteUI():Void
 	{
-		var note = curSelectedNotes[0];
-		if (note == null || curSelectedNotes.length != 1) return;
+		var notes = getSelectedNotes();
 		
-		if (note[2] != null)
+		var minTime:Float = Lambda.fold(curSelectedNotes, (note, r) -> Math.min(note[0], r), Math.POSITIVE_INFINITY);
+		var minLength:Float = Lambda.fold(notes, (note, r) -> Math.max(note[2], r), 0);
+		
+		ui.songDialog.strumTimeStepper.pauseEvent('change');
+		ui.songDialog.sustainLengthStepper.pauseEvent('change');
+		
+		ui.songDialog.strumTimeStepper.value = minTime;
+		ui.songDialog.sustainLengthStepper.value = minLength;
+		
+		ui.songDialog.strumTimeStepper.resumeEvent('change', true);
+		ui.songDialog.sustainLengthStepper.resumeEvent('change', true);
+		
+		if (notes.length == 1)
 		{
-			stepperSusLength.value = note[2];
-			if (note[3] != null)
-			{
-				currentType = noteTypeMap.get(note[3]);
-				if (currentType <= 0)
-				{
-					noteTypeDropDown.selectedLabel = '';
-				}
-				else
-				{
-					noteTypeDropDown.selectedLabel = currentType + '. ' + note[3];
-				}
-			}
-		}
-		else
-		{
-			eventDropDown.selectedLabel = note[1][curEventSelected][0];
+			currentType = (noteTypeMap.get(notes[0][3]) ?? 0);
 			
-			var selected:Int = Std.parseInt(eventDropDown.selectedId);
-			if (selected > 0 && selected < eventStuff.length)
-			{
-				descText.text = eventStuff[selected][1];
-			}
-			value1InputText.text = note[1][curEventSelected][1];
-			value2InputText.text = note[1][curEventSelected][2];
+			ui.songDialog.noteTypeDropdown.selectedIndex = currentType;
 		}
-		strumTimeInputText.text = '' + note[0];
+		
+		ui.updateEventUI();
 	}
 	
 	function updateGrid():Void
@@ -3600,7 +3597,7 @@ class ChartEditorState extends haxe.ui.backend.flixel.UIState
 		}
 		else
 		{
-			var event = eventStuff[Std.parseInt(eventDropDown.selectedId)][0];
+			var event = eventStuff[ui.songDialog.eventDropdown.selectedIndex][0];
 			var text1 = value1InputText.text;
 			var text2 = value2InputText.text;
 			
@@ -3613,9 +3610,6 @@ class ChartEditorState extends haxe.ui.backend.flixel.UIState
 		curSelectedNotes.push(newNote);
 		
 		changeEventSelected();
-		
-		// trace(noteData + ', ' + noteStrum + ', ' + curSec);
-		if (curSelectedNotes.length == 1) strumTimeInputText.text = '' + newNote[0];
 		
 		updateGrid();
 		updateNoteUI();

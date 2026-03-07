@@ -9,6 +9,7 @@ using funkin.states.editors.ui.ToolKitUtils;
 @:build(haxe.ui.ComponentBuilder.build("assets/excluded/ui/chartEditor/SongDialog.xml"))
 class SongDialog extends Dialog {}
 
+@:access(funkin.states.editors.ChartEditorState)
 class ChartEditorUI extends flixel.group.FlxSpriteContainer
 {
 	public var songDialog:SongDialog;
@@ -34,7 +35,6 @@ class ChartEditorUI extends flixel.group.FlxSpriteContainer
 		bind();
 	}
 	
-	@:access(funkin.states.editors.ChartEditorState)
 	public function bind():Void
 	{
 		if (charter == null) return;
@@ -158,25 +158,20 @@ class ChartEditorUI extends flixel.group.FlxSpriteContainer
 			
 			if (changed) charter.updateGrid();
 		}
-		songDialog.strumTimeStepper.onChange = function(event) {
-			for (note in charter.curSelectedNotes)
-				note[0] = event.value;
-				
-			charter.updateGrid();
-		}
-		songDialog.sustainLengthStepper.onChange = function(event) {
-			var changed:Bool = false;
-			
-			for (note in charter.curSelectedNotes)
-			{
-				if (note[2] == null) continue;
-				
-				note[2] = event.value;
-				changed = true;
-			}
-			
-			if (changed) charter.updateGrid();
-		}
+		songDialog.strumTimeStepper.onChange = function(event) changeStrumTime(event.previousValue, event.value);
+		
+		final deinc = songDialog.strumTimeStepper.findComponent('deinc', haxe.ui.components.Button);
+		final inc = songDialog.strumTimeStepper.findComponent('inc', haxe.ui.components.Button);
+		deinc.onClick = function(event) strumTimeStep(-1);
+		inc.onClick = function(event) strumTimeStep(1);
+        
+		songDialog.sustainLengthStepper.onChange = function(event) changeSustainLength(event.previousValue, event.value);
+		
+		final deinc = songDialog.sustainLengthStepper.findComponent('deinc', haxe.ui.components.Button);
+		final inc = songDialog.sustainLengthStepper.findComponent('inc', haxe.ui.components.Button);
+		deinc.onClick = function(event) sustainLengthStep(-1);
+		inc.onClick = function(event) sustainLengthStep(1);
+		
 		songDialog.mirrorHorizontalButton.onClick = function(event) {
 			charter.mirrorNotes(charter.curSelectedNotes, X);
 			
@@ -206,16 +201,152 @@ class ChartEditorUI extends flixel.group.FlxSpriteContainer
 		// EVENTS
 		
 		songDialog.eventDropdown.onChange = function(event) {
-			var selectedEvent:Int = songDialog.eventDropdown.selectedIndex;
+			final selectedEvents = charter.getSelectedEvents();
 			
-			var event = charter.curSelectedNotes[0];
-			if (charter.curSelectedNotes.length == 1 && event[2] == null)
-			{
-				event[1][charter.curEventSelected][0] = charter.eventStuff[selectedEvent][0];
-				
-				charter.updateGrid();
-			}
+			if (selectedEvents.length != 1 || selectedEvents[0][1][charter.curEventSelected] == null) return updateEventUI();
+			
+			var eventID:Int = songDialog.eventDropdown.selectedIndex;
+			
+			selectedEvents[0][1][charter.curEventSelected][0] = charter.eventStuff[eventID][0];
+			
+			charter.updateGrid();
+			
+			updateEventFields(selectedEvents[0][1][charter.curEventSelected]);
+			updateEventUI();
 		}
+		
+		songDialog.removeEventButton.onClick = function(event) {
+			final selectedEvents = charter.getSelectedEvents();
+			
+			if (selectedEvents.length != 1) return;
+			
+			final event = selectedEvents[0];
+			
+			if (event[1].length > 1)
+			{
+				event[1].remove(event[1][charter.curEventSelected]);
+			}
+			else
+			{
+				song.events.remove(event);
+				charter.curSelectedNotes.remove(event);
+			}
+			
+			charter.curEventSelected = FlxMath.maxInt(charter.curEventSelected - 1, 0);
+			charter.updateGrid();
+			
+			updateEventFields(selectedEvents[0][1][charter.curEventSelected]);
+			updateEventUI();
+		}
+		songDialog.pushEventButton.onClick = function(event) {
+			final selectedEvents = charter.getSelectedEvents();
+			
+			if (selectedEvents.length != 1) return;
+			
+			cast(selectedEvents[0][1], Array<Dynamic>).push([charter.eventStuff[songDialog.eventDropdown.selectedIndex][0], '', '']);
+			charter.curEventSelected = Std.int(selectedEvents[0][1].length - 1);
+			
+			charter.updateGrid();
+			
+			updateEventFields(selectedEvents[0][1][charter.curEventSelected]);
+			updateEventUI();
+		}
+		
+		songDialog.selectedEventStepper.onChange = function(event) {
+			final selectedEvents = charter.getSelectedEvents();
+			
+			if (selectedEvents.length != 1) return;
+			
+			charter.curEventSelected = songDialog.selectedEventStepper.selectedIndex;
+			trace(charter.curEventSelected);
+			
+			updateEventFields(selectedEvents[0][1][charter.curEventSelected]);
+			updateEventUI();
+		}
+		
+		songDialog.value1Field.onChange = function(event) {
+			final selectedEvents = charter.getSelectedEvents();
+			
+			if (selectedEvents.length != 1 || selectedEvents[0][1][charter.curEventSelected] == null) return;
+			
+			selectedEvents[0][1][charter.curEventSelected][1] = songDialog.value1Field.value;
+			charter.updateGrid();
+		}
+		songDialog.value2Field.onChange = function(event) {
+			final selectedEvents = charter.getSelectedEvents();
+			
+			if (selectedEvents.length != 1 || selectedEvents[0][1][charter.curEventSelected] == null) return;
+			
+			selectedEvents[0][1][charter.curEventSelected][2] = songDialog.value2Field.value;
+			charter.updateGrid();
+		}
+	}
+	
+	public function updateEventUI():Void
+	{
+		var newText = 'No event selected!';
+		
+		final selectedEvents = charter.getSelectedEvents();
+		final singleSelected:Bool = (selectedEvents.length == 1);
+		
+		final selection:String = (singleSelected ? selectedEvents[0][1][charter.curEventSelected][0] : songDialog.eventDropdown.selectedItem?.id);
+		var eventThing:Array<String> = Lambda.find(charter.eventStuff, (e) -> e[0] == selection);
+		var eventIndex:Int = charter.eventStuff.indexOf(eventThing);
+		trace(singleSelected + '->' + eventIndex);
+		
+		if (singleSelected)
+		{
+			charter.curEventSelected = Std.int(FlxMath.bound(charter.curEventSelected, 0, selectedEvents[0][1].length - 1));
+			
+			newText = '${charter.curEventSelected + 1} / ${selectedEvents[0][1].length}';
+			
+			songDialog.selectedEventStepper.populateList([for (event in cast(selectedEvents[0][1], Array<Dynamic>)) ToolKitUtils.makeSimpleDropDownItem(event[0])]);
+			
+			songDialog.eventDropdown.pauseEvent('change');
+			songDialog.selectedEventStepper.pauseEvent('change');
+			
+			songDialog.eventDropdown.selectedIndex = eventIndex;
+			songDialog.selectedEventStepper.selectedIndex = charter.curEventSelected;
+			
+			songDialog.eventDropdown.resumeEvent('change', true);
+			songDialog.selectedEventStepper.resumeEvent('change', true);
+			
+			// for some reason the event stepper doesnt update immediately someone help me pleading face pleading face
+		}
+		else
+		{
+			newText = '---';
+			
+			songDialog.selectedEventStepper.populateList([]);
+			charter.curEventSelected = songDialog.selectedEventStepper.selectedIndex = 0;
+			
+			songDialog.eventDescription.text = '';
+		}
+		
+		songDialog.eventSelected.text = newText;
+		
+		songDialog.removeEventButton.disabled = songDialog.pushEventButton.disabled = (!singleSelected);
+		songDialog.value1Field.disabled = songDialog.value2Field.disabled = songDialog.selectedEventStepper.disabled = (!singleSelected);
+		
+		if (selectedEvents.length < 2)
+		{
+			songDialog.eventDescription.text = (eventThing == null ? 'No description.' : eventThing[1]);
+			songDialog.eventDescription.hidden = false;
+			
+			songDialog.eventName.text = songDialog.eventDropdown.selectedItem?.text;
+		}
+		else
+		{
+			songDialog.eventDescription.hidden = true;
+			
+			songDialog.eventName.text = 'Multiple events selected!';
+		}
+	}
+	
+	function updateEventFields(event:Array<Dynamic>):Void
+	{
+		songDialog.value1Field.value = event[1];
+		songDialog.value2Field.value = event[2];
 	}
 	
 	function refreshCharacterDropdowns():Void
@@ -332,5 +463,91 @@ class ChartEditorUI extends flixel.group.FlxSpriteContainer
 		
 		songDialog.noteSkinDropdown.selectedItem = song.arrowSkin;
 		// songDialog.splashSkinDropdown.selectedItem = song.splashSkin;
+	}
+	
+	final snapLeniency:Float = 1.25;
+	
+	function step(time:Float, mod:Int)
+	{	
+		final quant:Int = ChartEditorState.quantization;
+		final beat:Float = Conductor.getBeat(time);
+		final step:Float = (1 / (quant / 4));
+		
+		return Conductor.beatToSeconds((mod < 0 ? Math.ceil : Math.floor)((beat + (step * snapLeniency) * mod) / step) * step);
+	}
+	
+	function strumTimeStep(mod:Int)
+	{
+		if (charter.curSelectedNotes.length == 0) return;
+		
+		final quant:Int = ChartEditorState.quantization;
+		final step:Float = (1 / (quant / 4));
+		
+		for (note in charter.curSelectedNotes)
+		{
+			final beat:Float = Conductor.getBeat(note[0]);
+			
+			note[0] = Conductor.beatToSeconds((mod < 0 ? Math.ceil : Math.floor)((beat + (step * snapLeniency) * mod) / step) * step);
+		}
+		
+		songDialog.strumTimeStepper.pauseEvent('change'); // thakn u data this keeps me sane
+		songDialog.strumTimeStepper.value = Lambda.fold(charter.curSelectedNotes, (note, r) -> Math.min(note[0], r), Math.POSITIVE_INFINITY);
+		songDialog.strumTimeStepper.resumeEvent('change', true);
+		
+		charter.updateGrid();
+	}
+	
+	function sustainLengthStep(mod:Int)
+	{
+		final notes = charter.getSelectedNotes();
+		
+		if (notes.length == 0) return;
+		
+		final quant:Int = ChartEditorState.quantization;
+		final step:Float = (1 / (quant / 4));
+		
+		for (note in notes)
+		{
+			if (note[2] == null) continue;
+			
+			final beat:Float = Conductor.getBeat(note[0] + note[2]);
+			
+			note[2] = (Conductor.beatToSeconds((mod < 0 ? Math.ceil : Math.floor)((beat + (step * snapLeniency) * mod) / step) * step) - note[0]);
+		}
+		
+		songDialog.sustainLengthStepper.pauseEvent('change');
+		songDialog.sustainLengthStepper.value = Lambda.fold(notes, (note, r) -> Math.max(note[2], r), 0);
+		songDialog.sustainLengthStepper.resumeEvent('change', true);
+		
+		charter.updateGrid();
+	}
+	
+	function changeStrumTime(oldTime:Float, newTime:Float) {
+		final difference:Float = (newTime - oldTime);
+		
+		if (charter.curSelectedNotes.length == 0 || difference == 0) return;
+		
+		for (note in charter.curSelectedNotes)
+			note[0] += difference;
+		
+		charter.updateGrid();
+	}
+	
+	function changeSustainLength(oldLength:Float, newLength:Float) {
+		final difference:Float = (newLength - oldLength);
+		
+		if (difference == 0) return;
+		
+		var changed:Bool = false;
+		
+		for (note in charter.curSelectedNotes)
+		{
+			if (note[2] == null) continue;
+			
+			note[2] = Math.max(note[2] + difference, 0);
+			changed = true;
+		}
+		
+		if (changed) charter.updateGrid();
 	}
 }

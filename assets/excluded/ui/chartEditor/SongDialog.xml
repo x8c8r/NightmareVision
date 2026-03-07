@@ -86,70 +86,57 @@
 
 
 
-        <vbox text="Charting" width="100%" style="padding: 5px;">
-
-            <!-- <label text="General:"/> -->
+		<vbox text="Charting" width="100%" style="padding: 5px;">
+			
+			<!-- <label text="General:"/> -->
 			<!-- <spacer height="4"/> -->
-            
-
-            <label text="Playback Rate"/>
-            <number-stepper pos="1" step="0.1" min="0.5" max="3"/>
-
-
-
-            <spacer height="5"/>
+			
+			
+			<label text="Playback Rate"/>
+			<number-stepper pos="1" step="0.1" min="0.5" max="3"/>
+			
+			
+			<spacer height="5"/>
 			<rule/>
 			<spacer height="5"/>
-
-
-            <hbox>
-                <label text="Waveforms:" verticalAlign="center"/>
-                <checkbox text="Player" id="playerWaveformCheckbox" tooltip="If enabled, The Player's waveform will be visible"/>
-                <checkbox text="Opponent"  id="opponentWaveformCheckbox" tooltip="If enabled, The Opponent's waveform will be visible"/>
-                <checkbox text="Inst"  id="instWaveformCheckbox" tooltip="If enabled, The Opponent's waveform will be visible"/>
-            </hbox>
-
-
-            <spacer height="5"/>
+			
+			
+			<hbox>
+				<label text="Waveforms:" verticalAlign="center"/>
+				<checkbox text="Player" id="playerWaveformCheckbox" tooltip="If enabled, The Player's waveform will be visible"/>
+				<checkbox text="Opponent"  id="opponentWaveformCheckbox" tooltip="If enabled, The Opponent's waveform will be visible"/>
+				<checkbox text="Inst"  id="instWaveformCheckbox" tooltip="If enabled, The Opponent's waveform will be visible"/>
+			</hbox>
+			
+			
+			<spacer height="5"/>
 			<rule/>
 			<spacer height="5"/>
-
-
-
-            <label text="Volume Control:"/>
+			
+			
+			<label text="Volume Control:"/>
 			<spacer height="4"/>
-
-
-
-            <grid columns="3" style="spacing: 5px;" width="350">
-
-
-                <label text="Player:" verticalAlign="center"/>
-                <number-stepper pos="1" width="75%" step="0.1" min="0" max="1"/>
-                <checkbox text="Muted?" verticalAlign="center"/>
- 
-
-                <label text="Opponent:" verticalAlign="center"/>
-                <number-stepper pos="1" width="75%" step="0.1" min="0" max="1"/>
-                <checkbox text="Muted?" verticalAlign="center"/>
-
-                <label text="Inst:" verticalAlign="center"/>
-                <number-stepper pos="0.6" width="75%" step="0.1" min="0" max="1"/>
-                <checkbox text="Muted?" verticalAlign="center"/>
-            </grid>
-
-
-
-
-
-
-
-
-            <spacer height="5"/>
+			
+			<grid columns="3" style="spacing: 5px;" width="350">
+				<label text="Player:" verticalAlign="center"/>
+				<number-stepper pos="1" width="75%" step="0.1" min="0" max="1"/>
+				<checkbox text="Muted?" verticalAlign="center"/>
+				
+				<label text="Opponent:" verticalAlign="center"/>
+				<number-stepper pos="1" width="75%" step="0.1" min="0" max="1"/>
+				<checkbox text="Muted?" verticalAlign="center"/>
+				
+				<label text="Inst:" verticalAlign="center"/>
+				<number-stepper pos="0.6" width="75%" step="0.1" min="0" max="1"/>
+				<checkbox text="Muted?" verticalAlign="center"/>
+			</grid>
+			
+			
+			<spacer height="5"/>
 			<rule/>
 			<spacer height="5"/>
-        
-        </vbox>
+			
+		</vbox>
 
 		<vbox text="Section" width="100%" style="padding: 5px;">
 			<checkbox text="Camera focused on opponent?" id="mustHitCheckbox" verticalAlign="center" tooltip="If enabled, the camera will be focused on the opponent instead of the player."/>
@@ -211,10 +198,10 @@
 				</dropdown>
 
 				<label text="Time:" width="80" verticalAlign="center"/>
-				<number-stepper width="100%" pos="0" step="1" id="strumTimeStepper" horizontalAlign="right" min="0"/>
+				<number-stepper width="100%" pos="0" step="0" id="strumTimeStepper" horizontalAlign="right" min="0"/>
 				
 				<label text="Length:" width="80" verticalAlign="center"/>
-				<number-stepper width="100%" pos="0" step="1" id="sustainLengthStepper" horizontalAlign="right" min="0"/>
+				<number-stepper width="100%" pos="0" step="0" id="sustainLengthStepper" horizontalAlign="right" min="0"/>
 			</grid>
 			
 			<spacer height="1"/>
@@ -243,7 +230,7 @@
 		</vbox>
 		<vbox text="Events" width="100%" style="padding: 5px;">
 			<grid width="100%" columns="2">
-				<label text="Event:" width="80" verticalAlign="center"/>
+				<label text="Event:" width="45" verticalAlign="center"/>
 				<dropdown searchable="true" width="100%" searchPrompt="" id="eventDropdown">
 					<data>
 						<item text="Empty"/>
@@ -251,51 +238,57 @@
 					</data>
 				</dropdown>
 			</grid>
-
+			
 			<spacer height="3"/>
 			
 			<hbox width="100%">
-				<button text="-" width="36" style="background-color: #a01926;"/>
-				<button text="+" width="36" style="background-color: #156015;"/>
+				<option-stepper width="150" id="selectedEventStepper" horizontalAlign="center">
+					<data>
+						<item text="Event 1"/>
+						<item text="Event 2"/>
+						<item text="Event 3"/>
+					</data>
+				</option-stepper>
 				
-				<spacer width="20"/>
+				<spacer width="10"/>
 
-				<button text="&lt;" width="36"/>
-				<button text="&gt;" width="36"/>
+				<label text="1 / 1" id="eventSelected" horizontalAlign="center" verticalAlign="center"/>
 				
-				<spacer width="100%"/>
-
-				<label text="Selected 1 / 1" id="eventSelected" horizontalAlign="right" verticalAlign="center"/>
+				<spacer width="10"/>
+				
+				<hbox horizontalAlign="right">
+					<button text="-" width="36" id="removeEventButton" style="background-color: #a01926;" horizontalAlign="right"/>
+					<button text="+" width="36" id="pushEventButton" style="background-color: #156015;" horizontalAlign="right"/>
+				</hbox>
 			</hbox>
-
-			<spacer height="5"/>
-			<rule/>
-			<spacer height="5"/>
-
-			<vbox width="100%">
-				<label text="Event Name" id="eventName" horizontalAlign="center"/>
-
-				<box id="eventForm" width="100%" style="padding: 5px;">
-					<grid width="100%" columns="2">
-						<label text="Value 1:" width="80" verticalAlign="center"/>
-						<textfield width="100%" id="value1Field" horizontalAlign="right" text=""/>
-						
-						<label text="Value 2:" width="80" verticalAlign="center"/>
-						<textfield width="100%" id="value2Field" horizontalAlign="right" text=""/>
-					</grid>
-				</box>
-			</vbox>
-
-			<spacer height="5"/>
-			<rule/>
-			<spacer height="5"/>
-
-			<label id="eventDescription" text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." width="100%"/>
 			
 			<spacer height="5"/>
 			<rule/>
 			<spacer height="5"/>
-
+			
+			<vbox width="100%" style="padding: 5px;">
+				<box id="eventForm" width="100%">
+					<grid width="100%" columns="2">
+						<label text="Value 1:" width="55" verticalAlign="center"/>
+						<textfield width="100%" id="value1Field" horizontalAlign="right" text=""/>
+						
+						<label text="Value 2:" width="55" verticalAlign="center"/>
+						<textfield width="100%" id="value2Field" horizontalAlign="right" text=""/>
+					</grid>
+				</box>
+				
+				<spacer height="5"/>
+				<rule/>
+				<spacer height="5"/>
+				
+				<label id="eventName" text="Event Name" horizontalAlign="center" style="font-size: 12px;"/>
+				<label id="eventDescription" text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."/>
+			</vbox>
+			
+			<spacer height="5"/>
+			<rule/>
+			<spacer height="5"/>
+			
 			<button text="Clear all Events" id="clearEventsButton" horizontalAlign="center" style="background-color: #a01926;"/>
 		</vbox>
 	</tabview>

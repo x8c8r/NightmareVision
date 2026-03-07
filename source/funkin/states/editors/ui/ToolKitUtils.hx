@@ -5,11 +5,12 @@ import haxe.ui.notifications.NotificationManager;
 import haxe.ui.containers.ListView;
 import haxe.ui.core.Screen;
 
-import flixel.util.typeLimit.OneOfTwo;
+import flixel.util.typeLimit.OneOfThree;
 import flixel.FlxG;
 
 import haxe.ui.core.*;
 import haxe.ui.components.DropDown;
+import haxe.ui.components.OptionStepper;
 import haxe.ui.containers.dialogs.Dialog;
 import haxe.ui.notifications.NotificationData;
 
@@ -23,7 +24,7 @@ class ToolKitUtils
 	 * @param dropDown 
 	 * @param items 
 	 */
-	public static function populateList(container:Null<OneOfTwo<DropDown, ListView>>, items:Array<DropDownItem>):Void
+	public static function populateList(container:Null<OneOfThree<DropDown, ListView, OptionStepper>>, items:Array<DropDownItem>):Void
 	{
 		if (container == null) return;
 		
@@ -47,12 +48,22 @@ class ToolKitUtils
 				list.dataSource.add(i);
 			}
 		}
+		else if (container is OptionStepper)
+		{
+			var list:OptionStepper = cast container;
+			list.dataSource.removeAll();
+			
+			for (i in items)
+			{
+				list.dataSource.add(i);
+			}
+		}
 	}
 	
 	/**
 	 * Adds however many `DropDownItem`'s to a given container
 	 */
-	public static function addToList(container:Null<OneOfTwo<DropDown, ListView>>, ...items:DropDownItem):Void
+	public static function addToList(container:Null<OneOfThree<DropDown, ListView, OptionStepper>>, ...items:DropDownItem):Void
 	{
 		if (container == null || items.length == 0) return;
 		
@@ -68,6 +79,14 @@ class ToolKitUtils
 		else if (container is ListView)
 		{
 			var list:ListView = cast container;
+			for (i in items.toArray())
+			{
+				list.dataSource.add(i);
+			}
+		}
+		else if (container is OptionStepper)
+		{
+			var list:OptionStepper = cast container;
 			for (i in items.toArray())
 			{
 				list.dataSource.add(i);
