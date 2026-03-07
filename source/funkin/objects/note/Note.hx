@@ -297,7 +297,9 @@ class Note extends FlxSprite
 			offsetX -= width / 2;
 			
 			if (NoteSkinHelper.instance.data.isPixel) offsetX += 30;
-			
+
+			animSuffix = prevNote.animSuffix;
+						
 			if (prevNote.isSustainNote)
 			{
 				prevNote.animation.play(animation.exists('hold') ? 'hold' : 'hold$noteData');

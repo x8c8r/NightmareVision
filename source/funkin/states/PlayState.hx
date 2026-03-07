@@ -1871,7 +1871,7 @@ class PlayState extends MusicBeatState
 	
 	override public function onFocus():Void
 	{
-		if (health > 0 && !paused)
+		if (!isDead && !paused)
 		{
 			resetDiscordRPC(Conductor.songPosition > 0.0);
 		}
@@ -1881,7 +1881,7 @@ class PlayState extends MusicBeatState
 	
 	override public function onFocusLost():Void
 	{
-		if (health > 0 && !paused) resetDiscordRPC(false);
+		if (!isDead && !paused) resetDiscordRPC(false);
 		
 		super.onFocusLost();
 	}
@@ -1952,8 +1952,9 @@ class PlayState extends MusicBeatState
 			if (FlxG.keys.anyJustPressed(debugKeysCharacter)) openCharacterEditor();
 		}
 		
-		if (health > healthBounds.max) health = healthBounds.max;
-		
+		if (healthBounds.max > healthBounds.min && health > healthBounds.max) health = healthBounds.max;
+		else if (healthBounds.min > healthBounds.max && healthBounds.max > health) health = healthBounds.max;
+
 		if (startingSong)
 		{
 			if (startedCountdown)
