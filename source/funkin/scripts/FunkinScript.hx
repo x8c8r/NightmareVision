@@ -242,6 +242,7 @@ class FunkinScript extends IrisEx implements IFlxDestroyable
 		set("FlxTween", flixel.tweens.FlxTween);
 		set("FlxEase", flixel.tweens.FlxEase);
 		set("FlxSound", flixel.sound.FlxSound);
+		set('FlxText', flixel.text.FlxText);
 		set("FlxRuntimeShader", funkin.backend.FunkinShader.FunkinRuntimeShader);
 		set("FlxFlicker", flixel.effects.FlxFlicker);
 		set('FlxSpriteUtil', flixel.util.FlxSpriteUtil);
@@ -249,26 +250,26 @@ class FunkinScript extends IrisEx implements IFlxDestroyable
 		set("FlxTiledSprite", flixel.addons.display.FlxTiledSprite);
 		set('FlxPoint', flixel.math.FlxPoint.FlxBasePoint);
 		
+		set('FlxCameraFollowStyle', flixel.FlxCamera.FlxCameraFollowStyle);
+		set("FlxTextBorderStyle", flixel.text.FlxText.FlxTextBorderStyle);
+		set("FlxBarFillDirection", flixel.ui.FlxBar.FlxBarFillDirection);
+		
 		set("FlxAnimate", animate.FlxAnimate);
 		set("FlxAnimateFrames", animate.FlxAnimateFrames);
 		set("FlxSpriteElement", animate.internal.elements.FlxSpriteElement);
 		
 		set('Controls', funkin.backend.PlayerSettings.player1.controls);
 		
-		set('FlxCameraFollowStyle', flixel.FlxCamera.FlxCameraFollowStyle);
-		set("FlxTextBorderStyle", flixel.text.FlxText.FlxTextBorderStyle);
-		set("FlxBarFillDirection", flixel.ui.FlxBar.FlxBarFillDirection);
-		
 		// abstracts
 		set("FlxTextAlign", funkin.utils.MacroUtil.buildAbstract(flixel.text.FlxText.FlxTextAlign));
 		set('FlxAxes', funkin.utils.MacroUtil.buildAbstract(flixel.util.FlxAxes));
 		set("FlxKey", funkin.utils.MacroUtil.buildAbstract(flixel.input.keyboard.FlxKey));
 		set('BlendMode', funkin.utils.MacroUtil.buildAbstract(openfl.display.BlendMode));
-
-		set("keyToString", (key:Int)->{
+		
+		set("keyToString", (key:Int) -> {
 			return flixel.input.keyboard.FlxKey.toStringMap.get(key);
 		});
-		set("keyFromString", (str:String)->{
+		set("keyFromString", (str:String) -> {
 			return flixel.input.keyboard.FlxKey.fromStringMap.get(str);
 		});
 		

@@ -96,7 +96,7 @@
 
     <haxeflag name="--macro" value="include('funkin')" />
     <haxeflag name="--macro" value="include('flixel.addons',true,['flixel.addons.nape.*','flixel.addons.editors.*'])" />
-    <haxeflag name="--macro" value="include('flixel.effects',true)"/>
+    <haxeflag name="--macro" value="include('flixel.effects', true)"/>
 
     <haxeflag name="-dce no" />
 
