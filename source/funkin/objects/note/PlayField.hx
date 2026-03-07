@@ -331,8 +331,8 @@ class PlayField extends FlxTypedContainer<StrumNote>
 				{
 					if (ClientPrefs.jumpGhosts && char.ghostsEnabled && chord != null && chord.length > 1 && note.noteType != "Ghost Note")
 					{
-						daAlt = animNote.noteType == 'Alt Animation' ? '-alt' : '';
 						final animNote = chord[0];
+						daAlt = animNote.noteType == 'Alt Animation' ? '-alt' : '';
 						final realAnim = noteSkin.data.singAnimations[Std.int(Math.abs(animNote.noteData))] + daAlt;
 						
 						if (char.mostRecentRow != note.row) char.playAnim(realAnim, true);
