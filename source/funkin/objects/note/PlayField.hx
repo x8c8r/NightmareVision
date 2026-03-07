@@ -317,7 +317,10 @@ class PlayField extends FlxTypedContainer<StrumNote>
 			
 			if (!note.hitCausesMiss)
 			{
-				final animToPlay = noteSkin.data.singAnimations[Std.int(Math.abs(note.noteData))] + note.animSuffix;
+				var daAlt = '';
+				if (note.noteType == 'Alt Animation') daAlt = '-alt';
+
+				final animToPlay = noteSkin.data.singAnimations[Std.int(Math.abs(note.noteData))] + daAlt;
 				
 				char.holdTimer = 0;
 				
@@ -328,8 +331,9 @@ class PlayField extends FlxTypedContainer<StrumNote>
 				{
 					if (ClientPrefs.jumpGhosts && char.ghostsEnabled && chord != null && chord.length > 1 && note.noteType != "Ghost Note")
 					{
+						daAlt = animNote.noteType == 'Alt Animation' ? '-alt' : '';
 						final animNote = chord[0];
-						final realAnim = noteSkin.data.singAnimations[Std.int(Math.abs(animNote.noteData))] + note.animSuffix;
+						final realAnim = noteSkin.data.singAnimations[Std.int(Math.abs(animNote.noteData))] + daAlt;
 						
 						if (char.mostRecentRow != note.row) char.playAnim(realAnim, true);
 						
