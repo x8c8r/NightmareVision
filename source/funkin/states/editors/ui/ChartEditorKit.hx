@@ -258,7 +258,6 @@ class ChartEditorUI extends flixel.group.FlxSpriteContainer
 			if (selectedEvents.length != 1) return;
 			
 			charter.curEventSelected = songDialog.selectedEventStepper.selectedIndex;
-			trace(charter.curEventSelected);
 			
 			updateEventFields(selectedEvents[0][1][charter.curEventSelected]);
 			updateEventUI();
@@ -292,7 +291,6 @@ class ChartEditorUI extends flixel.group.FlxSpriteContainer
 		final selection:String = (singleSelected ? selectedEvents[0][1][charter.curEventSelected][0] : songDialog.eventDropdown.selectedItem?.id);
 		var eventThing:Array<String> = Lambda.find(charter.eventStuff, (e) -> e[0] == selection);
 		var eventIndex:Int = charter.eventStuff.indexOf(eventThing);
-		trace(singleSelected + '->' + eventIndex);
 		
 		if (singleSelected)
 		{
