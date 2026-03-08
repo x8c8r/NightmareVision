@@ -1,5 +1,4 @@
 {
-	"extraSkin": "NOTE_assets",
 	"singAnimations": [
 		"singLEFT",
 		"singDOWN",
@@ -7,7 +6,7 @@
 		"singRIGHT"
 	],
 	"splashesEnabled": true,
-	"playerSkin": "NOTE_assets",
+	"noteTexture": "NOTE_assets",
 	"receptorAnimations": [
 		[
 			{
@@ -278,16 +277,8 @@
 			}
 		]
 	],
-	"pixelSize": [
-		4,
-		5
-	],
-	"noteSplashSkin": "noteSplashes",
-	"globalSkin": "NOTE_assets",
+	"splashTexture": "noteSplashes",
 	"antialiasing": true,
 	"inGameColoring": true,
-	"isPixel": false,
-	"opponentSkin": "NOTE_assets",
-	"scale": 0.7,
-	"sustainSuffix": "ENDS"
+	"scale": 0.7
 }

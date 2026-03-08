@@ -255,7 +255,7 @@ class Note extends FlxSprite
 		{
 			var beat = Conductor.getBeatInMeasure(strumTime);
 			if (prevNote != null && isSustainNote) quant = prevNote.quant;
-			else quant = NoteSkinHelper.getQuant(beat);
+			else quant = NoteUtil.getQuant(beat);
 		}
 		this.inEditor = inEditor;
 		
@@ -273,7 +273,7 @@ class Note extends FlxSprite
 		
 		if (noteData > -1)
 		{
-			rgbShader = NoteSkinHelper.initRGBShader(this, noteData, quant, player);
+			rgbShader = NoteUtil.initRGBShader(this, noteData, quant, player);
 			
 			texture = '';
 			
@@ -329,10 +329,10 @@ class Note extends FlxSprite
 		
 		if (noteScript != null) if (noteScript.executeFunc("onReloadNote", [this, prefix, texture, suffix], this) == ScriptConstants.STOP_FUNC) return;
 		
-		skin = NoteSkinHelper.getSkinFromID(player);
+		skin = NoteUtil.getSkinFromID(player);
 		rgbEnabled = skin?.inEngineColoring ?? false;
 		
-		rgbShader.setColors(NoteSkinHelper.getCurColors(noteData, quant, player));
+		rgbShader.setColors(NoteUtil.getCurColors(noteData, quant, player));
 		rgbShader.enabled = rgbEnabled;
 		
 		var _skin:String = texture;

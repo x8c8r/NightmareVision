@@ -528,8 +528,6 @@ class PlayState extends MusicBeatState
 	 */
 	public var eventScripts:ScriptGroup;
 	
-	public static var noteSkin:funkin.data.NoteSkinHelper;
-	
 	public var introSoundsSuffix:String = '';
 	
 	// Debug buttons
@@ -1778,8 +1776,6 @@ class PlayState extends MusicBeatState
 		{
 			if (FlxG.keys.anyJustPressed(debugKeysChart)) openChartEditor();
 			
-			if (FlxG.keys.justPressed.NINE) openNoteskinEditor();
-			
 			if (FlxG.keys.anyJustPressed(debugKeysCharacter)) openCharacterEditor();
 		}
 		
@@ -1935,7 +1931,7 @@ class PlayState extends MusicBeatState
 				if (!modifiersRegistered) return;
 				
 				final field = daNote.playField;
-				final _skin = NoteSkinHelper.getSkinFromID(daNote.player);
+				final _skin = NoteUtil.getSkinFromID(daNote.player);
 				
 				final visPos = -((Conductor.visualPosition - daNote.visualTime) * songSpeed);
 				final pos = modManager.getPos(daNote.strumTime, visPos, daNote.strumTime - Conductor.songPosition, curDecBeat, daNote.noteData, daNote.lane, daNote, tempVector);
@@ -2074,23 +2070,6 @@ class PlayState extends MusicBeatState
 		FlxG.switchState(() -> new CharacterEditorState(SONG.player2, true));
 		
 		if (automatedDiscord) DiscordClient.changePresence("Character Editor", null, null, true);
-	}
-	
-	function openNoteskinEditor():Void
-	{
-		FlxG.camera.followLerp = 0;
-		persistentUpdate = false;
-		paused = true;
-		CoolUtil.cancelMusicFadeTween();
-		
-		#if debug
-		FlxG.switchState(() -> new WIPNoteSkinEditor(arrowSkin, noteSkin));
-		#else
-		FlxG.switchState(() -> new NoteSkinEditor(SONG.arrowSkin, noteSkin));
-		#end
-		chartingMode = true;
-		
-		if (automatedDiscord) DiscordClient.changePresence("Noteskin Editor", null, null, true);
 	}
 	
 	public function updateScoreBar(miss:Bool = false):Void
@@ -2951,9 +2930,9 @@ class PlayState extends MusicBeatState
 		input.destroy();
 		input = FlxDestroyUtil.destroy(input);
 		
-		for (i in NoteSkinHelper.noteskins)
+		for (i in NoteUtil.noteskins)
 			i = FlxDestroyUtil.destroy(i);
-		NoteSkinHelper.noteskins = [];
+		NoteUtil.noteskins = [];
 		
 		super.destroy();
 	}

@@ -31,9 +31,9 @@ class NoteSplash extends FlxSprite
 		super(x, y);
 		
 		this.player = player;
-		rgbShader = NoteSkinHelper.initRGBShader(this, noteData, player);
+		rgbShader = NoteUtil.initRGBShader(this, noteData, player);
 		
-		loadAnims(NoteSkinHelper.getSkinFromID(player).splashTexture);
+		loadAnims(NoteUtil.getSkinFromID(player).splashTexture);
 		setupNoteSplash(x, y, noteData);
 	}
 	
@@ -43,11 +43,11 @@ class NoteSplash extends FlxSprite
 		setPosition(x - swagWidth * 0.95, y - swagWidth);
 		
 		this.player = field?.player ?? 0;
-		final skin:NoteSkin = NoteSkinHelper.getSkinFromID(this.player);
+		final skin:NoteSkin = NoteUtil.getSkinFromID(this.player);
 		
 		final defColour = skin.colors[note];
 		
-		final sanitzedColourArray = NoteSkinHelper.colorToArray(defColour);
+		final sanitzedColourArray = NoteUtil.colorToArray(defColour);
 		// var sanitzedColourArray:Array<FlxColor> = colourInput ?? [defColour.r ?? FlxColor.WHITE, defColour.g ?? FlxColor.WHITE, defColour.b ?? FlxColor.WHITE];
 		
 		texture ??= 'noteSplashes';
@@ -84,12 +84,12 @@ class NoteSplash extends FlxSprite
 	{
 		frames = Paths.getSparrowAtlas(skin);
 		
-		final _skin:NoteSkin = NoteSkinHelper.getSkinFromID(player);
+		final _skin:NoteSkin = NoteUtil.getSkinFromID(player);
 		
 		switch (skin)
 		{
 			default:
-				final data = _skin.splashAnims ?? NoteSkinHelper.DEFAULT_NOTESPLASH_ANIMATIONS;
+				final data = _skin.splashAnims ?? NoteUtil.DEFAULT_NOTESPLASH_ANIMATIONS;
 				
 				for (noteData in 0..._skin.keys)
 				{

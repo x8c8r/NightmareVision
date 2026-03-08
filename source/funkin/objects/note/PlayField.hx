@@ -150,7 +150,7 @@ class PlayField extends FlxTypedContainer<StrumNote>
 		this.keyCount = keyCount;
 		
 		this._skin = new NoteSkin(skin, keyCount, player);
-		NoteSkinHelper.noteskins.push(this._skin);
+		NoteUtil.noteskins.push(this._skin);
 		
 		grpNoteSplashes = new FlxTypedContainer<NoteSplash>();
 		

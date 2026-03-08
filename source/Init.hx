@@ -1,6 +1,5 @@
 package;
 
-import funkin.states.editors.WIPNoteSkinEditor;
 import funkin.FunkinAssets;
 
 import flixel.FlxState;
@@ -68,8 +67,6 @@ class Init extends FlxState
 		funkin.video.FunkinVideoSprite.init();
 		#end
 		
-		funkin.data.NoteSkinHelper.init();
-		
 		#if FEATURE_DEBUG_TRACY
 		funkin.utils.WindowUtil.initTracy();
 		#end
@@ -82,7 +79,6 @@ class Init extends FlxState
 		super.create();
 		
 		final nextState:Class<FlxState> = Main.startMeta.skipSplash || !ClientPrefs.toggleSplashScreen ? Main.startMeta.initialState : Splash;
-		// final nextState:Class<FlxState> = WIPNoteSkinEditor;
 		FlxG.switchState(() -> Type.createInstance(nextState, []));
 	}
 }

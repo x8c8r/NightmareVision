@@ -123,8 +123,8 @@ class MasterEditorMenu extends MusicBeatState
 					FlxG.switchState(DialogueEditorState.new);
 				case 'Chart Editor': // felt it would be cool maybe
 					FlxG.switchState(ChartEditorState.new);
-				case 'Note Skin Editor':
-					FlxG.switchState(() -> new NoteSkinEditor('default'));
+				// case 'Note Skin Editor':
+				// 	FlxG.switchState(() -> new NoteSkinEditor('default'));
 				case 'Chart Converter':
 					FlxG.switchState(() -> new ChartConverterState());
 			}

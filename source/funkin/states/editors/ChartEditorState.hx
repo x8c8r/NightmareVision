@@ -39,7 +39,6 @@ import flixel.util.FlxAxes;
 import funkin.objects.Character;
 import funkin.data.StageData;
 import funkin.data.CharacterData;
-import funkin.data.NoteSkinHelper;
 import funkin.backend.Difficulty;
 import funkin.data.Song;
 import funkin.states.substates.Prompt;
@@ -336,6 +335,7 @@ class ChartEditorState extends haxe.ui.backend.flixel.UIState
 	var gfIcon:String = 'gf';
 	
 	public static var endOffset:Int = 17;
+	
 	var songEnded:Bool = false;
 	
 	override function create()
@@ -372,10 +372,10 @@ class ChartEditorState extends haxe.ui.backend.flixel.UIState
 		initialKeyCount = _song.keys;
 		ClientPrefs.load();
 		
-		if (PlayState.noteSkin != null)
-		{
-			NoteSkinHelper.keys = _song.keys;
-		}
+		// if (PlayState.noteSkin != null)
+		// {
+		// 	NoteSkinHelper.keys = _song.keys;
+		// }
 		
 		// Updating Discord Rich Presence
 		// DiscordClient.changePresence("Chart Editor", StringTools.replace(_song.song, '-', ' '));
@@ -1320,6 +1320,7 @@ class ChartEditorState extends haxe.ui.backend.flixel.UIState
 	{
 		return [for (note in curSelectedNotes) if (note[2] == null) note];
 	}
+	
 	inline function getSelectedNotes():Array<Array<Dynamic>>
 	{
 		return [for (note in curSelectedNotes) if (note[2] != null) note];
@@ -1933,13 +1934,14 @@ class ChartEditorState extends haxe.ui.backend.flixel.UIState
 	{
 		if (strumLineNotes != null)
 		{
-			var noteSkin = new NoteSkinHelper(Paths.noteskin(_song.arrowSkin));
+			// rewriting noteskin shit i will add this back later
+			// var noteSkin = new NoteSkinHelper(Paths.noteskin(_song.arrowSkin));
 			
-			NoteSkinHelper.arrowSkins = [noteSkin.data.playerSkin, noteSkin.data.opponentSkin];
-			if (_song.lanes > 2) for (i in 2..._song.lanes)
-				NoteSkinHelper.arrowSkins.push(noteSkin.data.extraSkin);
-				
-			noteSkin.destroy();
+			// NoteSkinHelper.arrowSkins = [noteSkin.data.playerSkin, noteSkin.data.opponentSkin];
+			// if (_song.lanes > 2) for (i in 2..._song.lanes)
+			// 	NoteSkinHelper.arrowSkins.push(noteSkin.data.extraSkin);
+			
+			// noteSkin.destroy();
 			
 			strumLineNotes.clear();
 			
@@ -2525,33 +2527,33 @@ class ChartEditorState extends haxe.ui.backend.flixel.UIState
 		prevRenderedNotes.clear();
 		prevRenderedSustains.clear();
 		
-		var skin:NoteSkinHelper = PlayState.noteSkin;
+		// var skin:NoteSkinHelper = PlayState.noteSkin;
 		
-		var arrowSkin:Null<String> = _song?.arrowSkin;
+		// var arrowSkin:Null<String> = _song?.arrowSkin;
 		
-		if (arrowSkin != null && arrowSkin.length > 0)
-		{
-			final path = Paths.noteskin(arrowSkin);
-			if (FunkinAssets.exists(path, TEXT))
-			{
-				skin = new NoteSkinHelper(path);
-			}
-		}
-		else
-		{
-			final path = Paths.noteskin('default');
-			if (FunkinAssets.exists(path, TEXT))
-			{
-				skin = new NoteSkinHelper(path);
-			}
-		}
+		// if (arrowSkin != null && arrowSkin.length > 0)
+		// {
+		// 	final path = Paths.noteskin(arrowSkin);
+		// 	if (FunkinAssets.exists(path, TEXT))
+		// 	{
+		// 		skin = new NoteSkinHelper(path);
+		// 	}
+		// }
+		// else
+		// {
+		// 	final path = Paths.noteskin('default');
+		// 	if (FunkinAssets.exists(path, TEXT))
+		// 	{
+		// 		skin = new NoteSkinHelper(path);
+		// 	}
+		// }
 		
-		if (skin != null)
-		{
-			NoteSkinHelper.instance?.destroy();
-			NoteSkinHelper.keys = _song.keys;
-			NoteSkinHelper.instance = skin;
-		}
+		// if (skin != null)
+		// {
+		// 	NoteSkinHelper.instance?.destroy();
+		// 	NoteSkinHelper.keys = _song.keys;
+		// 	NoteSkinHelper.instance = skin;
+		// }
 		
 		if (_song.notes[curSec].changeBPM && _song.notes[curSec].bpm > 0)
 		{

@@ -77,7 +77,7 @@ class StrumNote extends FlxSprite
 		this.player = player;
 		super(x, y);
 		
-		skin = NoteSkinHelper.getSkinFromID(parent?.player ?? 0);
+		skin = NoteUtil.getSkinFromID(parent?.player ?? 0);
 		
 		texture = skin.noteTexture; // Load texture and anims
 		
@@ -85,7 +85,7 @@ class StrumNote extends FlxSprite
 		
 		useRGBShader = skin.inEngineColoring;
 		
-		rgbShader = NoteSkinHelper.initRGBShader(this, noteData, player);
+		rgbShader = NoteUtil.initRGBShader(this, noteData, player);
 		rgbShader.enabled = useRGBShader;
 		isQuant = parent?.quants ?? ClientPrefs.quants;
 		
@@ -97,7 +97,7 @@ class StrumNote extends FlxSprite
 		if (!useRGBShader) return;
 		
 		var arr:Array<FlxColor> = note?.rgbShader?.colorArray ?? [];
-		if (arr == null || arr.length <= 0) arr = NoteSkinHelper.getCurColors(noteData, (isQuant && note != null) ? note.quant : 4, player);
+		if (arr == null || arr.length <= 0) arr = NoteUtil.getCurColors(noteData, (isQuant && note != null) ? note.quant : 4, player);
 		
 		if (isQuant && anim == 'pressed') arr = ClientPrefs.arrowRGBquant[0];
 		
@@ -145,9 +145,9 @@ class StrumNote extends FlxSprite
 		return animation.exists(anim) && animOffsets.exists(anim);
 	}
 	
-	function addAnim(_anim:funkin.data.NoteSkinHelper.Animation)
+	function addAnim(_anim:funkin.data.NoteSkin.Animation)
 	{
-		final anim = _anim ?? NoteSkinHelper.fallbackReceptorAnims[0];
+		final anim = _anim ?? NoteUtil.fallbackReceptorAnims[0];
 		
 		if (!hasAnim(anim.anim))
 		{

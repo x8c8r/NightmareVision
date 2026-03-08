@@ -1,65 +1,18 @@
-package funkin.data;
+package funkin.utils;
 
 import haxe.Json;
 
+import funkin.data.NoteSkin;
+import funkin.data.NoteSkin.Animation;
+import funkin.data.NoteSkin.ColorList;
 import funkin.game.shaders.*;
 import funkin.game.shaders.RGBPalette.RGBShaderReference;
 
-typedef Animation =
-{
-	?anim:String,
-	?xmlName:String,
-	?offsets:Array<Float>,
-	?looping:Bool,
-	?fps:Int
-}
-
-typedef ColorList =
-{
-	?r:FlxColor,
-	?g:FlxColor,
-	?b:FlxColor
-}
-
-typedef NoteSkinData =
-{
-	?globalSkin:String,
-	?playerSkin:String,
-	?opponentSkin:String,
-	?extraSkin:String,
-	?noteSplashSkin:String,
-	
-	// depricated but leaving so it doesnt crash
-	?hasQuants:Bool,
-	?isQuants:Bool,
-	
-	?isPixel:Bool,
-	?pixelSize:Array<Int>,
-	?antialiasing:Bool,
-	?sustainSuffix:String,
-	
-	?noteAnimations:Array<Array<Animation>>,
-	
-	?receptorAnimations:Array<Array<Animation>>,
-	
-	?noteSplashAnimations:Array<Animation>,
-	
-	?singAnimations:Array<String>,
-	?scale:Float,
-	?splashesEnabled:Bool,
-	
-	?inGameColoring:Bool,
-	?arrowRGB:Array<ColorList>
-}
-
 // should be rewritten ngl
 // i agree its so ugly please
-class NoteSkinHelper implements IFlxDestroyable
+class NoteUtil
 {
 	public static var keys:Int = DEFAULT_KEYS;
-	
-	// to do do this instead
-	public static var instance:Null<NoteSkinHelper> = null;
 	
 	public static var noteskins:Array<NoteSkin> = [];
 	
@@ -78,42 +31,9 @@ class NoteSkinHelper implements IFlxDestroyable
 		return (skin == null ? (new NoteSkin('default', 4, 0)) : skin);
 	}
 	
-	public static function init():Void
-	{
-		if (instance == null) instance = new NoteSkinHelper(Paths.getPath('data/noteskins/default.json'));
-	}
-	
-	public var data(default, null):NoteSkinData;
-	
-	public function new(path:String)
-	{
-		loadFromPath(path);
-	}
-	
-	public function destroy()
-	{
-		data = null;
-	}
-	
-	public function loadFromPath(path:String, keyCount:Int = -1)
-	{
-		if (FunkinAssets.exists(path))
-		{
-			data = cast FunkinAssets.parseJson(FunkinAssets.getContent(path)) ?? {};
-		}
-		else
-		{
-			data = {};
-		}
-		
-		if (keyCount != -1) keys = keyCount;
-		resolveData(data);
-	}
-	
-	public static var arrowSkins:Array<String> = [];
-	
 	// quant stuff
-	public static final quants:Array<Int> = [4, // quarter note
+	public static final quants:Array<Int> = [
+		4, // quarter note
 		8, // eight
 		12, // etc
 		16, 20, 24, 32, 48, 64, 96, 192];
@@ -134,11 +54,11 @@ class NoteSkinHelper implements IFlxDestroyable
 	// constants
 	public static final DEFAULT_KEYS:Int = 4;
 	
-	static final DEFAULT_TEXTURE:String = 'NOTE_assets';
+	public static final DEFAULT_TEXTURE:String = 'NOTE_assets';
 	
-	static final DEFAULT_SPLASH_TEXTURE:String = 'noteSplashes';
+	public static final DEFAULT_SPLASH_TEXTURE:String = 'noteSplashes';
 	
-	static final DEFAULT_NOTE_ANIMATIONS:Array<Array<Animation>> = [
+	public static final DEFAULT_NOTE_ANIMATIONS:Array<Array<Animation>> = [
 		[
 			{
 				anim: "scroll",
@@ -232,7 +152,7 @@ class NoteSkinHelper implements IFlxDestroyable
 			}
 		]
 	];
-	static final DEFAULT_RECEPTOR_ANIMATIONS:Array<Array<Animation>> = [
+	public static final DEFAULT_RECEPTOR_ANIMATIONS:Array<Array<Animation>> = [
 		[
 			{
 				anim: 'static',
@@ -425,53 +345,6 @@ class NoteSkinHelper implements IFlxDestroyable
 		{r: 0xFF3A3A6C, g: 0xFFFFFF, b: 0xFF17202B} // 192nd
 	];
 	
-	public static function resolveData(data:NoteSkinData)
-	{
-		data.globalSkin ??= DEFAULT_TEXTURE;
-		data.playerSkin ??= data.globalSkin;
-		data.opponentSkin ??= data.globalSkin;
-		data.extraSkin ??= data.globalSkin;
-		data.noteSplashSkin ??= DEFAULT_SPLASH_TEXTURE;
-		
-		data.isPixel ??= false;
-		data.pixelSize ??= [4, 5];
-		data.antialiasing ??= true;
-		data.sustainSuffix ??= 'ENDS';
-		
-		data.noteAnimations ??= DEFAULT_NOTE_ANIMATIONS;
-		data.receptorAnimations ??= DEFAULT_RECEPTOR_ANIMATIONS;
-		data.noteSplashAnimations ??= DEFAULT_NOTESPLASH_ANIMATIONS;
-		
-		// correcting note animation data that might have missing fields
-		for (j in [data.noteAnimations, data.receptorAnimations])
-		{
-			for (i in j)
-			{
-				for (k in i)
-				{
-					k.looping ??= false;
-					k.fps ??= 24;
-				}
-			}
-		}
-		
-		data.singAnimations ??= defaultSingAnimations;
-		data.scale ??= 0.7;
-		data.splashesEnabled ??= true;
-		
-		data.arrowRGB ??= defaultColors.copy();
-		data.inGameColoring ??= true;
-	}
-	
-	public static var shaderEnabled(get, default):Bool;
-	
-	static function get_shaderEnabled()
-	{
-		var en = instance?.data?.inGameColoring ?? false;
-		
-		return en;
-	}
-	
 	/**
 		* Basic setup for a note object's RGB palette. Sets the colors according to the current colors from `getCurColors()`
 
@@ -485,7 +358,7 @@ class NoteSkinHelper implements IFlxDestroyable
 		var newRGB = new RGBPalette();
 		var arr = getCurColors(id, quant, player);
 		
-		if (shaderEnabled && arr != null) newRGB.setColors(arr);
+		if (arr != null) newRGB.setColors(arr);
 		else newRGB.setColors([0xFFFF0000, 0xFF00FF00, 0xFF0000FF]);
 		
 		return newRGB;
@@ -513,7 +386,7 @@ class NoteSkinHelper implements IFlxDestroyable
 	
 	public static function colorToArray(color:ColorList):Array<FlxColor>
 	{
-		var arr:Null<Array<FlxColor>> = [color.r, color.g, color.b];
+		var arr:Array<FlxColor> = [color.r, color.g, color.b];
 		return arr;
 	}
 }

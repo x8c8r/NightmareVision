@@ -4,13 +4,15 @@ import haxe.ds.Vector;
 
 import flixel.math.FlxPoint;
 
-import funkin.data.NoteSkinHelper.Animation;
-import funkin.data.NoteSkinHelper.ColorList;
+import funkin.data.NoteSkin.Animation;
+import funkin.data.NoteSkin.ColorList;
 
 class NoteSkin implements IFlxDestroyable
 {
+	public var data:NoteSkinData;
+	
 	public var name:String = '';
-	public var helper:NoteSkinHelper;
+	// public var helper:NoteSkinHelper;
 	public var keys:Int = 4;
 	public var ID:Int = 0;
 	
@@ -48,6 +50,8 @@ class NoteSkin implements IFlxDestroyable
 	
 	public function new(path:String, _keys:Int = -1, id:Int = 0)
 	{
+		data = loadFromPath(Paths.noteskin(path));
+		
 		keys = _keys;
 		name = path;
 		this.ID = id;
@@ -69,19 +73,17 @@ class NoteSkin implements IFlxDestroyable
 			// sustainSplashOffsets[i] = new FlxPoint();
 		}
 		
-		helper = new NoteSkinHelper(Paths.noteskin(path));
-		
-		noteAnims = helper.data.noteAnimations;
-		receptorAnims = helper.data.receptorAnimations;
-		splashAnims = helper.data.noteSplashAnimations;
+		noteAnims = data.noteAnimations;
+		receptorAnims = data.receptorAnimations;
+		splashAnims = data.noteSplashAnimations;
 		
 		for (i in 0...keys)
 		{
-			var safeDir:Int = (i % helper.data.noteAnimations.length),
-				safeSplashDir:Int = (i % helper.data.noteSplashAnimations.length);
+			var safeDir:Int = (i % data.noteAnimations.length),
+				safeSplashDir:Int = (i % data.noteSplashAnimations.length);
 				
-			var noteAnims = helper.data.noteAnimations[safeDir],
-				splashAnims = helper.data.noteSplashAnimations[safeSplashDir];
+			var noteAnims = data.noteAnimations[safeDir],
+				splashAnims = data.noteSplashAnimations[safeSplashDir];
 				
 			noteOffsets[i].x = noteAnims[0].offsets[0];
 			noteOffsets[i].y = noteAnims[0].offsets[1];
@@ -97,18 +99,99 @@ class NoteSkin implements IFlxDestroyable
 			splashOffsets[i].y = splashAnims.offsets[1];
 		}
 		
-		noteTexture = helper.data.playerSkin;
-		splashTexture = helper.data.noteSplashSkin;
+		noteTexture = data.noteTexture;
+		splashTexture = data.splashTexture;
 		
-		scale = helper.data.scale;
-		antialiasing = helper.data.antialiasing;
+		scale = data.scale;
+		antialiasing = data.antialiasing;
 		
-		inEngineColoring = helper.data.inGameColoring;
-		colors = helper.data.arrowRGB;
+		inEngineColoring = data.inGameColoring;
+		colors = data.arrowRGB;
 	}
 	
 	public function destroy()
 	{
 		// ill do this later
 	}
+	
+	public function loadFromPath(path:String):NoteSkinData
+	{
+		var _data:NoteSkinData;
+		
+		if (FunkinAssets.exists(path)) _data = cast FunkinAssets.parseJson(FunkinAssets.getContent(path)) ?? {};
+		else _data = {};
+		
+		resolveData(_data);
+		
+		return _data;
+	}
+	
+	public static function resolveData(data:NoteSkinData)
+	{
+		data.noteTexture ??= NoteUtil.DEFAULT_TEXTURE;
+		data.splashTexture ??= NoteUtil.DEFAULT_SPLASH_TEXTURE;
+		
+		data.antialiasing ??= true;
+		
+		data.noteAnimations ??= NoteUtil.DEFAULT_NOTE_ANIMATIONS;
+		data.receptorAnimations ??= NoteUtil.DEFAULT_RECEPTOR_ANIMATIONS;
+		data.noteSplashAnimations ??= NoteUtil.DEFAULT_NOTESPLASH_ANIMATIONS;
+		
+		// correcting note animation data that might have missing fields
+		for (j in [data.noteAnimations, data.receptorAnimations])
+		{
+			for (i in j)
+			{
+				for (k in i)
+				{
+					k.looping ??= false;
+					k.fps ??= 24;
+				}
+			}
+		}
+		
+		data.singAnimations ??= NoteUtil.defaultSingAnimations;
+		data.scale ??= 0.7;
+		data.splashesEnabled ??= true;
+		
+		data.arrowRGB ??= NoteUtil.defaultColors.copy();
+		data.inGameColoring ??= true;
+	}
+}
+
+typedef NoteSkinData =
+{
+	?noteTexture:String,
+	?splashTexture:String,
+	
+	// depricated but leaving so it doesnt crash
+	?isQuants:Bool,
+	?antialiasing:Bool,
+	
+	?noteAnimations:Array<Array<Animation>>,
+	?receptorAnimations:Array<Array<Animation>>,
+	?noteSplashAnimations:Array<Animation>,
+	
+	?singAnimations:Array<String>,
+	?scale:Float,
+	?splashesEnabled:Bool,
+	
+	?inGameColoring:Bool,
+	?arrowRGB:Array<ColorList>
+}
+
+typedef Animation =
+{
+	?anim:String,
+	?xmlName:String,
+	?offsets:Array<Float>,
+	?looping:Bool,
+	?fps:Int
+}
+
+typedef ColorList =
+{
+	?r:FlxColor,
+	?g:FlxColor,
+	?b:FlxColor
 }
