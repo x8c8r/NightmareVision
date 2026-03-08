@@ -950,47 +950,6 @@ class PlayState extends MusicBeatState
 		return script;
 	}
 	
-	public function startVideo(name:String):Void
-	{
-		#if VIDEOS_ALLOWED
-		final fileName = Paths.video(name);
-		
-		if (FunkinAssets.exists(fileName, BINARY))
-		{
-			inCutscene = true;
-			var bg = new flixel.system.FlxBGSprite();
-			bg.scrollFactor.set();
-			bg.cameras = [camHUD];
-			add(bg);
-			
-			var vid = new FlxVideo();
-			FlxG.addChildBelowMouse(vid);
-			vid.onEndReached.add(() -> {
-				remove(bg);
-				startAndEnd();
-				
-				FlxG.removeChild(vid);
-				vid.dispose();
-			});
-			vid.load(fileName);
-			vid.play();
-			return;
-		}
-		else
-		{
-			FlxG.log.warn('Couldnt find video file: ' + fileName);
-			startAndEnd();
-		}
-		#else
-		startAndEnd();
-		#end
-	}
-	
-	inline function startAndEnd():Void
-	{
-		endingSong ? endSong() : startCountdown();
-	}
-	
 	public var psychDialogue:Null<DialogueBoxPsych> = null;
 	
 	// you should be able to do "startDialogue(DialogueBoxPsych.parseDialogue(pathToJson));""
@@ -1007,19 +966,10 @@ class PlayState extends MusicBeatState
 			Paths.sound('dialogueClose');
 			psychDialogue = new DialogueBoxPsych(dialogueFile, song);
 			psychDialogue.scrollFactor.set();
-			if (endingSong)
-			{
-				psychDialogue.finishThing = function() {
-					psychDialogue = null;
-					endSong();
-				}
-			}
-			else
-			{
-				psychDialogue.finishThing = function() {
-					psychDialogue = null;
-					startCountdown();
-				}
+			psychDialogue.finishThing = function() {
+				psychDialogue = null;
+				if (endingSong) endSong();
+				else startCountdown();
 			}
 			psychDialogue.cameras = [camHUD];
 			add(psychDialogue);
@@ -1027,16 +977,12 @@ class PlayState extends MusicBeatState
 		else
 		{
 			FlxG.log.warn('Your dialogue file is badly formatted!');
-			if (endingSong)
-			{
-				endSong();
-			}
-			else
-			{
-				startCountdown();
-			}
+			if (endingSong) endSong();
+			else startCountdown();
 		}
 	}
+	
+	public var skipArrowStartTween:Bool = false;
 	
 	public function generatePlayfields()
 	{
@@ -1703,50 +1649,6 @@ class PlayState extends MusicBeatState
 		return 0;
 	}
 	
-	public var skipArrowStartTween:Bool = false;
-	
-	function removeStatics(player:Int):Void
-	{
-		var isPlayer:Bool = player == 1;
-		for (field in playFields.members)
-			if (field.isPlayer == isPlayer || player == -1) field.clearReceptors();
-	}
-	
-	// player 0 is opponent player 1 is player. Set to -1 to affect both players
-	
-	function resetStrumPositions(player:Int, ?baseX:Float):Void
-	{
-		if (!generatedMusic) return;
-		
-		var isPlayer:Bool = player == 1;
-		for (field in playFields.members)
-		{
-			if (field.isPlayer == isPlayer || player == -1)
-			{
-				var x = field.baseX;
-				if (baseX != null) x = baseX;
-				
-				field.forEachAlive(function(strum:StrumNote) {
-					strum.x = x;
-					strum.postAddedToGroup();
-				});
-			}
-		}
-	}
-	
-	function regenStaticArrows(player:Int):Void
-	{
-		var isPlayer:Bool = player == 1;
-		for (field in playFields.members)
-		{
-			if (field.isPlayer == isPlayer || player == -1)
-			{
-				field.generateReceptors();
-				field.fadeIn(true);
-			}
-		}
-	}
-	
 	override function openSubState(SubState:FlxSubState):Void
 	{
 		if (paused)
@@ -1803,10 +1705,7 @@ class PlayState extends MusicBeatState
 	
 	override public function onFocus():Void
 	{
-		if (!isDead && !paused)
-		{
-			resetDiscordRPC(Conductor.songPosition > 0.0);
-		}
+		if (!isDead && !paused) resetDiscordRPC(Conductor.songPosition > 0.0);
 		
 		super.onFocus();
 	}
