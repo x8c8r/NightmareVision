@@ -70,7 +70,7 @@ class StrumNote extends FlxSprite
 	public var skin:NoteSkin;
 	
 	public function new(player:Int, x:Float, y:Float, leData:Int, ?parent:PlayField)
-	{		
+	{
 		noteData = leData;
 		this.noteData = leData;
 		this.parent = parent;
@@ -187,10 +187,8 @@ class StrumNote extends FlxSprite
 		}
 		@:bypassAccessor
 		super.set_alpha(targetAlpha * alphaMult);
-		if (animation.curAnim != null)
-		{ // my bad i was upset
-			if (animation.curAnim.name == 'confirm') centerOrigin();
-		}
+		
+		if (animation.curAnim?.name == 'confirm') centerOrigin();
 		
 		super.update(elapsed);
 	}
@@ -201,11 +199,7 @@ class StrumNote extends FlxSprite
 		centerOffsets();
 		centerOrigin();
 		
-		if (animOffsets.exists(anim))
-		{
-			offset.set(offset.x + animOffsets.get(anim)[0], offset.y + animOffsets.get(anim)[1]);
-		}
-		if (animation.curAnim?.name == 'confirm') centerOrigin();
+		if (animOffsets.exists(anim)) offset.set(offset.x + animOffsets.get(anim)[0], offset.y + animOffsets.get(anim)[1]);
 		
 		handleColors(anim, note);
 	}
