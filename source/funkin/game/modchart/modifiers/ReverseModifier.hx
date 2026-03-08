@@ -71,7 +71,7 @@ class ReverseModifier extends NoteModifier
 				&& (!daNote.mustPress || (daNote.wasGoodHit || (daNote.prevNote.wasGoodHit && !daNote.canBeHit))));
 			if (shitGotHit)
 			{
-				var center:Float = strumLine.y + Note.swagWidth * 0.5;
+				var center:Float = strumLine.y + strumLine.height * 0.5;
 				if (revPerc >= 0.5)
 				{
 					if (y - daNote.offset.y * daNote.scale.y + daNote.height >= center)

@@ -14,7 +14,7 @@
 			<hbox width="100%" style="spacing: 10px;">
 				<vbox width="30%">
 					<label text="Initial BPM:" horizontalAlign="center"/>
-					<number-stepper pos="120" step="1" width="100%" id="initialBpmStepper" min="1" max="120"/>
+					<number-stepper pos="120" step="1" width="100%" id="initialBpmStepper" min="1" max="999"/>
 				</vbox>
 				<vbox width="30%">
 					<label text="Scroll Speed:" horizontalAlign="center"/>

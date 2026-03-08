@@ -251,8 +251,8 @@ class ModManager
 				strum.offset.y += offsetsAdd[1];
 			}
 			
-			strum.offset.x += ((strum.width - Note.swagWidth * strum.scale.x / strum.defScale.x) * .5);
-			strum.offset.y += ((strum.height - Note.swagWidth * strum.scale.y / strum.defScale.y) * .5);
+			strum.x -= ((strum.width - Note.swagWidth * strum.scale.x / strum.defScale.x) * .5);
+			strum.y -= ((strum.height - Note.swagWidth * strum.scale.y / strum.defScale.y) * .5);
 		}
 		else if ((obj is Note))
 		{
