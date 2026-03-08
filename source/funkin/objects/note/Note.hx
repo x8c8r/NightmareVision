@@ -149,6 +149,8 @@ class Note extends FlxSprite
 	public var owner:Character = null;
 	public var playField(default, set):PlayField;
 	
+	public var skin:NoteSkin;
+	
 	public var animSuffix = '';
 	
 	public function set_playField(field:PlayField)
@@ -271,13 +273,11 @@ class Note extends FlxSprite
 		
 		if (noteData > -1)
 		{
-			rgbEnabled = NoteSkinHelper.instance?.data?.inGameColoring ?? false;
-			
-			rgbShader = NoteSkinHelper.initRGBShader(this, noteData, quant);
+			// final whateverPleaseWork = noteData % (skin?.keys ?? 4);
+			rgbShader = NoteSkinHelper.initRGBShader(this, noteData, quant, player);
 			
 			texture = '';
 			
-			x += swagWidth * (noteData % NoteSkinHelper.keys);
 			if (!isSustainNote) animation.play(animation.exists('scroll') ? 'scroll' : 'scroll$noteData');
 		}
 		
@@ -296,41 +296,25 @@ class Note extends FlxSprite
 			
 			offsetX -= width / 2;
 			
-			if (NoteSkinHelper.instance.data.isPixel) offsetX += 30;
-
+			// if (NoteSkinHelper.instance.data.isPixel) offsetX += 30;
+			
 			animSuffix = prevNote.animSuffix;
-						
+			
 			if (prevNote.isSustainNote)
 			{
 				prevNote.animation.play(animation.exists('hold') ? 'hold' : 'hold$noteData');
 				prevNote.scale.y *= Conductor.stepCrotchet / 100 * 1.05;
 				prevNote.isSustainEnd = false;
-				if (PlayState.instance != null)
-				{
-					prevNote.scale.y *= PlayState.instance.songSpeed;
-				}
+				if (PlayState.instance != null) prevNote.scale.y *= PlayState.instance.songSpeed;
 				
-				if (NoteSkinHelper.instance.data.isPixel)
-				{
-					prevNote.scale.y *= 1.19;
-					prevNote.scale.y *= (6 / height); // Auto adjust note size
-				}
 				prevNote.updateHitbox();
 				prevNote.baseScaleX = prevNote.scale.x;
 				prevNote.baseScaleY = prevNote.scale.y;
 				// prevNote.setGraphicSize();
 			}
-			
-			if (NoteSkinHelper.instance.data.isPixel)
-			{
-				scale.y *= PlayState.daPixelZoom;
-				updateHitbox();
-			}
 		}
-		else if (!isSustainNote)
-		{
-			earlyHitMult = 1;
-		}
+		else if (!isSustainNote) earlyHitMult = 1;
+		
 		x += offsetX;
 		baseScaleX = scale.x;
 		baseScaleY = scale.y;
@@ -349,14 +333,17 @@ class Note extends FlxSprite
 		
 		if (noteScript != null) if (noteScript.executeFunc("onReloadNote", [this, prefix, texture, suffix], this) == ScriptConstants.STOP_FUNC) return;
 		
-		var skin:String = texture;
+		skin = NoteSkinHelper.getSkinFromID(player);
+		rgbEnabled = skin?.inEngineColoring ?? false;
+		
+		rgbShader.setColors(NoteSkinHelper.getCurColors(noteData, quant, player));
+		rgbShader.enabled = rgbEnabled;
+		
+		var _skin:String = texture;
 		if (texture.length < 1)
 		{
-			skin = NoteSkinHelper.arrowSkins[player];
-			if (skin == null || skin.length < 1)
-			{
-				skin = 'NOTE_assets';
-			}
+			_skin = skin?.noteTexture ?? 'NOTE_assets';
+			if (_skin.length < 1) _skin = 'NOTE_assets';
 		}
 		
 		var animName:String = null;
@@ -365,48 +352,17 @@ class Note extends FlxSprite
 			animName = animation.curAnim.name;
 		}
 		
-		var arraySkin:Array<String> = skin.split('/');
+		var arraySkin:Array<String> = _skin.split('/');
 		arraySkin[arraySkin.length - 1] = prefix + arraySkin[arraySkin.length - 1] + suffix;
 		
 		var lastScaleY:Float = scale.y;
 		var blahblah:String = arraySkin.join('/');
-		isQuant = ClientPrefs.quants && NoteSkinHelper.instance.data.isQuants && canQuant;
-		if (NoteSkinHelper.instance.data.isPixel)
-		{
-			if (isSustainNote)
-			{
-				loadGraphic(Paths.image(blahblah + NoteSkinHelper.instance.data.sustainSuffix));
-				width = width / 4;
-				height = height / 2;
-				originalHeightForCalcs = height;
-				loadGraphic(Paths.image(blahblah + NoteSkinHelper.instance.data.sustainSuffix), true, Math.floor(width), Math.floor(height));
-			}
-			else
-			{
-				loadGraphic(Paths.image(blahblah));
-				width = width / NoteSkinHelper.instance.data.pixelSize[0];
-				height = height / NoteSkinHelper.instance.data.pixelSize[1];
-				loadGraphic(Paths.image(blahblah), true, Math.floor(width), Math.floor(height));
-			}
-			setGraphicSize(Std.int(width * NoteSkinHelper.instance.data.scale));
-			loadPixelNoteAnims();
-			
-			if (isSustainNote)
-			{
-				offsetX += lastNoteOffsetXForPixelAutoAdjusting;
-				lastNoteOffsetXForPixelAutoAdjusting = (width - 7) * (NoteSkinHelper.instance.data.scale / 2);
-				offsetX -= lastNoteOffsetXForPixelAutoAdjusting;
-			}
-		}
-		else
-		{
-			frames = Paths.getSparrowAtlas(blahblah);
-			loadNoteAnims();
-		}
-		if (isSustainNote)
-		{
-			scale.y = lastScaleY;
-		}
+		isQuant = ClientPrefs.quants && (skin?.quantsEnabled ?? true) && canQuant;
+		
+		frames = Paths.getSparrowAtlas(blahblah);
+		loadNoteAnims();
+		
+		if (isSustainNote) scale.y = lastScaleY;
 		
 		baseScaleX = scale.x;
 		baseScaleY = scale.y;
@@ -423,7 +379,9 @@ class Note extends FlxSprite
 		
 		updateHitbox();
 		
-		if (!NoteSkinHelper.instance.data.antialiasing) antialiasing = false;
+		antialiasing = skin?.antialiasing ?? true;
+		
+		x += swagWidth * (noteData % (skin?.keys ?? 4));
 		
 		if (noteScript != null) noteScript.executeFunc("postReloadNote", [this, prefix, texture, suffix], this);
 	}
@@ -441,44 +399,45 @@ class Note extends FlxSprite
 		_loadNoteAnims();
 	}
 	
-	public function loadPixelNoteAnims()
-	{
-		if (noteScript != null)
-		{
-			if (noteScript.exists("loadPixelNoteAnims") && Reflect.isFunction(noteScript.get("loadNoteAnims")))
-			{
-				noteScript.executeFunc("loadPixelNoteAnims", [this], this, ["super" => _loadPixelNoteAnims]);
-				return;
-			}
-		}
-		_loadPixelNoteAnims();
-	}
+	// public function loadPixelNoteAnims()
+	// {
+	// 	if (noteScript != null)
+	// 	{
+	// 		if (noteScript.exists("loadPixelNoteAnims") && Reflect.isFunction(noteScript.get("loadNoteAnims")))
+	// 		{
+	// 			noteScript.executeFunc("loadPixelNoteAnims", [this], this, ["super" => _loadPixelNoteAnims]);
+	// 			return;
+	// 		}
+	// 	}
+	// 	_loadPixelNoteAnims();
+	// }
 	
 	function _loadNoteAnims()
 	{
-		var noteAnims = NoteSkinHelper.instance.data.noteAnimations;
-		var directionAnims = noteAnims[noteData % noteAnims.length];
+		// var noteAnims = NoteSkinHelper.instance.data.noteAnimations;
+		final noteAnims = skin.noteAnims;
+		final directionAnims = noteAnims[noteData % noteAnims.length];
 		
-		for (anim in directionAnims) animation.addByPrefix(anim.anim, '${anim.xmlName}0', anim.fps, true);
-		
-		setGraphicSize(Std.int(width * NoteSkinHelper.instance.data.scale));
+		for (anim in directionAnims)
+			animation.addByPrefix(anim.anim, '${anim.xmlName}0', anim.fps, true);
+			
+		setGraphicSize(Std.int(width * skin.scale));
 		
 		baseScaleX = scale.x;
 		baseScaleY = scale.y;
 	}
 	
-	function _loadPixelNoteAnims()
-	{
-		var columns:Int = NoteSkinHelper.instance.data.pixelSize[0];
-		var safeDir:Int = (noteData % columns);
-		
-		if (isSustainNote)
-		{
-			animation.add('holdend', [safeDir + columns]);
-			animation.add('hold', [safeDir]);
-		}
-		else animation.add('scroll', [safeDir + columns]);
-	}
+	// function _loadPixelNoteAnims()
+	// {
+	// 	var columns:Int = NoteSkinHelper.instance.data.pixelSize[0];
+	// 	var safeDir:Int = (noteData % columns);
+	// 	if (isSustainNote)
+	// 	{
+	// 		animation.add('holdend', [safeDir + columns]);
+	// 		animation.add('hold', [safeDir]);
+	// 	}
+	// 	else animation.add('scroll', [safeDir + columns]);
+	// }
 	
 	override function update(elapsed:Float)
 	{

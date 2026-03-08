@@ -49,8 +49,7 @@ typedef NoteSkinData =
 	?splashesEnabled:Bool,
 	
 	?inGameColoring:Bool,
-	?arrowRGBdefault:Array<ColorList>,
-	?arrowRGBquant:Array<ColorList>
+	?arrowRGB:Array<ColorList>
 }
 
 // should be rewritten ngl
@@ -61,6 +60,23 @@ class NoteSkinHelper implements IFlxDestroyable
 	
 	// to do do this instead
 	public static var instance:Null<NoteSkinHelper> = null;
+	
+	public static var noteskins:Array<NoteSkin> = [];
+	
+	public static function getSkinFromID(id:Int = 0)
+	{
+		// check list of skins and return the one with the specified id
+		for (i in noteskins)
+		{
+			if (i.ID == id) return i;
+		}
+		
+		// if no skin with that id exists, return the first noteskin
+		final skin = noteskins[0];
+		
+		// if all the skins are null, create a new default noteskin
+		return (skin == null ? (new NoteSkin('default', 4, 0)) : skin);
+	}
 	
 	public static function init():Void
 	{
@@ -443,8 +459,7 @@ class NoteSkinHelper implements IFlxDestroyable
 		data.scale ??= 0.7;
 		data.splashesEnabled ??= true;
 		
-		data.arrowRGBdefault ??= defaultColors.copy();
-		data.arrowRGBquant ??= quantDefaultColors.copy();
+		data.arrowRGB ??= defaultColors.copy();
 		data.inGameColoring ??= true;
 	}
 	
@@ -464,11 +479,11 @@ class NoteSkinHelper implements IFlxDestroyable
 		 
 		* @param quant If the note style is Quantized, it uses the quant variable to set the palette accordingly.
 	 */
-	public static function initRGBPalete(id:Int = 0, quant:Int = 4)
+	public static function initRGBPalete(id:Int = 0, quant:Int = 4, player:Int = 0)
 	{
 		// custom noteskin colors soon i promise
 		var newRGB = new RGBPalette();
-		var arr = getCurColors(id, quant);
+		var arr = getCurColors(id, quant, player);
 		
 		if (shaderEnabled && arr != null) newRGB.setColors(arr);
 		else newRGB.setColors([0xFFFF0000, 0xFF00FF00, 0xFF0000FF]);
@@ -476,20 +491,22 @@ class NoteSkinHelper implements IFlxDestroyable
 		return newRGB;
 	}
 	
-	public static function initRGBShader(object:FlxSprite, id:Int = 0, ?quant:Int = 0)
+	public static function initRGBShader(object:FlxSprite, id:Int = 0, ?quant:Int = 0, ?player:Int = 0)
 	{
-		var rgbShader = new RGBShaderReference(object, initRGBPalete(id, quant));
+		var rgbShader = new RGBShaderReference(object, initRGBPalete(id, quant, player));
 		object.shader = rgbShader.shader;
 		
 		return rgbShader;
 	}
 	
-	public static function getCurColors(id:Int = 0, quant:Int = 0)
+	public static function getCurColors(id:Int = 0, quant:Int = 0, player:Int = 0)
 	{
-		var arr = instance.data.arrowRGBdefault[id % instance.data.arrowRGBdefault.length];
-		if (ClientPrefs.quants && quant != 0) arr = instance.data.arrowRGBquant[quants.indexOf(quant)];
+		final skin = getSkinFromID(player);
 		
-		if (arr == null) arr = defaultColors[0];
+		var arr = skin.colors[id];
+		if (ClientPrefs.quants && quant != 0) arr = quantDefaultColors[quants.indexOf(quant)];
+		
+		// if (arr == null) arr = defaultColors[0];
 		
 		return colorToArray(arr);
 	}

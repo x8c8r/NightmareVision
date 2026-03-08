@@ -338,7 +338,7 @@ class PlayState extends MusicBeatState
 	}
 	
 	// i dont understand the need to change the ids tbh
-	function getStrumFromID(id:Int):Null<PlayField>
+	function getFieldFromID(id:Int):Null<PlayField>
 	{
 		for (i in playFields?.members)
 			if (i.ID == id) return i;
@@ -530,13 +530,6 @@ class PlayState extends MusicBeatState
 	
 	public static var noteSkin:funkin.data.NoteSkinHelper;
 	
-	// ????
-	public var script_NOTEOffsets:Vector<FlxPoint>;
-	public var script_STRUMOffsets:Vector<FlxPoint>;
-	public var script_SUSTAINOffsets:Vector<FlxPoint>;
-	public var script_SUSTAINENDOffsets:Vector<FlxPoint>;
-	public var script_SPLASHOffsets:Vector<FlxPoint>;
-	
 	public var introSoundsSuffix:String = '';
 	
 	// Debug buttons
@@ -684,8 +677,6 @@ class PlayState extends MusicBeatState
 		
 		arrowSkin = SONG.arrowSkin;
 		
-		initNoteSkinning(SONG.arrowSkin);
-		
 		// set up rpc stuff
 		rpcDifficulty = '(' + Difficulty.getCurrentDifficultyString() + ')';
 		rpcDescription = isStoryMode == true ? 'Story Mode:' : 'Freeplay:';
@@ -792,6 +783,12 @@ class PlayState extends MusicBeatState
 		
 		meta = Metadata.getSong();
 		
+		generatedFields = false;
+		modifiersRegistered = false;
+		modManager = new ModManager(this);
+		scripts.set("modManager", modManager);
+		
+		if (genNotesBeforeCountdown) generatePlayfields();
 		generateSong(SONG.song);
 		#if FLX_DEBUG
 		FlxG.watch.addFunction('Conductor: ', () -> Conductor.songPosition);
@@ -805,11 +802,6 @@ class PlayState extends MusicBeatState
 		#end
 		
 		audio?.stop();
-		
-		generatedFields = false;
-		modifiersRegistered = false;
-		modManager = new ModManager(this);
-		scripts.set("modManager", modManager);
 		
 		noteTypeMap.clear();
 		noteTypeMap = null;
@@ -884,8 +876,6 @@ class PlayState extends MusicBeatState
 		
 		Conductor.safeZoneOffset = (ClientPrefs.safeFrames / 60) * 1000;
 		
-		if (genNotesBeforeCountdown) generatePlayfields();
-		
 		scripts.call('onCreatePost', []);
 		
 		callHUDFunc(hud -> hud.cachePopUpScore());
@@ -895,66 +885,6 @@ class PlayState extends MusicBeatState
 		FunkinAssets.cache.clearUnusedMemory();
 		
 		refreshZ(stage);
-	}
-	
-	function noteskinLoading(skin:String = 'default'):Void // cleanup later
-	{
-		noteSkin = new NoteSkinHelper(Paths.noteskin(skin));
-	}
-	
-	public function initNoteSkinning(_skin:String = 'default'):Void // TODO: rewrite this
-	{
-		script_NOTEOffsets = new Vector<FlxPoint>(SONG.keys);
-		script_SUSTAINOffsets = new Vector<FlxPoint>(SONG.keys);
-		script_SUSTAINENDOffsets = new Vector<FlxPoint>(SONG.keys);
-		script_STRUMOffsets = new Vector<FlxPoint>(SONG.keys);
-		script_SPLASHOffsets = new Vector<FlxPoint>(SONG.keys);
-		
-		for (i in 0...SONG.keys)
-		{
-			script_NOTEOffsets[i] = new FlxPoint();
-			script_STRUMOffsets[i] = new FlxPoint();
-			script_SUSTAINOffsets[i] = new FlxPoint();
-			script_SUSTAINENDOffsets[i] = new FlxPoint();
-			script_SPLASHOffsets[i] = new FlxPoint();
-		}
-		
-		var skin = _skin;
-		if (skin == '' || skin == 'null' || skin == null) skin = 'default';
-		
-		noteskinLoading(skin);
-		
-		NoteSkinHelper.instance?.destroy();
-		NoteSkinHelper.instance = noteSkin;
-		NoteSkinHelper.keys = SONG.keys;
-		
-		arrowSkin = noteSkin.data.globalSkin;
-		NoteSkinHelper.arrowSkins = [noteSkin.data.playerSkin, noteSkin.data.opponentSkin];
-		if (SONG.lanes > 2) for (i in 2...SONG.lanes)
-			NoteSkinHelper.arrowSkins.push(noteSkin.data.extraSkin);
-			
-		for (i in 0...SONG.keys)
-		{
-			var safeDir:Int = (i % noteSkin.data.noteAnimations.length),
-				safeSplashDir:Int = (i % noteSkin.data.noteSplashAnimations.length);
-			var noteAnims = noteSkin.data.noteAnimations[safeDir],
-				splashAnims = noteSkin.data.noteSplashAnimations[safeSplashDir];
-				
-			script_NOTEOffsets[i].x = noteAnims[0].offsets[0];
-			script_NOTEOffsets[i].y = noteAnims[0].offsets[1];
-			
-			script_SUSTAINOffsets[i].x = noteAnims[1].offsets[0];
-			script_SUSTAINOffsets[i].y = noteAnims[1].offsets[1];
-			
-			script_SUSTAINENDOffsets[i].x = noteAnims[2].offsets[0];
-			script_SUSTAINENDOffsets[i].y = noteAnims[2].offsets[1];
-			script_SUSTAINENDOffsets[i].y *= (ClientPrefs.downScroll ? -1 : 1);
-			
-			script_SPLASHOffsets[i].x = splashAnims.offsets[0];
-			script_SPLASHOffsets[i].y = splashAnims.offsets[1];
-		}
-		
-		noteSplashSkin = noteSkin.data.noteSplashSkin;
 	}
 	
 	function set_songSpeed(value:Float):Float
@@ -1121,7 +1051,7 @@ class PlayState extends MusicBeatState
 			
 			final auto = (lane != 0 || cpuControlled);
 			
-			var strums = new PlayField(0, 0, SONG.keys, character, isPlayer, auto, lane);
+			var strums = new PlayField(0, 0, SONG.keys, character, isPlayer, auto, lane, 'default');
 			
 			scripts.call('preReceptorGeneration', [strums, lane]);
 			strums.generateReceptors();
@@ -1550,19 +1480,21 @@ class PlayState extends MusicBeatState
 				
 				if (playfield < 0) // legacy event notes
 				{
-					events.push({
-						strumTime: daStrumTime + ClientPrefs.noteOffset,
-						event: songNotes[2],
-						value1: songNotes[3],
-						value2: songNotes[4]
-					});
-					
+					events.push(
+						{
+							strumTime: daStrumTime + ClientPrefs.noteOffset,
+							event: songNotes[2],
+							value1: songNotes[3],
+							value2: songNotes[4]
+						});
+						
 					continue;
 				}
 				
 				if (playfield >= SONG.lanes) continue;
 				
-				var realTime = daStrumTime - ClientPrefs.noteOffset, last:Note = lastPlayfieldNotes[playfield][daNoteData];
+				var realTime = daStrumTime - ClientPrefs.noteOffset,
+					last:Note = lastPlayfieldNotes[playfield][daNoteData];
 				if (last != null && Math.abs(realTime - last.strumTime) <= 3) continue;
 				
 				var oldNote:Note = null;
@@ -1573,7 +1505,7 @@ class PlayState extends MusicBeatState
 				// TODO: maybe make a checkNoteType n shit but idfk im lazy
 				// or maybe make a "Transform Notes" event which'll make notes which don't change texture change into the specified one
 				
-				var swagNote:Note = new Note(daStrumTime, daNoteData, oldNote, false, false, cast playfield == 0);
+				var swagNote:Note = new Note(daStrumTime, daNoteData, oldNote, false, false, playfield);
 				swagNote.row = Conductor.secsToRow(daStrumTime);
 				swagNote.mustPress = (playfield == 0);
 				swagNote.sustainLength = songNotes[2];
@@ -1612,7 +1544,7 @@ class PlayState extends MusicBeatState
 					var sustainNote:Note = new Note(daStrumTime
 						+ (Conductor.stepCrotchet * susNote)
 						+ (Conductor.stepCrotchet / FlxMath.roundDecimal(songSpeed, 2)), daNoteData, oldNote, true,
-						false, cast playfield == 0);
+						false, playfield);
 					sustainNote.mustPress = (playfield == 0);
 					sustainNote.gfNote = swagNote.gfNote;
 					sustainNote.noteType = type;
@@ -1954,7 +1886,7 @@ class PlayState extends MusicBeatState
 		
 		if (healthBounds.max > healthBounds.min && health > healthBounds.max) health = healthBounds.max;
 		else if (healthBounds.min > healthBounds.max && healthBounds.max > health) health = healthBounds.max;
-
+		
 		if (startingSong)
 		{
 			if (startedCountdown)
@@ -2009,7 +1941,7 @@ class PlayState extends MusicBeatState
 				{
 					// rewrite this later this is messy
 					
-					final expectedPlayfield:Null<PlayField> = getStrumFromID(dunceNote.lane) ?? dunceNote.parent?.playField;
+					final expectedPlayfield:Null<PlayField> = getFieldFromID(dunceNote.lane) ?? dunceNote.parent?.playField;
 					
 					if (expectedPlayfield != null) expectedPlayfield.addNote(dunceNote);
 					else
@@ -2076,14 +2008,16 @@ class PlayState extends MusicBeatState
 		{
 			for (i in 0...playFields?.length)
 			{
-				final strums:Null<PlayField> = getStrumFromID(i);
+				final strums:Null<PlayField> = getFieldFromID(i);
 				if (strums == null) continue;
 				strums.forEachAlive(strum -> {
 					final pos = modManager.getPos(0, 0, 0, curDecBeat, strum.noteData, i, strum, tempVector);
+					final offsets = strums._skin.receptorOffsets;
+					
 					modManager.updateObject(curDecBeat, strum, pos, i);
 					
-					strum.x += (script_STRUMOffsets[strum.noteData].x * strum.scale.x / strum.defScale.x);
-					strum.y += (script_STRUMOffsets[strum.noteData].y * strum.scale.y / strum.defScale.y);
+					strum.x += (offsets[strum.noteData].x * strum.scale.x / strum.defScale.x);
+					strum.y += (offsets[strum.noteData].y * strum.scale.y / strum.defScale.y);
 				});
 			}
 		}
@@ -2102,14 +2036,16 @@ class PlayState extends MusicBeatState
 				if (!modifiersRegistered) return;
 				
 				final field = daNote.playField;
+				final _skin = NoteSkinHelper.getSkinFromID(daNote.player);
 				
 				final visPos = -((Conductor.visualPosition - daNote.visualTime) * songSpeed);
 				final pos = modManager.getPos(daNote.strumTime, visPos, daNote.strumTime - Conductor.songPosition, curDecBeat, daNote.noteData, daNote.lane, daNote, tempVector);
 				
 				modManager.updateObject(curDecBeat, daNote, pos, daNote.lane);
 				
-				var scaleXMult:Float = (daNote.scale.x / daNote.defScale.x), scaleYMult:Float = (daNote.scale.y / daNote.defScale.y);
-				
+				var scaleXMult:Float = (daNote.scale.x / daNote.defScale.x),
+					scaleYMult:Float = (daNote.scale.y / daNote.defScale.y);
+					
 				if (daNote.isSustainNote)
 				{
 					final futureSongPos = Conductor.visualPosition + (Conductor.stepCrotchet * 0.001);
@@ -2128,19 +2064,19 @@ class PlayState extends MusicBeatState
 					if (deg != 0) daNote.mAngle = (deg + 90);
 					else daNote.mAngle = 0;
 					
-					daNote.x += (script_SUSTAINOffsets[daNote.noteData].x * scaleXMult);
-					daNote.y += (script_SUSTAINOffsets[daNote.noteData].y * scaleYMult);
+					daNote.x += (_skin.sustainOffsets[daNote.noteData].x * scaleXMult);
+					daNote.y += (_skin.sustainOffsets[daNote.noteData].y * scaleYMult);
 					if (daNote.isSustainEnd)
 					{
-						daNote.x += (script_SUSTAINENDOffsets[daNote.noteData].x * scaleXMult);
-						daNote.y += (script_SUSTAINENDOffsets[daNote.noteData].y * scaleYMult);
+						daNote.x += (_skin.susEndOffsets[daNote.noteData].x * scaleXMult);
+						daNote.y += (_skin.susEndOffsets[daNote.noteData].y * scaleYMult);
 					}
 					
 					nextPos.put();
 				}
 				
-				daNote.x += ((script_NOTEOffsets[daNote.noteData].x + daNote.offsetX) * scaleXMult);
-				daNote.y += ((script_NOTEOffsets[daNote.noteData].y + daNote.offsetY) * scaleYMult);
+				daNote.x += ((_skin.noteOffsets[daNote.noteData].x + daNote.offsetX) * scaleXMult);
+				daNote.y += ((_skin.noteOffsets[daNote.noteData].y + daNote.offsetY) * scaleYMult);
 				
 				if (field.inControl && field.autoPlayed)
 				{
@@ -2153,7 +2089,8 @@ class PlayState extends MusicBeatState
 				if (Conductor.songPosition > noteKillOffset + daNote.strumTime)
 				{
 					daNote.garbage = true;
-					if (daNote.playField != null && daNote.playField.playerControls && !daNote.playField.autoPlayed && !daNote.ignoreNote && !daNote.canMiss && !endingSong && !daNote.wasGoodHit) if (field.playerControls
+					if (daNote.playField != null && daNote.playField.playerControls && !daNote.playField.autoPlayed && !daNote.ignoreNote && !daNote.canMiss && !endingSong && !daNote.wasGoodHit)
+						if (field.playerControls
 						&& !field.autoPlayed) field.onNoteMiss.dispatch(daNote, field);
 				}
 				
@@ -2978,8 +2915,7 @@ class PlayState extends MusicBeatState
 				for (note in field.getTapNotes(key))
 				{
 					final higherPriority:Bool = (topNote == null || note.hitPriority > topNote.hitPriority);
-					if (higherPriority || (!higherPriority && note.strumTime < topNote.strumTime))
-						topNote = note;
+					if (higherPriority || (!higherPriority && note.strumTime < topNote.strumTime)) topNote = note;
 				}
 				
 				if (topNote != null)
@@ -3115,6 +3051,10 @@ class PlayState extends MusicBeatState
 		
 		input.destroy();
 		input = FlxDestroyUtil.destroy(input);
+		
+		for (i in NoteSkinHelper.noteskins)
+			i = FlxDestroyUtil.destroy(i);
+		NoteSkinHelper.noteskins = [];
 		
 		super.destroy();
 	}

@@ -6,6 +6,7 @@ import funkin.game.shaders.*;
 import funkin.game.shaders.RGBPalette.RGBShaderReference;
 import funkin.data.*;
 import funkin.states.*;
+import funkin.data.NoteSkin;
 
 @:nullSafety
 class NoteSplash extends FlxSprite
@@ -20,16 +21,19 @@ class NoteSplash extends FlxSprite
 	 */
 	public var data:Int = 0;
 	
+	public var player:Int = 0;
+	
 	// internal thing to optimize loading frames
 	@:noCompletion var _textureLoaded:Null<String> = null;
 	
-	public function new(x:Float = 0, y:Float = 0, noteData:Int = 0)
+	public function new(x:Float = 0, y:Float = 0, noteData:Int = 0, player:Int = 0)
 	{
 		super(x, y);
 		
-		rgbShader = NoteSkinHelper.initRGBShader(this, noteData);
+		this.player = player;
+		rgbShader = NoteSkinHelper.initRGBShader(this, noteData, player);
 		
-		loadAnims(getPlayStateSplash('noteSplashes'));
+		loadAnims(NoteSkinHelper.getSkinFromID(player).splashTexture);
 		setupNoteSplash(x, y, noteData);
 	}
 	
@@ -38,16 +42,17 @@ class NoteSplash extends FlxSprite
 		final swagWidth = field?.members[note].swagWidth ?? Note.swagWidth;
 		setPosition(x - swagWidth * 0.95, y - swagWidth);
 		
-		var defColour = NoteSkinHelper.defaultColors[note % NoteSkinHelper.keys];
+		this.player = field?.player ?? 0;
+		final skin:NoteSkin = NoteSkinHelper.getSkinFromID(this.player);
 		
-		var sanitzedColourArray:Array<FlxColor> = colourInput ?? [defColour.r ?? FlxColor.WHITE, defColour.g ?? FlxColor.WHITE, defColour.b ?? FlxColor.WHITE];
+		final defColour = skin.colors[note];
 		
-		texture ??= getPlayStateSplash('noteSplashes');
+		final sanitzedColourArray = NoteSkinHelper.colorToArray(defColour);
+		// var sanitzedColourArray:Array<FlxColor> = colourInput ?? [defColour.r ?? FlxColor.WHITE, defColour.g ?? FlxColor.WHITE, defColour.b ?? FlxColor.WHITE];
 		
-		if (_textureLoaded != texture)
-		{
-			loadAnims(texture);
-		}
+		texture ??= 'noteSplashes';
+		
+		if (_textureLoaded != texture) loadAnims(texture);
 		
 		if (field != null)
 		{
@@ -66,7 +71,8 @@ class NoteSplash extends FlxSprite
 				offset.set(-20, -20);
 		}
 		
-		if (NoteSkinHelper.shaderEnabled) rgbShader.setColors(sanitzedColourArray);
+		rgbShader.enabled = skin.inEngineColoring;
+		rgbShader.setColors(sanitzedColourArray);
 	}
 	
 	public function playAnim()
@@ -77,12 +83,15 @@ class NoteSplash extends FlxSprite
 	function loadAnims(skin:String)
 	{
 		frames = Paths.getSparrowAtlas(skin);
+		
+		final _skin:NoteSkin = NoteSkinHelper.getSkinFromID(player);
+		
 		switch (skin)
 		{
 			default:
-				final data = NoteSkinHelper.instance?.data.noteSplashAnimations ?? NoteSkinHelper.DEFAULT_NOTESPLASH_ANIMATIONS;
+				final data = _skin.splashAnims ?? NoteSkinHelper.DEFAULT_NOTESPLASH_ANIMATIONS;
 				
-				for (noteData in 0...NoteSkinHelper.keys)
+				for (noteData in 0..._skin.keys)
 				{
 					if (data[noteData] == null || data[noteData].anim == null || data[noteData].xmlName == null) continue;
 					
@@ -92,16 +101,6 @@ class NoteSplash extends FlxSprite
 		}
 		
 		_textureLoaded = skin;
-	}
-	
-	function getPlayStateSplash(fallback:String):String
-	{
-		if (PlayState.SONG != null)
-		{
-			return (PlayState.SONG.splashSkin != null && PlayState.SONG.splashSkin.length > 0) ? PlayState.SONG.splashSkin : fallback;
-		}
-		
-		return fallback;
 	}
 	
 	override function update(elapsed:Float)

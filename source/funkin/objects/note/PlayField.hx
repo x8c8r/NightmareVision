@@ -8,6 +8,7 @@ import flixel.tweens.FlxTween;
 import flixel.group.FlxGroup.FlxTypedGroup;
 
 import funkin.objects.Character;
+import funkin.data.*;
 
 typedef NoteSignal = FlxTypedSignal<(Note, PlayField) -> Void>;
 
@@ -16,6 +17,8 @@ typedef NoteSignal = FlxTypedSignal<(Note, PlayField) -> Void>;
 
 class PlayField extends FlxTypedContainer<StrumNote>
 {
+	public var _skin:NoteSkin;
+	
 	public var owner(default, set):Character;
 	public var singers:Array<Null<Character>> = [];
 	public var quants(default, set):Bool = ClientPrefs.quants;
@@ -133,7 +136,7 @@ class PlayField extends FlxTypedContainer<StrumNote>
 	 */
 	public var grpNoteSplashes:FlxTypedContainer<NoteSplash>;
 	
-	public function new(x:Float, y:Float, keyCount:Int = 4, ?who:Character, isPlayer:Bool = false, cpu:Bool = false, ?playerControls:Bool, player:Int = 0)
+	public function new(x:Float, y:Float, keyCount:Int = 4, ?who:Character, isPlayer:Bool = false, cpu:Bool = false, ?playerControls:Bool, player:Int = 0, skin:String = 'default')
 	{
 		super();
 		if (playerControls == null) playerControls = isPlayer;
@@ -149,9 +152,12 @@ class PlayField extends FlxTypedContainer<StrumNote>
 		this.baseY = y;
 		this.keyCount = keyCount;
 		
+		this._skin = new NoteSkin(skin, keyCount, player);
+		NoteSkinHelper.noteskins.push(this._skin);
+		
 		grpNoteSplashes = new FlxTypedContainer<NoteSplash>();
 		
-		var splash:NoteSplash = new NoteSplash(100, 100, 0);
+		var splash:NoteSplash = new NoteSplash(100, 100, 0, player);
 		grpNoteSplashes.add(splash);
 		splash.alpha = 0.0;
 		
@@ -238,6 +244,8 @@ class PlayField extends FlxTypedContainer<StrumNote>
 		if (note.isSustainNote) note.scale.set(note.baseScaleX * scale, note.baseScaleY);
 		else note.scale.set(note.baseScaleX * scale, note.baseScaleY * scale);
 		
+		note.player = player;
+		
 		note.defScale.copyFrom(note.scale);
 		note.updateHitbox();
 		if (note.playField != this) note.playField = this;
@@ -282,7 +290,8 @@ class PlayField extends FlxTypedContainer<StrumNote>
 		
 		if (ClientPrefs.guitarHeroSustains && !note.isSustainNote)
 		{
-			for (sustain in note.tail) sustain.blockHit = false; // makes the hold note active when you press the base note
+			for (sustain in note.tail)
+				sustain.blockHit = false; // makes the hold note active when you press the base note
 		}
 		
 		if (field.playerControls)
@@ -309,7 +318,6 @@ class PlayField extends FlxTypedContainer<StrumNote>
 		if (note.owner != null) chars = [note.owner];
 		
 		final noteRows = PlayState.instance.noteRows;
-		final noteSkin = PlayState.noteSkin;
 		
 		for (char in chars)
 		{
@@ -319,8 +327,8 @@ class PlayField extends FlxTypedContainer<StrumNote>
 			{
 				var daAlt = '';
 				if (note.noteType == 'Alt Animation') daAlt = '-alt';
-
-				final animToPlay = noteSkin.data.singAnimations[Std.int(Math.abs(note.noteData))] + daAlt;
+				
+				final animToPlay = _skin.singAnimations[Std.int(Math.abs(note.noteData))] + daAlt;
 				
 				char.holdTimer = 0;
 				
@@ -333,7 +341,7 @@ class PlayField extends FlxTypedContainer<StrumNote>
 					{
 						final animNote = chord[0];
 						daAlt = animNote.noteType == 'Alt Animation' ? '-alt' : '';
-						final realAnim = noteSkin.data.singAnimations[Std.int(Math.abs(animNote.noteData))] + daAlt;
+						final realAnim = _skin.singAnimations[Std.int(Math.abs(animNote.noteData))] + daAlt;
 						
 						if (char.mostRecentRow != note.row) char.playAnim(realAnim, true);
 						
@@ -401,7 +409,7 @@ class PlayField extends FlxTypedContainer<StrumNote>
 					var daAlt = '';
 					if (note.noteType == 'Alt Animation') daAlt = '-alt';
 					
-					var animToPlay:String = PlayState.noteSkin.data.singAnimations[Std.int(Math.abs(note.noteData))] + 'miss' + daAlt;
+					var animToPlay:String = _skin.singAnimations[Std.int(Math.abs(note.noteData))] + 'miss' + daAlt;
 					char.playAnim(animToPlay, true);
 				}
 			}
@@ -439,7 +447,7 @@ class PlayField extends FlxTypedContainer<StrumNote>
 			
 			FlxG.sound.play(Paths.soundRandom('missnote', 1, 3), FlxG.random.float(0.1, 0.2));
 			
-			if (char.animTimer <= 0) char.playAnim(PlayState.noteSkin.data.singAnimations[Std.int(Math.abs(key))] + 'miss', true);
+			if (char.animTimer <= 0) char.playAnim(_skin.singAnimations[Std.int(Math.abs(key))] + 'miss', true);
 		}
 	}
 	
@@ -462,16 +470,16 @@ class PlayField extends FlxTypedContainer<StrumNote>
 			&& !note.isSustainNote
 			&& !note.noteSplashDisabled
 			&& noteSplashes
-			&& PlayState.noteSkin?.data?.splashesEnabled ?? true)
+			&& _skin?.splashesEnabled ?? true)
 		{
 			final strum:Null<StrumNote> = note.playField.members[note.noteData];
 			if (strum != null)
 			{
 				final data = note.noteData;
-				final skin:String = PlayState.noteSplashSkin;
+				final skin:String = _skin.splashTexture;
 				final colors = [note.rgbShader.r, note.rgbShader.g, note.rgbShader.b];
 				
-				final offsets = PlayState.instance.script_SPLASHOffsets != null ? PlayState.instance.script_SPLASHOffsets[data] : null;
+				final offsets = _skin.splashOffsets != null ? _skin.splashOffsets[data] : null;
 				final _X = (strum.x + (offsets?.x ?? 0));
 				final _Y = (strum.y + (offsets?.y ?? 0));
 				

@@ -376,11 +376,11 @@ class WIPNoteSkinEditor extends UIState
 			switch (curColorString)
 			{
 				case 'Red':
-					helper.data.arrowRGBdefault[id].r = colour;
+					helper.data.arrowRGB[id].r = colour;
 				case 'Green':
-					helper.data.arrowRGBdefault[id].g = colour;
+					helper.data.arrowRGB[id].g = colour;
 				case 'Blue':
-					helper.data.arrowRGBdefault[id].b = colour;
+					helper.data.arrowRGB[id].b = colour;
 			}
 			updateStrumColors();
 		}
@@ -416,7 +416,7 @@ class WIPNoteSkinEditor extends UIState
 		
 		uiElements.settingsBox.shaderColoringBox.value = helper.data.inGameColoring;
 		
-		uiElements.settingsBox.noteColorPicker.value = helper.data.arrowRGBdefault[0].r;
+		uiElements.settingsBox.noteColorPicker.value = helper.data.arrowRGB[0].r;
 		uiElements.settingsBox.curColorDropdown.value = "Red";
 	}
 	
@@ -428,10 +428,10 @@ class WIPNoteSkinEditor extends UIState
 		{
 			case 'File':
 				var json = helperLoading(curName);
-				trace(json.data.arrowRGBdefault.copy());
+				trace(json.data.arrowRGB.copy());
 				
-				helper.data.arrowRGBquant = json.data.arrowRGBquant.copy();
-				helper.data.arrowRGBdefault = json.data.arrowRGBdefault.copy();
+				// helper.data.arrowRGBquant = json.data.arrowRGBquant.copy();
+				helper.data.arrowRGB = json.data.arrowRGB.copy();
 			default:
 				var defaultColors:Array<ColorList> = [
 					{r: 0xFFC24B99, g: 0xFFFFFFFF, b: 0xFF3C1F56},
@@ -454,8 +454,8 @@ class WIPNoteSkinEditor extends UIState
 				];
 				trace(defaultColors.copy());
 				
-				helper.data.arrowRGBquant = quantDefaultColors.copy();
-				helper.data.arrowRGBdefault = defaultColors.copy();
+				// helper.data.arrowRGBquant = quantDefaultColors.copy();
+				helper.data.arrowRGB = defaultColors.copy();
 		}
 		refreshUIValues();
 		updateStrumColors();
@@ -469,7 +469,7 @@ class WIPNoteSkinEditor extends UIState
 		{
 			for (strumnote in field.members)
 			{
-				if (strumnote.animation.curAnim.name != 'static') strumnote.rgbShader.setColors(NoteSkinHelper.colorToArray(helper.data.arrowRGBdefault[strumnote.noteData]));
+				if (strumnote.animation.curAnim.name != 'static') strumnote.rgbShader.setColors(NoteSkinHelper.colorToArray(helper.data.arrowRGB[strumnote.noteData]));
 			}
 		}
 	}
@@ -809,8 +809,8 @@ class WIPNoteSkinEditor extends UIState
 				"splashesEnabled": helper.data.splashesEnabled,
 				
 				"inGameColoring": helper.data.inGameColoring,
-				"arrowRGBdefault": helper.data.arrowRGBdefault,
-				"arrowRGBquant": helper.data.arrowRGBquant
+				"arrowRGB": helper.data.arrowRGB
+				// "arrowRGBquant": helper.data.arrowRGBquant
 			}
 			
 		final dataToSave:String = Json.stringify(json, "\t");
