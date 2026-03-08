@@ -70,9 +70,7 @@ class StrumNote extends FlxSprite
 	public var skin:NoteSkin;
 	
 	public function new(player:Int, x:Float, y:Float, leData:Int, ?parent:PlayField)
-	{
-		// rgbShader.enabled = false;
-		
+	{		
 		noteData = leData;
 		this.noteData = leData;
 		this.parent = parent;
@@ -81,8 +79,6 @@ class StrumNote extends FlxSprite
 		
 		skin = NoteSkinHelper.getSkinFromID(parent?.player ?? 0);
 		
-		// var skin:String = 'NOTE_assets';
-		// skin = NoteSkinHelper.arrowSkins[player];
 		texture = skin.noteTexture; // Load texture and anims
 		
 		scrollFactor.set();
@@ -119,25 +115,12 @@ class StrumNote extends FlxSprite
 		if (animation.curAnim != null) lastAnim = animation.curAnim.name;
 		var br:String = texture;
 		
-		// if (NoteSkinHelper.instance.data.isPixel)
-		// {
-		// 	loadGraphic(Paths.image(br));
-		// 	width = width / NoteSkinHelper.instance.data.pixelSize[0];
-		// 	height = height / NoteSkinHelper.instance.data.pixelSize[1];
-		// 	loadGraphic(Paths.image(br), true, Math.floor(width), Math.floor(height));
-		
-		// 	antialiasing = false;
-		// 	setGraphicSize(Std.int(width * NoteSkinHelper.instance.data.scale));
-		// 	loadPixelAnimations();
-		// }
-		// else
-		// {
 		frames = Paths.getAtlasFrames(br);
 		
 		setGraphicSize(Std.int(width * skin.scale));
 		
 		loadAnimations();
-		// }
+		
 		defScale.copyFrom(scale);
 		updateHitbox();
 		
@@ -156,15 +139,6 @@ class StrumNote extends FlxSprite
 		for (anim in directionAnims)
 			addAnim(anim);
 	}
-	
-	// function loadPixelAnimations()
-	// {
-	// 	var columns:Int = NoteSkinHelper.instance.data.pixelSize[0];
-	// 	var safeDir:Int = (noteData % columns);
-	// 	animation.add('static', [safeDir]);
-	// 	animation.add('pressed', [safeDir + columns, safeDir + columns * 2], 12, false);
-	// 	animation.add('confirm', [safeDir + columns * 3, safeDir + columns * 4], 24, false);
-	// }
 	
 	public function hasAnim(anim:String)
 	{

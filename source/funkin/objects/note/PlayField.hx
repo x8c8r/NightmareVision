@@ -12,9 +12,6 @@ import funkin.data.*;
 
 typedef NoteSignal = FlxTypedSignal<(Note, PlayField) -> Void>;
 
-// playfields should get a rework
-// i feel more actual note handling should happen in here
-
 class PlayField extends FlxTypedContainer<StrumNote>
 {
 	public var _skin:NoteSkin;

@@ -273,7 +273,6 @@ class Note extends FlxSprite
 		
 		if (noteData > -1)
 		{
-			// final whateverPleaseWork = noteData % (skin?.keys ?? 4);
 			rgbShader = NoteSkinHelper.initRGBShader(this, noteData, quant, player);
 			
 			texture = '';
@@ -296,8 +295,6 @@ class Note extends FlxSprite
 			
 			offsetX -= width / 2;
 			
-			// if (NoteSkinHelper.instance.data.isPixel) offsetX += 30;
-			
 			animSuffix = prevNote.animSuffix;
 			
 			if (prevNote.isSustainNote)
@@ -310,7 +307,6 @@ class Note extends FlxSprite
 				prevNote.updateHitbox();
 				prevNote.baseScaleX = prevNote.scale.x;
 				prevNote.baseScaleY = prevNote.scale.y;
-				// prevNote.setGraphicSize();
 			}
 		}
 		else if (!isSustainNote) earlyHitMult = 1;
@@ -399,22 +395,8 @@ class Note extends FlxSprite
 		_loadNoteAnims();
 	}
 	
-	// public function loadPixelNoteAnims()
-	// {
-	// 	if (noteScript != null)
-	// 	{
-	// 		if (noteScript.exists("loadPixelNoteAnims") && Reflect.isFunction(noteScript.get("loadNoteAnims")))
-	// 		{
-	// 			noteScript.executeFunc("loadPixelNoteAnims", [this], this, ["super" => _loadPixelNoteAnims]);
-	// 			return;
-	// 		}
-	// 	}
-	// 	_loadPixelNoteAnims();
-	// }
-	
 	function _loadNoteAnims()
 	{
-		// var noteAnims = NoteSkinHelper.instance.data.noteAnimations;
 		final noteAnims = skin.noteAnims;
 		final directionAnims = noteAnims[noteData % noteAnims.length];
 		
@@ -426,18 +408,6 @@ class Note extends FlxSprite
 		baseScaleX = scale.x;
 		baseScaleY = scale.y;
 	}
-	
-	// function _loadPixelNoteAnims()
-	// {
-	// 	var columns:Int = NoteSkinHelper.instance.data.pixelSize[0];
-	// 	var safeDir:Int = (noteData % columns);
-	// 	if (isSustainNote)
-	// 	{
-	// 		animation.add('holdend', [safeDir + columns]);
-	// 		animation.add('hold', [safeDir]);
-	// 	}
-	// 	else animation.add('scroll', [safeDir + columns]);
-	// }
 	
 	override function update(elapsed:Float)
 	{
