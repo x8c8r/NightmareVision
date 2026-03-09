@@ -112,7 +112,6 @@ class Note extends FlxSprite
 	public static var swagWidth:Float = 160 * 0.7;
 	
 	public var noteSplashDisabled:Bool = false;
-	public var noteSplashTexture:Null<String> = null;
 	public var noteSplashHue:Float = 0;
 	public var noteSplashSat:Float = 0;
 	public var noteSplashBrt:Float = 0;
@@ -198,8 +197,6 @@ class Note extends FlxSprite
 	
 	private function set_noteType(value:String):String
 	{
-		noteSplashTexture = PlayState.SONG.splashSkin;
-		
 		noteScript = null;
 		
 		if (noteData > -1 && noteType != value)

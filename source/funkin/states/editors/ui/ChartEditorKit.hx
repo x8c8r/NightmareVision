@@ -98,12 +98,13 @@ class ChartEditorUI extends flixel.group.FlxSpriteContainer
 			charter.updateHeads();
 		}
 		
-		songDialog.noteSkinDropdown.onChange = function(event) {
-			if (!event.data.isDropDownItem()) return;
-			
-			song.arrowSkin = event.data.id;
-			// todo
-		}
+		// rewrite this later cuz its an array now
+		// songDialog.noteSkinDropdown.onChange = function(event) {
+		// 	if (!event.data.isDropDownItem()) return;
+		
+		// 	song.arrowSkins = event.data.id;
+		// 	// todo
+		// }
 		
 		// SECTION
 		
@@ -164,7 +165,7 @@ class ChartEditorUI extends flixel.group.FlxSpriteContainer
 		final inc = songDialog.strumTimeStepper.findComponent('inc', haxe.ui.components.Button);
 		deinc.onClick = function(event) strumTimeStep(-1);
 		inc.onClick = function(event) strumTimeStep(1);
-        
+		
 		songDialog.sustainLengthStepper.onChange = function(event) changeSustainLength(event.previousValue, event.value);
 		
 		final deinc = songDialog.sustainLengthStepper.findComponent('deinc', haxe.ui.components.Button);
@@ -459,14 +460,14 @@ class ChartEditorUI extends flixel.group.FlxSpriteContainer
 			dropdown.dataSource.sort(null, ASCENDING);
 		}
 		
-		songDialog.noteSkinDropdown.selectedItem = song.arrowSkin;
+		// songDialog.noteSkinDropdown.selectedItem = song.arrowSkin;
 		// songDialog.splashSkinDropdown.selectedItem = song.splashSkin;
 	}
 	
 	final snapLeniency:Float = 1.25;
 	
 	function step(time:Float, mod:Int)
-	{	
+	{
 		final quant:Int = ChartEditorState.quantization;
 		final beat:Float = Conductor.getBeat(time);
 		final step:Float = (1 / (quant / 4));
@@ -520,18 +521,20 @@ class ChartEditorUI extends flixel.group.FlxSpriteContainer
 		charter.updateGrid();
 	}
 	
-	function changeStrumTime(oldTime:Float, newTime:Float) {
+	function changeStrumTime(oldTime:Float, newTime:Float)
+	{
 		final difference:Float = (newTime - oldTime);
 		
 		if (charter.curSelectedNotes.length == 0 || difference == 0) return;
 		
 		for (note in charter.curSelectedNotes)
 			note[0] += difference;
-		
+			
 		charter.updateGrid();
 	}
 	
-	function changeSustainLength(oldLength:Float, newLength:Float) {
+	function changeSustainLength(oldLength:Float, newLength:Float)
+	{
 		final difference:Float = (newLength - oldLength);
 		
 		if (difference == 0) return;

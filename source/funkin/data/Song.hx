@@ -30,8 +30,9 @@ typedef SwagSong =
 	var gfVersion:String;
 	var stage:String;
 	
-	var arrowSkin:String;
-	var splashSkin:String;
+	var arrowSkins:Array<String>;
 	
+	// var arrowSkin:String;
+	// var splashSkin:String;
 	var ?format:String;
 }

@@ -173,8 +173,7 @@ class PlayState extends MusicBeatState
 		return volumeMult;
 	}
 	
-	public static var arrowSkin:String = '';
-	public static var noteSplashSkin:String = '';
+	public var arrowSkins:Array<String> = [];
 	
 	public var modManager:ModManager;
 	public var modifiersRegistered:Bool = false;
@@ -673,7 +672,7 @@ class PlayState extends MusicBeatState
 		Conductor.mapBPMChanges(SONG);
 		Conductor.bpm = SONG.bpm;
 		
-		arrowSkin = SONG.arrowSkin;
+		arrowSkins = SONG.arrowSkins;
 		
 		// set up rpc stuff
 		rpcDifficulty = '(' + Difficulty.getCurrentDifficultyString() + ')';
@@ -982,7 +981,7 @@ class PlayState extends MusicBeatState
 	
 	public var skipArrowStartTween:Bool = false;
 	
-	var splashStuff:Array<Dynamic> = [];
+	var splashLayering:Array<Dynamic> = [];
 	
 	public function generatePlayfields()
 	{
@@ -997,8 +996,8 @@ class PlayState extends MusicBeatState
 			
 			final auto = (lane != 0 || cpuControlled);
 			
-			var strums = new PlayField(0, 0, SONG.keys, character, isPlayer, auto, lane, 'default');
-			
+			var strums = new PlayField(0, 0, SONG.keys, character, isPlayer, auto, lane, arrowSkins[lane]);
+			// strums.scale = NoteUtil.getSkinFromID(lane).scale;
 			scripts.call('preReceptorGeneration', [strums, lane]);
 			strums.generateReceptors();
 			strums.fadeIn(isStoryMode || skipArrowStartTween);
@@ -1051,7 +1050,7 @@ class PlayState extends MusicBeatState
 			
 			final splashGrp = strums.splashLayer;
 			splashGrp.camera = camHUD;
-			splashStuff.push(splashGrp);
+			splashLayering.push(splashGrp);
 			
 			if (lane == 1)
 			{
@@ -1377,7 +1376,7 @@ class PlayState extends MusicBeatState
 		add(notes);
 		
 		// layering for notesplash stuff
-		for (i in splashStuff)
+		for (i in splashLayering)
 			add(i);
 			
 		final noteData:Array<SwagSection> = songData.notes;

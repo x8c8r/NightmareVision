@@ -107,8 +107,12 @@ class Chart
 		
 		songJson.keys ??= 4;
 		songJson.lanes ??= 2;
-		if (songJson.arrowSkin == null || songJson.arrowSkin.length == 0) songJson.arrowSkin = 'default';
-		// if (songJson.splashSkin == null || songJson.splashSkin.length == 0) songJson.splashSkin = 'default';
+		if (songJson.arrowSkins == null || songJson.arrowSkins.length == 0)
+		{
+			songJson.arrowSkins = [];
+			for (i in 0...songJson.lanes)
+				songJson.arrowSkins.push('default');
+		}
 		
 		final sectionsData:Array<SwagSection> = songJson.notes;
 		
@@ -156,13 +160,15 @@ class Chart
 			return;
 		}
 		
-		if (songJson.format != 'psych_v1' && songJson.format != 'nmv2') {
+		if (songJson.format != 'psych_v1' && songJson.format != 'nmv2')
+		{
 			songJson.format = 'nmv2';
 			
-			for (section in sectionsData) {
-				for (note in section.sectionNotes) {
-					if (note[1] >= 0 && note[1] < (songJson.keys * 2) && !section.mustHitSection)
-						note[1] = Std.int((note[1] + songJson.keys) % (songJson.keys * 2));
+			for (section in sectionsData)
+			{
+				for (note in section.sectionNotes)
+				{
+					if (note[1] >= 0 && note[1] < (songJson.keys * 2) && !section.mustHitSection) note[1] = Std.int((note[1] + songJson.keys) % (songJson.keys * 2));
 				}
 			}
 			
