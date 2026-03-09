@@ -52,6 +52,7 @@ class NoteSplash extends FlxSprite
 		data = note?.noteData ?? 0;
 		
 		player = field?.player ?? 0;
+		
 		final skin:NoteSkin = NoteUtil.getSkinFromID(player);
 		
 		final sanitzedColourArray = colourInput ?? NoteUtil.colorToArray(skin.colors[data]);

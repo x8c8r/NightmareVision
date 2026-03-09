@@ -85,7 +85,7 @@ class PlayField extends FlxTypedContainer<StrumNote>
 		}
 		return alpha = value;
 	}
-
+	
 	public function set_keyCount(value:Int)
 	{
 		keyCount = value;
@@ -232,8 +232,14 @@ class PlayField extends FlxTypedContainer<StrumNote>
 	public inline function addNote(note:Note)
 	{
 		notes.push(note);
-
+		
 		note.player = player;
+		
+		// hotswapping catch all
+		note.skin = _skin;
+		note.texture = _skin.noteTexture;
+		note.rgbEnabled = _skin.inEngineColoring;
+		note.rgbShader.enabled = note.rgbEnabled;
 		
 		note.defScale.copyFrom(note.scale);
 		note.updateHitbox();

@@ -321,7 +321,7 @@ class Note extends FlxSprite
 	public function reloadNote(?prefix:String = '', ?texture:String = '', ?suffix:String = '')
 	{
 		if (prefix == null) prefix = '';
-		if (texture == null) texture = '';
+		if (texture == null) texture = skin.noteTexture;
 		if (suffix == null) suffix = '';
 		
 		if (noteScript != null) if (noteScript.executeFunc("onReloadNote", [this, prefix, texture, suffix], this) == ScriptConstants.STOP_FUNC) return;
