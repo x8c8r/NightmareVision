@@ -213,8 +213,8 @@ class DebugDisplay extends Sprite
 	inline function get_taskMemory():Float
 	{
 		//
-		#if (cpp && windows)
-		return cpp.Windows.getTaskMemory();
+		#if cpp
+		return cpp.memory.Memory.getCurrentUsage();
 		#else
 		return 0;
 		#end
