@@ -70,28 +70,3 @@ jobs: # FUCK MY LIFE BROOOOO
               with:
                 name: NightmareVision (Linux)
                 path: 'export/release/linux/bin'
-    #
-    Mac-Intel:
-        runs-on: macos-15
-
-        steps:
-            - uses: actions/checkout@v4
-            - uses: krdlab/setup-haxe@master
-
-              with: 
-                haxe-version: 4.3.5
-            
-            - name: Install libs
-              run: |
-                haxelib setup ~/haxelib
-                haxelib install hxcpp > /dev/null --quiet
-                haxelib install hxpkg --quiet
-                haxelib run hxpkg install
-                haxelib run lime rebuild mac
-            - name: Compile build
-              run: haxelib run lime build mac -64 -D ${{inputs.buildFlags}}
-            - name: Publish artifact
-              uses: actions/upload-artifact@v4
-              with:
-                name: NightmareVision (Mac Intel)
-                path: 'export/release/macos/bin'
