@@ -525,8 +525,8 @@ class PlayField extends FlxTypedContainer<StrumNote>
 				final data = note.noteData;
 				final colors = [note.rgbShader.r, note.rgbShader.g, note.rgbShader.b];
 				
-				// sustain length + one step length (all in ms) to time the ending of the sustain covering
-				final time = ((note.sustainLength + Conductor.stepCrotchet) / 1000);
+				// sustain length + step length (all in ms) to time the ending of the sustain covering
+				final time = ((note.sustainLength + (Conductor.stepCrotchet * 1.25)) / 1000);
 				
 				var splash:SustainSplash = grpSusSplashes.recycle(SustainSplash);
 				splash.setupSplash(strum, note, time, isPlayer, colors, this);

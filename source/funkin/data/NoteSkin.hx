@@ -105,6 +105,7 @@ class NoteSkin implements IFlxDestroyable
 		
 		noteTexture = data.noteTexture;
 		splashTexture = data.splashTexture;
+		sustainSplashTexture = data.sustainSplashTexture;
 		
 		splashesEnabled = data.splashesEnabled;
 		sustainSplashes = data.susSplashesEnabled;
@@ -146,6 +147,7 @@ class NoteSkin implements IFlxDestroyable
 		
 		data.noteTexture ??= NoteUtil.DEFAULT_TEXTURE;
 		data.splashTexture ??= NoteUtil.DEFAULT_SPLASH_TEXTURE;
+		data.sustainSplashTexture ??= NoteUtil.DEFAULT_SUSTAIN_SPLASH_TEXTURE;
 		
 		data.antialiasing ??= true;
 		
@@ -176,6 +178,7 @@ typedef NoteSkinData =
 {
 	?noteTexture:String,
 	?splashTexture:String,
+	?sustainSplashTexture:String,
 	
 	// depricated but leaving so it doesnt crash
 	?isQuants:Bool,

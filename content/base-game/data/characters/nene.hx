@@ -35,7 +35,7 @@ function onCreatePost()
 	abotSpeaker.anim.play('sys');
 	abotSpeaker.antialiasing = true;
 	
-	abotVis = new ABotVis(FlxG.sound.music, false);
+	abotVis = new ABotVis(audio.inst, false);
 	abotVis.x += 30;
 	abotVis.y += 35;
 	
@@ -55,7 +55,7 @@ function onCreatePost()
 
 function onSongStart()
 {
-	abotVis.snd = FlxG.sound.music;
+	abotVis.snd = audio.inst;
 	abotVis.initAnalyzer();
 }
 

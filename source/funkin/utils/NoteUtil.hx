@@ -58,6 +58,8 @@ class NoteUtil
 	
 	public static final DEFAULT_SPLASH_TEXTURE:String = 'noteSplashes';
 	
+	public static final DEFAULT_SUSTAIN_SPLASH_TEXTURE:String = 'sustainHold';
+	
 	public static final DEFAULT_NOTE_ANIMATIONS:Array<Array<Animation>> = [
 		[
 			{
@@ -265,13 +267,14 @@ class NoteUtil
 			{
 				anim: "loop",
 				xmlName: "loop",
-				offsets: [24, 20],
-				looping: true
+				offsets: [45, 35],
+				looping: true,
+				fps: 12
 			},
 			{
 				anim: "end",
 				xmlName: "end",
-				offsets: [65, 50],
+				offsets: [50, 60],
 				looping: false
 			}
 		],
@@ -285,13 +288,14 @@ class NoteUtil
 			{
 				anim: "loop",
 				xmlName: "loop",
-				offsets: [24, 20],
-				looping: true
+				offsets: [45, 35],
+				looping: true,
+				fps: 12
 			},
 			{
 				anim: "end",
 				xmlName: "end",
-				offsets: [65, 50],
+				offsets: [50, 60],
 				looping: false
 			}
 		],
@@ -305,13 +309,14 @@ class NoteUtil
 			{
 				anim: "loop",
 				xmlName: "loop",
-				offsets: [24, 20],
-				looping: true
+				offsets: [45, 35],
+				looping: true,
+				fps: 12
 			},
 			{
 				anim: "end",
 				xmlName: "end",
-				offsets: [65, 50],
+				offsets: [50, 60],
 				looping: false
 			}
 		],
@@ -325,13 +330,14 @@ class NoteUtil
 			{
 				anim: "loop",
 				xmlName: "loop",
-				offsets: [24, 20],
-				looping: true
+				offsets: [45, 35],
+				looping: true,
+				fps: 12
 			},
 			{
 				anim: "end",
 				xmlName: "end",
-				offsets: [65, 50],
+				offsets: [50, 60],
 				looping: false
 			}
 		]

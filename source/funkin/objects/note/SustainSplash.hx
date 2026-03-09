@@ -29,14 +29,15 @@ class SustainSplash extends FlxSprite
 		
 		rgbShader = NoteUtil.initRGBShader(this, noteData, 0, player);
 		
-		frames = Paths.getSparrowAtlas('noteHoldCovers');
-		
-		final animData = NoteUtil.getSkinFromID(player).susSplashAnims;
-		addAnims(animData);
+		addAnims(NoteUtil.getSkinFromID(player));
 	}
 	
-	function addAnims(animData:Array<Array<funkin.data.NoteSkin.Animation>>)
+	function addAnims(_skin:NoteSkin)
 	{
+		frames = Paths.getSparrowAtlas(_skin.sustainSplashTexture);
+		
+		final animData = _skin.susSplashAnims;
+		
 		var noteData = -1;
 		for (group in animData)
 		{
@@ -104,7 +105,7 @@ class SustainSplash extends FlxSprite
 		_position();
 		
 		FlxTimer.wait(time, () -> {
-			if (isPlayer) playAnim('end$data', true, colourInput);
+			if (isPlayer && ClientPrefs.noteSplashes) playAnim('end$data', true, colourInput);
 			else kill();
 		});
 	}
