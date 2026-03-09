@@ -14,6 +14,9 @@ class SustainSplash extends FlxSprite
 	
 	public var player:Int = 0;
 	
+	private var _note:Note;
+	private var _strum:StrumNote;
+	
 	// used for transferring color shit
 	var tempColor:Array<FlxColor> = [];
 	
@@ -51,22 +54,6 @@ class SustainSplash extends FlxSprite
 			if (anim.contains('start')) playAnim('loop$data', false, tempColor);
 			if (anim.contains('end')) kill();
 		});
-		
-		// animation.addByPrefix('start', 'start', 24, false);
-		// animation.addByPrefix('loop', 'loop', 24, true);
-		// animation.addByPrefix('end', 'end', 24, false);
-		
-		// animation.onFrameChange.add((anim, frame, idx) -> {
-		// 	offset.set(0, 0);
-		
-		// 	switch (anim)
-		// 	{
-		// 		case 'end':
-		// 			offset.set(38, 20);
-		// 		case 'start':
-		// 			offset.set(-29, -18);
-		// 	}
-		// });
 	}
 	
 	public function addOffset(name:String, x:Float = 0, y:Float = 0)
@@ -95,14 +82,15 @@ class SustainSplash extends FlxSprite
 		rgbShader.setColors(sanitzedColourArray);
 	}
 	
-	public function setupSplash(x:Float = 0, y:Float = 0, ?note:Note, ?time:Float = 0.5, ?isPlayer:Bool = false, ?colourInput:Array<FlxColor>, ?field:PlayField)
+	public function setupSplash(strum:StrumNote, ?note:Note, ?time:Float = 0.5, ?isPlayer:Bool = false, ?colourInput:Array<FlxColor>, ?field:PlayField)
 	{
+		this._note = note;
+		this._strum = strum;
+		
 		data = note.noteData;
 		
 		visible = true;
 		alpha = 1;
-		
-		setPosition(x, y);
 		
 		this.player = field?.player ?? 0;
 		
@@ -113,10 +101,35 @@ class SustainSplash extends FlxSprite
 		}
 		
 		playAnim('start$data', true, colourInput);
+		_position();
 		
 		FlxTimer.wait(time, () -> {
 			if (isPlayer) playAnim('end$data', true, colourInput);
 			else kill();
 		});
+	}
+	
+	override public function update(elapsed:Float)
+	{
+		// alpha tracking
+		if (rgbShader != null)
+		{
+			final _a = (_note?.rgbShader?.alphaMult ?? 1);
+			rgbShader.alphaMult = _a;
+		}
+		_position();
+		
+		super.update(elapsed);
+	}
+	
+	public function _position()
+	{
+		// doing this so the splash tracks the location of the strumnote if ur moving the notes actively with modmanager
+		if (_strum != null)
+		{
+			// for some reason doing just .x and .y breaks. so. hooray for bandaid fixes!!!
+			var pos = _strum.getMidpoint();
+			setPosition(pos.x - (_strum.swagWidth / 2), pos.y - (_strum.swagWidth / 2));
+		}
 	}
 }

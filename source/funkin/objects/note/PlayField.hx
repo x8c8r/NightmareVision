@@ -506,12 +506,8 @@ class PlayField extends FlxTypedContainer<StrumNote>
 				final skin:String = _skin.splashTexture;
 				final colors = [note.rgbShader.r, note.rgbShader.g, note.rgbShader.b];
 				
-				final offsets = _skin.splashOffsets != null ? _skin.splashOffsets[data] : null;
-				final _X = (strum.x + (offsets?.x ?? 0));
-				final _Y = (strum.y + (offsets?.y ?? 0));
-				
 				var splash:NoteSplash = grpNoteSplashes.recycle(NoteSplash);
-				splash.setupNoteSplash(_X, _Y, data, skin, colors, this);
+				splash.setupNoteSplash(strum, note, skin, colors, this);
 				grpNoteSplashes.add(splash);
 				
 				PlayState.instance.scripts.call('onSpawnNoteSplash', [splash, note]);
@@ -533,11 +529,7 @@ class PlayField extends FlxTypedContainer<StrumNote>
 				final time = ((note.sustainLength + Conductor.stepCrotchet) / 1000);
 				
 				var splash:SustainSplash = grpSusSplashes.recycle(SustainSplash);
-				
-				// for some reason doing just strum.x and strum.y breaks. so. UGHHHH hooray for bandaid fixes!!!
-				var pos = strum.getMidpoint();
-				
-				splash.setupSplash(pos.x - (swagWidth / 2), pos.y - (swagWidth / 2), note, time, isPlayer, colors, this);
+				splash.setupSplash(strum, note, time, isPlayer, colors, this);
 				grpSusSplashes.add(splash);
 			}
 		}

@@ -8,7 +8,7 @@ import funkin.data.*;
 import funkin.states.*;
 import funkin.data.NoteSkin;
 
-@:nullSafety
+// @:nullSafety
 class NoteSplash extends FlxSprite
 {
 	/**
@@ -23,6 +23,9 @@ class NoteSplash extends FlxSprite
 	
 	public var player:Int = 0;
 	
+	private var _note:Null<Note>;
+	private var _strum:Null<StrumNote>;
+	
 	// internal thing to optimize loading frames
 	@:noCompletion var _textureLoaded:Null<String> = null;
 	
@@ -30,22 +33,28 @@ class NoteSplash extends FlxSprite
 	{
 		super(x, y);
 		
+		this._note = null;
+		this._strum = null;
+		
+		this.data = noteData;
 		this.player = player;
+		
 		rgbShader = NoteUtil.initRGBShader(this, noteData, 0, player);
 		
 		loadAnims(NoteUtil.getSkinFromID(player).splashTexture);
-		setupNoteSplash(x, y, noteData);
 	}
 	
-	public function setupNoteSplash(x:Float = 0, y:Float = 0, note:Int = 0, ?texture:String, ?colourInput:Array<FlxColor>, ?field:PlayField)
+	public function setupNoteSplash(strum:StrumNote, ?note:Note, ?texture:String, ?colourInput:Array<FlxColor>, ?field:PlayField)
 	{
-		final swagWidth = field?.members[note].swagWidth ?? Note.swagWidth;
-		setPosition(x - swagWidth * 0.95, y - swagWidth);
+		_note = note ?? null;
+		_strum = strum ?? null;
 		
-		this.player = field?.player ?? 0;
-		final skin:NoteSkin = NoteUtil.getSkinFromID(this.player);
+		data = note?.noteData ?? 0;
 		
-		final sanitzedColourArray = colourInput ?? NoteUtil.colorToArray(skin.colors[note]);
+		player = field?.player ?? 0;
+		final skin:NoteSkin = NoteUtil.getSkinFromID(player);
+		
+		final sanitzedColourArray = colourInput ?? NoteUtil.colorToArray(skin.colors[data]);
 		
 		texture ??= 'noteSplashes';
 		
@@ -57,24 +66,19 @@ class NoteSplash extends FlxSprite
 			scale.y *= field.scale;
 		}
 		
-		data = note;
-		
 		switch (texture)
 		{
 			default:
 				alpha = 1;
 				antialiasing = true;
-				animation.play('note' + note, true);
+				animation.play('note' + data, true);
 				offset.set(-20, -20);
 		}
 		
+		_position();
+		
 		rgbShader.enabled = skin.inEngineColoring;
 		rgbShader.setColors(sanitzedColourArray);
-	}
-	
-	public function playAnim()
-	{
-		animation.play('note' + data, true);
 	}
 	
 	function loadAnims(skin:String)
@@ -104,6 +108,29 @@ class NoteSplash extends FlxSprite
 	{
 		if (animation.curAnim != null) if (animation.curAnim.finished) kill();
 		
+		// alpha tracking
+		if (rgbShader != null)
+		{
+			final _a = (_note?.rgbShader?.alphaMult ?? 1);
+			rgbShader.alphaMult = _a;
+		}
+		
 		super.update(elapsed);
+	}
+	
+	// doing this so the splash tracks the location of the strumnote if ur moving the notes actively with modmanager
+	private function _position()
+	{
+		if (_strum != null)
+		{
+			final swagWidth = _strum.swagWidth ?? Note.swagWidth;
+			final _skin:NoteSkin = NoteUtil.getSkinFromID(player);
+			
+			final offsets = _skin.splashOffsets != null ? _skin.splashOffsets[data] : null;
+			final _X = (_strum.x + (offsets?.x ?? 0));
+			final _Y = (_strum.y + (offsets?.y ?? 0));
+			
+			setPosition(_X - swagWidth * 0.95, _Y - swagWidth);
+		}
 	}
 }
