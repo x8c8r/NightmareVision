@@ -982,6 +982,8 @@ class PlayState extends MusicBeatState
 	
 	public var skipArrowStartTween:Bool = false;
 	
+	var splashStuff:Array<Dynamic> = [];
+	
 	public function generatePlayfields()
 	{
 		if (generatedFields) return;
@@ -1047,9 +1049,9 @@ class PlayState extends MusicBeatState
 			strums.showRatings = true;
 			strums.noteSplashes = (lane == 0);
 			
-			final splashGrp = strums.grpNoteSplashes;
+			final splashGrp = strums.splashLayer;
 			splashGrp.camera = camHUD;
-			add(splashGrp);
+			splashStuff.push(splashGrp);
 			
 			if (lane == 1)
 			{
@@ -1374,6 +1376,10 @@ class PlayState extends MusicBeatState
 		notes = new FlxTypedGroup<Note>();
 		add(notes);
 		
+		// layering for notesplash stuff
+		for (i in splashStuff)
+			add(i);
+			
 		final noteData:Array<SwagSection> = songData.notes;
 		
 		// loads note types

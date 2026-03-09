@@ -246,11 +246,95 @@ class NoteUtil
 			}
 		]
 	];
+	
 	public static final DEFAULT_NOTESPLASH_ANIMATIONS:Array<Animation> = [
 		{anim: "note0", xmlName: "note splash purple", offsets: [4, 15]},
 		{anim: "note1", xmlName: "note splash blue", offsets: [13, 15]},
 		{anim: "note2", xmlName: "note splash green", offsets: [16, 15]},
 		{anim: "note3", xmlName: "note splash red", offsets: [22, 15]}
+	];
+	
+	public static final DEFAULT_SUSTAIN_SPLASH_ANIMATIONS:Array<Array<Animation>> = [
+		[
+			{
+				anim: "start",
+				xmlName: "start",
+				offsets: [0, 0],
+				looping: false
+			},
+			{
+				anim: "loop",
+				xmlName: "loop",
+				offsets: [24, 20],
+				looping: true
+			},
+			{
+				anim: "end",
+				xmlName: "end",
+				offsets: [65, 50],
+				looping: false
+			}
+		],
+		[
+			{
+				anim: "start",
+				xmlName: "start",
+				offsets: [0, 0],
+				looping: false
+			},
+			{
+				anim: "loop",
+				xmlName: "loop",
+				offsets: [24, 20],
+				looping: true
+			},
+			{
+				anim: "end",
+				xmlName: "end",
+				offsets: [65, 50],
+				looping: false
+			}
+		],
+		[
+			{
+				anim: "start",
+				xmlName: "start",
+				offsets: [0, 0],
+				looping: false
+			},
+			{
+				anim: "loop",
+				xmlName: "loop",
+				offsets: [24, 20],
+				looping: true
+			},
+			{
+				anim: "end",
+				xmlName: "end",
+				offsets: [65, 50],
+				looping: false
+			}
+		],
+		[
+			{
+				anim: "start",
+				xmlName: "start",
+				offsets: [0, 0],
+				looping: false
+			},
+			{
+				anim: "loop",
+				xmlName: "loop",
+				offsets: [24, 20],
+				looping: true
+			},
+			{
+				anim: "end",
+				xmlName: "end",
+				offsets: [65, 50],
+				looping: false
+			}
+		]
 	];
 	
 	public static final fallbackReceptorAnims:Array<Animation> = [

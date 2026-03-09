@@ -128,10 +128,17 @@ class PlayField extends FlxTypedContainer<StrumNote>
 		return inControl = value;
 	}
 	
+	public var splashLayer:FlxTypedContainer<FlxTypedContainer<Dynamic>>;
+	
 	/**
 	 * The container that all notesplashes are held in
 	 */
 	public var grpNoteSplashes:FlxTypedContainer<NoteSplash>;
+	
+	/**
+		The container that all sustain notesplashes are held in
+	**/
+	public var grpSusSplashes:FlxTypedContainer<SustainSplash>;
 	
 	public function new(x:Float, y:Float, keyCount:Int = 4, ?who:Character, isPlayer:Bool = false, cpu:Bool = false, ?playerControls:Bool, player:Int = 0, skin:String = 'default')
 	{
@@ -152,11 +159,22 @@ class PlayField extends FlxTypedContainer<StrumNote>
 		this._skin = new NoteSkin(skin, keyCount, player);
 		NoteUtil.noteskins.push(this._skin);
 		
+		splashLayer = new FlxTypedContainer();
+		
 		grpNoteSplashes = new FlxTypedContainer<NoteSplash>();
 		
 		var splash:NoteSplash = new NoteSplash(100, 100, 0, player);
 		grpNoteSplashes.add(splash);
 		splash.alpha = 0.0;
+		
+		grpSusSplashes = new FlxTypedContainer<SustainSplash>();
+		
+		var sus = new SustainSplash(0, 0, 0, 0);
+		grpSusSplashes.add(sus);
+		sus.alpha = 0.0;
+		
+		splashLayer.add(grpSusSplashes);
+		splashLayer.add(grpNoteSplashes);
 		
 		this.onNoteHit.add(noteHit);
 		this.onNoteMiss.add(noteMiss);
@@ -381,6 +399,7 @@ class PlayField extends FlxTypedContainer<StrumNote>
 		note.wasGoodHit = true;
 		
 		if (field.noteSplashes) spawnSplash(note);
+		spawnSusSplash(note, field.playerControls);
 		
 		final globalScript = PlayState.instance.callNoteTypeScript(note.noteType, 'hit', scriptArgs);
 		
@@ -427,6 +446,17 @@ class PlayField extends FlxTypedContainer<StrumNote>
 				note.ignoreNote = true;
 				note.alpha = 0.3;
 				note.copyAlpha = false;
+			}
+		}
+		
+		// if the sustain splash exists, KILL KIL KILL IT KILL KI L KLLK LSKD:LKLK
+		for (i in grpSusSplashes.members)
+		{
+			if (i.data == note.noteData)
+			{
+				// actually.. no need to kill it.. itll kill itself anwyays
+				i.alpha = 0.0;
+				i.visible = false;
 			}
 		}
 	}
@@ -481,10 +511,34 @@ class PlayField extends FlxTypedContainer<StrumNote>
 				final _Y = (strum.y + (offsets?.y ?? 0));
 				
 				var splash:NoteSplash = grpNoteSplashes.recycle(NoteSplash);
-				splash.setupNoteSplash(_X, _Y, data, skin, colors, note.playField);
+				splash.setupNoteSplash(_X, _Y, data, skin, colors, this);
 				grpNoteSplashes.add(splash);
 				
 				PlayState.instance.scripts.call('onSpawnNoteSplash', [splash, note]);
+			}
+		}
+	}
+	
+	public function spawnSusSplash(note:Note, isPlayer:Bool = false)
+	{
+		if (_skin?.sustainSplashes && note.tail.length > 0)
+		{
+			final strum:Null<StrumNote> = note.playField.members[note.noteData];
+			if (strum != null)
+			{
+				final data = note.noteData;
+				final colors = [note.rgbShader.r, note.rgbShader.g, note.rgbShader.b];
+				
+				// sustain length + one step length (all in ms) to time the ending of the sustain covering
+				final time = ((note.sustainLength + Conductor.stepCrotchet) / 1000);
+				
+				var splash:SustainSplash = grpSusSplashes.recycle(SustainSplash);
+				
+				// for some reason doing just strum.x and strum.y breaks. so. UGHHHH hooray for bandaid fixes!!!
+				var pos = strum.getMidpoint();
+				
+				splash.setupSplash(pos.x - (swagWidth / 2), pos.y - (swagWidth / 2), note, time, isPlayer, colors, this);
+				grpSusSplashes.add(splash);
 			}
 		}
 	}

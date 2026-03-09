@@ -25,19 +25,22 @@ class NoteSkin implements IFlxDestroyable
 	public var noteAnims:Array<Array<Animation>> = [];
 	public var receptorAnims:Array<Array<Animation>> = [];
 	public var splashAnims:Array<Animation> = [];
+	public var susSplashAnims:Array<Array<Animation>> = [];
 	
 	// offsets
 	public var noteOffsets:Vector<FlxPoint>;
 	public var sustainOffsets:Vector<FlxPoint>;
 	public var susEndOffsets:Vector<FlxPoint>;
 	public var splashOffsets:Vector<FlxPoint>;
+	
+	// these arent set by noteskin jsons, but can be manually set via scripts in case u need to offset some specific stuff
 	public var sustainSplashOffsets:Vector<FlxPoint>;
 	public var receptorOffsets:Vector<FlxPoint>;
 	
 	// settings
-	public var isPixel:Bool = false;
 	public var quantsEnabled:Bool = true;
 	public var splashesEnabled:Bool = true;
+	public var sustainSplashes:Bool = true;
 	public var antialiasing:Bool = true;
 	public var scale:Float = 0.7;
 	
@@ -61,7 +64,7 @@ class NoteSkin implements IFlxDestroyable
 		susEndOffsets = new Vector<FlxPoint>(keys);
 		receptorOffsets = new Vector<FlxPoint>(keys);
 		splashOffsets = new Vector<FlxPoint>(keys);
-		// sustainSplashOffsets = new Vector<FlxPoint>(keys);
+		sustainSplashOffsets = new Vector<FlxPoint>(keys);
 		
 		for (i in 0...keys)
 		{
@@ -70,12 +73,13 @@ class NoteSkin implements IFlxDestroyable
 			sustainOffsets[i] = new FlxPoint();
 			susEndOffsets[i] = new FlxPoint();
 			splashOffsets[i] = new FlxPoint();
-			// sustainSplashOffsets[i] = new FlxPoint();
+			sustainSplashOffsets[i] = new FlxPoint();
 		}
 		
 		noteAnims = data.noteAnimations;
 		receptorAnims = data.receptorAnimations;
 		splashAnims = data.noteSplashAnimations;
+		susSplashAnims = data.susSplashAnimations;
 		
 		for (i in 0...keys)
 		{
@@ -101,6 +105,9 @@ class NoteSkin implements IFlxDestroyable
 		
 		noteTexture = data.noteTexture;
 		splashTexture = data.splashTexture;
+		
+		splashesEnabled = data.splashesEnabled;
+		sustainSplashes = data.susSplashesEnabled;
 		
 		scale = data.scale;
 		antialiasing = data.antialiasing;
@@ -128,6 +135,15 @@ class NoteSkin implements IFlxDestroyable
 	
 	public static function resolveData(data:NoteSkinData)
 	{
+		inline function correctAnims(input:Array<Animation>)
+		{
+			for (i in input)
+			{
+				i.looping ??= false;
+				i.fps ??= 24;
+			}
+		}
+		
 		data.noteTexture ??= NoteUtil.DEFAULT_TEXTURE;
 		data.splashTexture ??= NoteUtil.DEFAULT_SPLASH_TEXTURE;
 		
@@ -136,23 +152,20 @@ class NoteSkin implements IFlxDestroyable
 		data.noteAnimations ??= NoteUtil.DEFAULT_NOTE_ANIMATIONS;
 		data.receptorAnimations ??= NoteUtil.DEFAULT_RECEPTOR_ANIMATIONS;
 		data.noteSplashAnimations ??= NoteUtil.DEFAULT_NOTESPLASH_ANIMATIONS;
+		data.susSplashAnimations ??= NoteUtil.DEFAULT_SUSTAIN_SPLASH_ANIMATIONS;
 		
 		// correcting note animation data that might have missing fields
-		for (j in [data.noteAnimations, data.receptorAnimations])
+		for (j in [data.noteAnimations, data.receptorAnimations, data.susSplashAnimations])
 		{
 			for (i in j)
-			{
-				for (k in i)
-				{
-					k.looping ??= false;
-					k.fps ??= 24;
-				}
-			}
+				correctAnims(i);
 		}
+		correctAnims(data.noteSplashAnimations);
 		
 		data.singAnimations ??= NoteUtil.defaultSingAnimations;
 		data.scale ??= 0.7;
 		data.splashesEnabled ??= true;
+		data.susSplashesEnabled ??= true;
 		
 		data.arrowRGB ??= NoteUtil.defaultColors.copy();
 		data.inGameColoring ??= true;
@@ -171,10 +184,12 @@ typedef NoteSkinData =
 	?noteAnimations:Array<Array<Animation>>,
 	?receptorAnimations:Array<Array<Animation>>,
 	?noteSplashAnimations:Array<Animation>,
+	?susSplashAnimations:Array<Array<Animation>>,
 	
 	?singAnimations:Array<String>,
 	?scale:Float,
 	?splashesEnabled:Bool,
+	?susSplashesEnabled:Bool,
 	
 	?inGameColoring:Bool,
 	?arrowRGB:Array<ColorList>

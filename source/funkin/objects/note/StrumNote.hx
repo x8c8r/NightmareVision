@@ -85,7 +85,7 @@ class StrumNote extends FlxSprite
 		
 		useRGBShader = skin.inEngineColoring;
 		
-		rgbShader = NoteUtil.initRGBShader(this, noteData, player);
+		rgbShader = NoteUtil.initRGBShader(this, noteData, 0, player);
 		rgbShader.enabled = useRGBShader;
 		isQuant = parent?.quants ?? ClientPrefs.quants;
 		

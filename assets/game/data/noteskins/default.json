@@ -128,35 +128,39 @@
 	"noteSplashAnimations": [
 		{
 			"offsets": [
-				4,
-				15
+				37,
+				12
 			],
 			"xmlName": "note splash",
-			"anim": "note0"
+			"anim": "note0",
+            "fps": 12
 		},
 		{
 			"offsets": [
-				13,
-				15
+				37,
+				18
 			],
 			"xmlName": "note splash",
-			"anim": "note1"
+			"anim": "note1",
+            "fps": 12
 		},
 		{
 			"offsets": [
-				16,
-				15
+				37,
+				18
 			],
 			"xmlName": "note splash",
-			"anim": "note2"
+			"anim": "note2",
+            "fps": 12
 		},
 		{
 			"offsets": [
-				22,
-				15
+				37,
+				18
 			],
 			"xmlName": "note splash",
-			"anim": "note3"
+			"anim": "note3",
+            "fps": 12
 		}
 	],
 	"noteAnimations": [
@@ -277,6 +281,88 @@
 			}
 		]
 	],
+    "susSplashAnimations": [
+        [
+			{
+				"anim": "start",
+				"xmlName": "start",
+				"offsets": [0, 0],
+				"looping": false
+			},
+			{
+				"anim": "loop",
+				"xmlName": "loop",
+				"offsets": [24, 20],
+				"looping": true
+			},
+			{
+				"anim": "end",
+				"xmlName": "end",
+				"offsets": [65, 50],
+				"looping": false
+			}
+		],
+        [
+			{
+				"anim": "start",
+				"xmlName": "start",
+				"offsets": [0, 0],
+				"looping": false
+			},
+			{
+				"anim": "loop",
+				"xmlName": "loop",
+				"offsets": [24, 20],
+				"looping": true
+			},
+			{
+				"anim": "end",
+				"xmlName": "end",
+				"offsets": [65, 50],
+				"looping": false
+			}
+		],
+        [
+			{
+				"anim": "start",
+				"xmlName": "start",
+				"offsets": [0, 0],
+				"looping": false
+			},
+			{
+				"anim": "loop",
+				"xmlName": "loop",
+				"offsets": [24, 20],
+				"looping": true
+			},
+			{
+				"anim": "end",
+				"xmlName": "end",
+				"offsets": [65, 50],
+				"looping": false
+			}
+		],
+        [
+			{
+				"anim": "start",
+				"xmlName": "start",
+				"offsets": [0, 0],
+				"looping": false
+			},
+			{
+				"anim": "loop",
+				"xmlName": "loop",
+				"offsets": [24, 20],
+				"looping": true
+			},
+			{
+				"anim": "end",
+				"xmlName": "end",
+				"offsets": [65, 50],
+				"looping": false
+			}
+		]
+    ],
 	"splashTexture": "noteSplashes",
 	"antialiasing": true,
 	"inGameColoring": true,
