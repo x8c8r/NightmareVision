@@ -20,7 +20,7 @@ package cpp;
 extern "C" HRESULT WINAPI SetCurrentProcessExplicitAppUserModelID(PCWSTR AppID);
 ')
 #end
-class Windows
+class Windows // kill this class later
 {
 	/**
 	 * DPI Scaling fix
@@ -85,20 +85,4 @@ class Windows
 		FlxG.stage.window.borderless = false;
 		#end
 	}
-	
-	// windows class sucks redo this
-	#if (windows && cpp)
-	@:functionCode("
-            PROCESS_MEMORY_COUNTERS pmc;
-
-            if (GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc)))
-                return pmc.WorkingSetSize;
-
-            return 0;
-    ")
-	public static function getTaskMemory():cpp.SizeT
-	{
-		return 0;
-	}
-	#end
 }
