@@ -42,7 +42,19 @@ class NoteSkin implements IFlxDestroyable
 	public var splashesEnabled:Bool = true;
 	public var sustainSplashes:Bool = true;
 	public var antialiasing:Bool = true;
-	public var scale:Float = 0.7;
+	
+	// alpha
+    // not functional yet cuz i wanna make hotswapping shit functional first
+	public var receptorAlpha:Float = 1.0;
+	public var sustainAlpha:Float = 1.0;
+	public var splashAlpha:Float = 1.0;
+	public var susSplashAlpha:Float = 1.0;
+	
+	// scale
+	public var receptorScale:Float = 0.7;
+	public var noteScale:Float = 0.7;
+	public var splashScale:Float = 1;
+	public var susSplashScale:Float = 1;
 	
 	// coloring
 	public var inEngineColoring:Bool = true;
@@ -109,9 +121,12 @@ class NoteSkin implements IFlxDestroyable
 		
 		splashesEnabled = data.splashesEnabled;
 		sustainSplashes = data.susSplashesEnabled;
-		
-		scale = data.scale;
 		antialiasing = data.antialiasing;
+		
+		receptorScale = data.receptorScale;
+		noteScale = data.noteScale;
+		splashScale = data.splashScale;
+		susSplashScale = data.susSplashScale;
 		
 		inEngineColoring = data.inGameColoring;
 		colors = data.arrowRGB;
@@ -165,9 +180,18 @@ class NoteSkin implements IFlxDestroyable
 		correctAnims(data.noteSplashAnimations);
 		
 		data.singAnimations ??= NoteUtil.defaultSingAnimations;
-		data.scale ??= 0.7;
 		data.splashesEnabled ??= true;
 		data.susSplashesEnabled ??= true;
+		
+		data.receptorAlpha ??= 1.0;
+		data.sustainAlpha ??= 1.0;
+		data.splashAlpha ??= 1.0;
+		data.susSplashAlpha ??= 1.0;
+		
+		data.receptorScale ??= 0.7;
+		data.noteScale ??= 0.7;
+		data.splashScale ??= 1;
+		data.susSplashScale ??= 1;
 		
 		data.arrowRGB ??= NoteUtil.defaultColors.copy();
 		data.inGameColoring ??= true;
@@ -180,19 +204,26 @@ typedef NoteSkinData =
 	?splashTexture:String,
 	?sustainSplashTexture:String,
 	
-	// depricated but leaving so it doesnt crash
-	?isQuants:Bool,
 	?antialiasing:Bool,
+	?singAnimations:Array<String>,
 	
 	?noteAnimations:Array<Array<Animation>>,
 	?receptorAnimations:Array<Array<Animation>>,
 	?noteSplashAnimations:Array<Animation>,
 	?susSplashAnimations:Array<Array<Animation>>,
 	
-	?singAnimations:Array<String>,
-	?scale:Float,
 	?splashesEnabled:Bool,
 	?susSplashesEnabled:Bool,
+	
+	?receptorAlpha:Float,
+	?sustainAlpha:Float,
+	?splashAlpha:Float,
+	?susSplashAlpha:Float,
+	
+	?receptorScale:Float,
+	?noteScale:Float,
+	?splashScale:Float,
+	?susSplashScale:Float,
 	
 	?inGameColoring:Bool,
 	?arrowRGB:Array<ColorList>

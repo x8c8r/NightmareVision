@@ -66,7 +66,7 @@ class PlayField extends FlxTypedContainer<StrumNote>
 	
 	public function get_swagWidth()
 	{
-		return Note.swagWidth * scale;
+		return Note.swagWidth;
 	}
 	
 	public var baseX:Float = 0;
@@ -74,7 +74,6 @@ class PlayField extends FlxTypedContainer<StrumNote>
 	public var baseAlpha:Float = 1;
 	public var offsetReceptors:Bool = false;
 	public var player:Int = 0;
-	public var scale(default, set):Float = 1;
 	public var alpha(default, set):Float = 1;
 	
 	public function set_alpha(value:Float)
@@ -86,28 +85,7 @@ class PlayField extends FlxTypedContainer<StrumNote>
 		}
 		return alpha = value;
 	}
-	
-	public function set_scale(value:Float)
-	{
-		for (strum in members)
-		{
-			var anim:String = strum.animation.curAnim?.name ?? '';
-			strum.playAnim("static", true);
-			strum.setGraphicSize(strum.frameWidth * 0.7 * value);
-			strum.updateHitbox();
-			strum.playAnim(anim, true);
-		}
-		for (note in notes)
-		{
-			if (note.isSustainNote) note.scale.set(note.baseScaleX * value, note.baseScaleY);
-			else note.scale.set(note.baseScaleX * value, note.baseScaleY * value);
-			
-			note.defScale.copyFrom(note.scale);
-			note.updateHitbox();
-		}
-		return scale = value;
-	}
-	
+
 	public function set_keyCount(value:Int)
 	{
 		keyCount = value;
@@ -197,8 +175,6 @@ class PlayField extends FlxTypedContainer<StrumNote>
 		for (data in 0...keyCount)
 		{
 			var babyArrow:StrumNote = new StrumNote(player, baseX, baseY, data, this);
-			babyArrow.setGraphicSize(Std.int(babyArrow.width * scale));
-			babyArrow.updateHitbox();
 			babyArrow.downScroll = ClientPrefs.downScroll;
 			babyArrow.alphaMult = alpha;
 			add(babyArrow);
@@ -256,9 +232,7 @@ class PlayField extends FlxTypedContainer<StrumNote>
 	public inline function addNote(note:Note)
 	{
 		notes.push(note);
-		if (note.isSustainNote) note.scale.set(note.baseScaleX * scale, note.baseScaleY);
-		else note.scale.set(note.baseScaleX * scale, note.baseScaleY * scale);
-		
+
 		note.player = player;
 		
 		note.defScale.copyFrom(note.scale);

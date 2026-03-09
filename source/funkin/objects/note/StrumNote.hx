@@ -117,7 +117,7 @@ class StrumNote extends FlxSprite
 		
 		frames = Paths.getAtlasFrames(br);
 		
-		setGraphicSize(Std.int(width * skin.scale));
+		setGraphicSize(Std.int(width * skin.receptorScale));
 		
 		loadAnimations();
 		

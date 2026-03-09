@@ -95,11 +95,9 @@ class SustainSplash extends FlxSprite
 		
 		this.player = field?.player ?? 0;
 		
-		if (field != null)
-		{
-			scale.x *= field.scale;
-			scale.y *= field.scale;
-		}
+		final skin = NoteUtil.getSkinFromID(player);
+		
+		if (skin != null) scale.set(skin.susSplashScale, skin.susSplashScale);
 		
 		playAnim('start$data', true, colourInput);
 		_position();

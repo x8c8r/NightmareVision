@@ -1,5 +1,5 @@
 {
-	"extraSkin": "UI/notes/FAF_NOTE_assets",
+	"noteTexture": "UI/notes/FAF_NOTE_assets",
 	"singAnimations": [
 		"singLEFT",
 		"singDOWN",
@@ -7,7 +7,6 @@
 		"singRIGHT"
 	],
 	"splashesEnabled": false,
-	"playerSkin": "UI/notes/FAF_NOTE_assets",
 	"receptorAnimations": [
 		[
 			{

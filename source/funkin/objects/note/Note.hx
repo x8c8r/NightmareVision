@@ -400,7 +400,7 @@ class Note extends FlxSprite
 		for (anim in directionAnims)
 			animation.addByPrefix(anim.anim, '${anim.xmlName}0', anim.fps, true);
 			
-		setGraphicSize(Std.int(width * skin.scale));
+		setGraphicSize(Std.int(width * skin.noteScale));
 		
 		baseScaleX = scale.x;
 		baseScaleY = scale.y;

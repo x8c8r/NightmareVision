@@ -60,10 +60,10 @@ class NoteSplash extends FlxSprite
 		
 		if (_textureLoaded != texture) loadAnims(texture);
 		
-		if (field != null)
+		if (skin != null)
 		{
-			scale.x *= field.scale;
-			scale.y *= field.scale;
+			scale.x *= skin.splashScale;
+			scale.y *= skin.splashScale;
 		}
 		
 		switch (texture)
