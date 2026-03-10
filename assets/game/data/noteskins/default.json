@@ -286,19 +286,19 @@
 			{
 				"anim": "start",
 				"xmlName": "start",
-				"offsets": [0, 0],
+				"offsets": [-10, -10],
 				"looping": false
 			},
 			{
 				"anim": "loop",
 				"xmlName": "loop",
-				"offsets": [24, 20],
+				"offsets": [35, 25],
 				"looping": true
 			},
 			{
 				"anim": "end",
 				"xmlName": "end",
-				"offsets": [65, 50],
+				"offsets": [40, 50],
 				"looping": false
 			}
 		],
@@ -306,19 +306,19 @@
 			{
 				"anim": "start",
 				"xmlName": "start",
-				"offsets": [0, 0],
+				"offsets": [-10, -10],
 				"looping": false
 			},
 			{
 				"anim": "loop",
 				"xmlName": "loop",
-				"offsets": [24, 20],
+				"offsets": [35, 25],
 				"looping": true
 			},
 			{
 				"anim": "end",
 				"xmlName": "end",
-				"offsets": [65, 50],
+				"offsets": [40, 50],
 				"looping": false
 			}
 		],
@@ -326,19 +326,19 @@
 			{
 				"anim": "start",
 				"xmlName": "start",
-				"offsets": [0, 0],
+				"offsets": [-10, -10],
 				"looping": false
 			},
 			{
 				"anim": "loop",
 				"xmlName": "loop",
-				"offsets": [24, 20],
+				"offsets": [35, 25],
 				"looping": true
 			},
 			{
 				"anim": "end",
 				"xmlName": "end",
-				"offsets": [65, 50],
+				"offsets": [40, 50],
 				"looping": false
 			}
 		],
@@ -346,19 +346,19 @@
 			{
 				"anim": "start",
 				"xmlName": "start",
-				"offsets": [0, 0],
+				"offsets": [-10, -10],
 				"looping": false
 			},
 			{
 				"anim": "loop",
 				"xmlName": "loop",
-				"offsets": [24, 20],
+				"offsets": [35, 25],
 				"looping": true
 			},
 			{
 				"anim": "end",
 				"xmlName": "end",
-				"offsets": [65, 50],
+				"offsets": [40, 50],
 				"looping": false
 			}
 		]
@@ -366,5 +366,6 @@
 	"splashTexture": "noteSplashes",
 	"antialiasing": true,
 	"inGameColoring": true,
-	"scale": 0.7
+	"noteScale": 0.7,
+    "splashScale": 1.0
 }
