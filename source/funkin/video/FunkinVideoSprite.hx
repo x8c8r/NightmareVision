@@ -106,6 +106,8 @@ class FunkinVideoSprite extends FlxVideoSprite
 		super(x, y);
 		canSkip = isSkippable;
 		if (oneTimeUse) bitmap.onEndReached.add(this.destroy, true, -10);
+		
+		instances.push(this);
 	}
 	
 	/**
