@@ -1387,7 +1387,7 @@ class PlayState extends MusicBeatState
 			for (songNotes in section.sectionNotes)
 			{
 				var type:Dynamic = songNotes[3];
-				if (!Std.isOfType(type, String)) type = ChartEditorState.noteTypeList[type];
+				if (!Std.isOfType(type, String)) type = OLDChartEditorState.noteTypeList[type];
 				
 				if (!noteTypeMap.exists(type)) noteTypeMap.set(type, true);
 			}
@@ -1449,7 +1449,7 @@ class PlayState extends MusicBeatState
 				var oldNote:Note = null;
 				
 				var type:Dynamic = songNotes[3];
-				if (!Std.isOfType(type, String)) type = ChartEditorState.noteTypeList[type];
+				if (!Std.isOfType(type, String)) type = OLDChartEditorState.noteTypeList[type];
 				
 				// TODO: maybe make a checkNoteType n shit but idfk im lazy
 				// or maybe make a "Transform Notes" event which'll make notes which don't change texture change into the specified one
@@ -2058,7 +2058,7 @@ class PlayState extends MusicBeatState
 		paused = true;
 		CoolUtil.cancelMusicFadeTween();
 		
-		FlxG.switchState(ChartEditorState.new);
+		FlxG.switchState(OLDChartEditorState.new);
 		chartingMode = true;
 		
 		if (automatedDiscord) DiscordClient.changePresence('Chart Editor');

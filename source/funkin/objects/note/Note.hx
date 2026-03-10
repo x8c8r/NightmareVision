@@ -224,7 +224,7 @@ class Note extends FlxSprite
 					color = 0xffa19f9f;
 				default:
 					if (!inEditor) noteScript = PlayState.instance.noteTypeScripts.getScript(value);
-					else noteScript = ChartEditorState.instance.notetypeScripts.get(value);
+					// else noteScript = ChartEditorState.instance.notetypeScripts.get(value);
 					
 					if (noteScript != null)
 					{
