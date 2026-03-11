@@ -243,7 +243,9 @@ class PlayField extends FlxTypedContainer<StrumNote>
 		
 		note.defScale.copyFrom(note.scale);
 		note.updateHitbox();
-		if (note.playField != this) note.playField = this;
+		if (note.playField != this || note.playField == null) note.playField = this;
+		
+		PlayState.instance.scripts.call('postNoteAddition', [note, this]);
 	}
 	
 	public function forEachAliveNote(func:Note->Void)
