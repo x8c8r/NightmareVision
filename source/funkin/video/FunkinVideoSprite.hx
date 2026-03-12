@@ -95,6 +95,48 @@ class FunkinVideoSprite extends FlxVideoSprite
 	
 	inline function get_isPlaying():Bool return bitmap != null && bitmap.isPlaying;
 	
+    /**
+	 * Returns a normalized progress value (`0.0` to `1.0`) representing
+	 * how far through the video playback currently is.
+	 * Returns `0.0` if the video has no duration.
+	 */
+	public var progress(get, never):Float;
+	
+	inline function get_progress():Float
+	{
+		if (bitmap == null || bitmap.length <= 0) return 0.0;
+		return bitmap.time / bitmap.length;
+	}
+	
+	/**
+	 * Returns the current playback position in milliseconds.
+	 * Returns `-1` if the bitmap is unavailable.
+	 */
+	public var currentTime(get, never):Int;
+	
+	inline function get_currentTime():Int return bitmap != null ? bitmap.time : -1;
+	
+	/**
+	 * Returns the total duration of the loaded video in milliseconds.
+	 * Returns `-1` if unavailable or not yet loaded.
+	 */
+	public var duration(get, never):Int;
+	
+	inline function get_duration():Int return bitmap != null ? bitmap.length : -1;
+	
+	/**
+	 * Sets the volume of the video's audio. Range is `0.0` (silent) to `1.0` (full).
+	 * Values are clamped to this range automatically.
+	 */
+	public var volume(default, set):Float = 1.0;
+	
+	function set_volume(value:Float):Float
+	{
+		value = FlxMath.bound(value, 0.0, 1.0);
+		if (bitmap != null) bitmap.volume = Std.int(value * 100);
+		return volume = value;
+	}
+	
 	/**
 	 * Creates a new FunkinVideoSprite
 	 * @param x `x` position
@@ -155,6 +197,44 @@ class FunkinVideoSprite extends FlxVideoSprite
 		if (bitmap != null) bitmap.onOpening.add(func, once, priority);
 	}
 	
+    	/**
+	 * Adds a callback to be dispatched when the video is paused.
+	 * 
+	 * @param func The function to call when the video pauses.
+	 * @param once If `true`, the callback fires only once.
+	 * @param priority Signal priority for dispatch ordering.
+	 */
+	public function onPause(func:Void->Void, once:Bool = false, priority:Int = 0)
+	{
+		if (bitmap != null) bitmap.onPaused.add(func, once, priority);
+	}
+	
+	/**
+	 * Adds a callback dispatched when the video is stopped (not paused — fully stopped).
+	 * 
+	 * @param func The function to call on stop.
+	 * @param once If `true`, the callback fires only once.
+	 * @param priority Signal priority for dispatch ordering.
+	 */
+	public function onStop(func:Void->Void, once:Bool = false, priority:Int = 0)
+	{
+		if (bitmap != null) bitmap.onStopped.add(func, once, priority);
+	}
+	
+	/**
+	 * Adds a callback dispatched when an error is encountered during playback or loading.
+	 * 
+	 * @param func The function to call on error. Receives no parameters.
+	 * @param once If `true`, the callback fires only once.
+	 * @param priority Signal priority for dispatch ordering.
+	 */
+	public function onError(func:Void->Void, once:Bool = false, priority:Int = 0)
+	{
+		if (bitmap != null) bitmap.onEncounteredError.add(func, once, priority);
+	}
+
+
+
 	/**
 	 * Adds a event to be dispatched when the video has formatted itself 
 	 * 
@@ -186,6 +266,27 @@ class FunkinVideoSprite extends FlxVideoSprite
 			bitmap.stop();
 		}
 	}
+
+    /**
+	 * Seeks to a specific time position in the video.
+	 * 
+	 * @param time The time in milliseconds to seek to.
+	 */
+	public function seekTo(time:Int)
+	{
+		if (bitmap != null) bitmap.time = time;
+	}
+
+    /**
+	 * Seeks to a normalized position in the video.
+	 * 
+	 * @param value A value from `0.0` (start) to `1.0` (end).
+	 */
+	public function seekToProgress(value:Float)
+	{
+		if (bitmap != null && bitmap.length > 0) bitmap.time = Std.int(FlxMath.bound(value, 0.0, 1.0) * bitmap.length);
+	}
+	
 	
 	override public function update(elapsed:Float)
 	{

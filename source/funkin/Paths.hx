@@ -131,9 +131,10 @@ class Paths
 	 * 
 	 * Automatically will attempt to append .mp4, .mov, and .webm extensions.
 	 */
-	public static function video(key:String, checkMods:Bool = true):String
+	public static function video(key:String, ?ext:String, checkMods:Bool = true):String
 	{
-		return findFileWithExts('videos/$key', ['mp4', 'mov', 'webm'], null, checkMods);
+		final exts = ext != null ? [ext, 'mp4', 'mov', 'webm'] : ['mp4', 'mov', 'webm'];
+		return findFileWithExts('videos/$key', exts, null, checkMods);
 	}
 	
 	public static function textureAtlas(key:String, ?parentFolder:String, checkMods:Bool = true):String
