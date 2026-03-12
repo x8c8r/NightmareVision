@@ -223,13 +223,8 @@ class PauseSubState extends MusicBeatSubstate
 					PlayState.chartingMode = false;
 					skipTimeTracker = null;
 					
-					if (skipTimeText != null)
-					{
-						skipTimeText.kill();
-						remove(skipTimeText);
-						skipTimeText.destroy();
-					}
-					skipTimeText = null;
+					deleteSkipTimeText();
+					
 					return;
 				}
 				
