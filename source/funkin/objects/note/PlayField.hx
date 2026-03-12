@@ -291,7 +291,7 @@ class PlayField extends FlxTypedContainer<StrumNote>
 		
 		if (field.playerControls)
 		{
-			if (note.wasGoodHit || field.autoPlayed && (note.ignoreNote || note.hitCausesMiss)) return;
+			if (note.wasGoodHit || field.autoPlayed && (note.ignoreNote || note.hitCausesMiss || note.canMiss)) return;
 			
 			if (ClientPrefs.hitsoundVolume > 0 && !note.hitsoundDisabled) FlxG.sound.play(Paths.sound('hitsound'), ClientPrefs.hitsoundVolume);
 			
@@ -418,7 +418,7 @@ class PlayField extends FlxTypedContainer<StrumNote>
 		if (noteScriptRet != ScriptConstants.STOP_FUNC) PlayState.instance.scripts.call('noteMiss', scriptArgs, false, [note.noteType]);
 		
 		// hold note missing stuff, makes the hold unhittable (and kills it, might make it just transparent if i can fix some stuff)
-		if (ClientPrefs.guitarHeroSustains && !note.hitCausesMiss)
+		if (ClientPrefs.guitarHeroSustains && !note.hitCausesMiss && !note.canMiss)
 		{
 			final tail = (note.isSustainNote ? note.parent.tail : note.tail);
 			for (sustain in tail)
