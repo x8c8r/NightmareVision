@@ -271,6 +271,8 @@ class Note extends FlxSprite
 		if (noteData > -1)
 		{
 			rgbShader = NoteUtil.initRGBShader(this, noteData, quant, player);
+			rgbEnabled = NoteUtil.getSkinFromID(player)?.inEngineColoring ?? false;
+			
 			reColor = NoteUtil.getCurColors(noteData, quant, player);
 			
 			texture = '';
@@ -334,9 +336,7 @@ class Note extends FlxSprite
 		
 		skin = NoteUtil.getSkinFromID(player);
 		
-		rgbEnabled = skin?.inEngineColoring ?? false;
 		rgbShader.setColors(reColor);
-		rgbShader.enabled = rgbEnabled;
 		
 		var _skin:String = _texture;
 		if (_skin.length < 1)
@@ -425,7 +425,12 @@ class Note extends FlxSprite
 			}
 		}
 		
-		if (rgbShader != null) rgbShader.alphaMult = (alphaMod * alphaMod2) * (playField?.baseAlpha ?? 1.0);
+		if (rgbShader != null)
+		{
+			rgbShader.enabled = rgbEnabled;
+			
+			rgbShader.alphaMult = (alphaMod * alphaMod2) * (playField?.baseAlpha ?? 1.0);
+		}
 		
 		var actualHitbox:Float = hitbox * earlyHitMult;
 		
