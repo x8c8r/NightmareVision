@@ -105,7 +105,7 @@ class FunkinVideoSprite extends FlxVideoSprite
 	inline function get_progress():Float
 	{
 		if (bitmap == null || bitmap.length <= 0) return 0.0;
-		return bitmap.time / bitmap.length;
+		return (haxe.Int64.toInt(bitmap.time) : Float) / (haxe.Int64.toInt(bitmap.length) : Float);
 	}
 	
 	/**
@@ -114,7 +114,8 @@ class FunkinVideoSprite extends FlxVideoSprite
 	 */
 	public var currentTime(get, never):Int;
 	
-	inline function get_currentTime():Int return bitmap != null ? bitmap.time : -1;
+	inline function get_currentTime():Int return bitmap != null ? haxe.Int64.toInt(bitmap.length) : -1;
+
 	
 	/**
 	 * Returns the total duration of the loaded video in milliseconds.
@@ -122,7 +123,7 @@ class FunkinVideoSprite extends FlxVideoSprite
 	 */
 	public var duration(get, never):Int;
 	
-	inline function get_duration():Int return bitmap != null ? bitmap.length : -1;
+	inline function get_duration():Int return bitmap != null ? haxe.Int64.toInt(bitmap.length) : -1;
 	
 	/**
 	 * Sets the volume of the video's audio. Range is `0.0` (silent) to `1.0` (full).
@@ -228,11 +229,10 @@ class FunkinVideoSprite extends FlxVideoSprite
 	 * @param once If `true`, the callback fires only once.
 	 * @param priority Signal priority for dispatch ordering.
 	 */
-	public function onError(func:Void->Void, once:Bool = false, priority:Int = 0)
+	public function onError(func:String->Void, once:Bool = false, priority:Int = 0)
 	{
 		if (bitmap != null) bitmap.onEncounteredError.add(func, once, priority);
 	}
-
 
 
 	/**
@@ -284,7 +284,7 @@ class FunkinVideoSprite extends FlxVideoSprite
 	 */
 	public function seekToProgress(value:Float)
 	{
-		if (bitmap != null && bitmap.length > 0) bitmap.time = Std.int(FlxMath.bound(value, 0.0, 1.0) * bitmap.length);
+		if (bitmap != null && bitmap.length > 0) bitmap.time = haxe.Int64.ofInt(Std.int(FlxMath.bound(value, 0.0, 1.0) * haxe.Int64.toInt(bitmap.length)));
 	}
 	
 	
