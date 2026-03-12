@@ -244,8 +244,6 @@ class PlayField extends FlxTypedContainer<StrumNote>
 		note.defScale.copyFrom(note.scale);
 		note.updateHitbox();
 		if (note.playField != this || note.playField == null) note.playField = this;
-		
-		PlayState.instance.scripts.call('postNoteAddition', [note, this]);
 	}
 	
 	public function forEachAliveNote(func:Note->Void)
@@ -487,7 +485,7 @@ class PlayField extends FlxTypedContainer<StrumNote>
 			{
 				final data = note.noteData;
 				final skin:String = _skin.splashTexture;
-				final colors = [note.rgbShader.r, note.rgbShader.g, note.rgbShader.b];
+				final colors = note.reColor;
 				
 				var splash:NoteSplash = grpNoteSplashes.recycle(NoteSplash);
 				splash.setupNoteSplash(strum, note, skin, colors, this);
@@ -506,7 +504,7 @@ class PlayField extends FlxTypedContainer<StrumNote>
 			if (strum != null)
 			{
 				final data = note.noteData;
-				final colors = [note.rgbShader.r, note.rgbShader.g, note.rgbShader.b];
+				final colors = note.reColor;
 				
 				// sustain length + step length (all in ms) to time the ending of the sustain covering
 				final time = ((note.sustainLength + (Conductor.stepCrotchet * 1.25)) / 1000);

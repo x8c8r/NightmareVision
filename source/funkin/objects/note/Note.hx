@@ -90,6 +90,7 @@ class Note extends FlxSprite
 	
 	public var rgbShader:RGBShaderReference;
 	public var rgbEnabled:Bool = true;
+	public var reColor:Array<FlxColor>;
 	
 	public static var globalRgbShaders:Array<RGBPalette> = [];
 	
@@ -134,6 +135,8 @@ class Note extends FlxSprite
 	public var ratingDisabled:Bool = false;
 	
 	public var texture(default, set):String = null;
+	public var prefix:String = '';
+	public var suffix:String = '';
 	
 	public var noAnimation:Bool = false;
 	public var noMissAnimation:Bool = false;
@@ -226,10 +229,7 @@ class Note extends FlxSprite
 					if (!inEditor) noteScript = PlayState.instance.noteTypeScripts.getScript(value);
 					// else noteScript = ChartEditorState.instance.notetypeScripts.get(value);
 					
-					if (noteScript != null)
-					{
-						noteScript.executeFunc("setupNote", [this], this);
-					}
+					if (noteScript != null) noteScript.executeFunc("setupNote", [this], this);
 			}
 			noteType = value;
 		}
@@ -271,6 +271,7 @@ class Note extends FlxSprite
 		if (noteData > -1)
 		{
 			rgbShader = NoteUtil.initRGBShader(this, noteData, quant, player);
+			reColor = NoteUtil.getCurColors(noteData, quant, player);
 			
 			texture = '';
 			
@@ -318,41 +319,47 @@ class Note extends FlxSprite
 	
 	public var originalHeightForCalcs:Float = 6;
 	
-	public function reloadNote(?prefix:String = '', ?texture:String = '', ?suffix:String = '')
+	public function reloadNote(?_prefix:String = '', ?_texture:String = '', ?_suffix:String = '')
 	{
-		if (prefix == null) prefix = '';
-		if (texture == null) texture = '';
-		if (suffix == null) suffix = '';
+		// Fix null values
+		if (_prefix == null) _prefix = '';
+		if (_texture == null) _texture = '';
+		if (_suffix == null) _suffix = '';
 		
-		if (noteScript != null) if (noteScript.executeFunc("onReloadNote", [this, prefix, texture, suffix], this) == ScriptConstants.STOP_FUNC) return;
+		// Save prefix/suffix only if provided
+		if (_prefix.length > 0) this.prefix = _prefix;
+		if (_suffix.length > 0) this.suffix = _suffix;
+		
+		if (noteScript != null) if (noteScript.executeFunc("onReloadNote", [this, _prefix, _texture, _suffix], this) == ScriptConstants.STOP_FUNC) return;
 		
 		skin = NoteUtil.getSkinFromID(player);
-		rgbEnabled = skin?.inEngineColoring ?? false;
 		
-		rgbShader.setColors(NoteUtil.getCurColors(noteData, quant, player));
+		rgbEnabled = skin?.inEngineColoring ?? false;
+		rgbShader.setColors(reColor);
 		rgbShader.enabled = rgbEnabled;
 		
-		var _skin:String = texture;
-		if (texture.length < 1)
+		var _skin:String = _texture;
+		if (_skin.length < 1)
 		{
-			_skin = skin?.noteTexture ?? 'NOTE_assets';
-			if (_skin.length < 1) _skin = 'NOTE_assets';
+			_skin = skin?.noteTexture;
+			if (_skin == null || _skin.length < 1) _skin = 'NOTE_assets';
 		}
 		
 		var animName:String = null;
-		if (animation.curAnim != null)
-		{
-			animName = animation.curAnim.name;
-		}
+		if (animation.curAnim != null) animName = animation.curAnim.name;
 		
 		var arraySkin:Array<String> = _skin.split('/');
-		arraySkin[arraySkin.length - 1] = prefix + arraySkin[arraySkin.length - 1] + suffix;
+		var lastIndex:Int = arraySkin.length - 1;
 		
-		var lastScaleY:Float = scale.y;
-		var blahblah:String = arraySkin.join('/');
+		arraySkin[lastIndex] = this.prefix + arraySkin[lastIndex] + this.suffix;
+		
+		var atlasPath:String = arraySkin.join('/');
+		
+		final lastScaleY:Float = scale.y;
+		
 		isQuant = ClientPrefs.quants && (skin?.quantsEnabled ?? true) && canQuant;
 		
-		frames = Paths.getSparrowAtlas(blahblah);
+		frames = Paths.getSparrowAtlas(atlasPath);
 		loadNoteAnims();
 		
 		if (isSustainNote) scale.y = lastScaleY;
@@ -376,7 +383,7 @@ class Note extends FlxSprite
 		
 		x += swagWidth * (noteData % (skin?.keys ?? 4));
 		
-		if (noteScript != null) noteScript.executeFunc("postReloadNote", [this, prefix, texture, suffix], this);
+		if (noteScript != null) noteScript.executeFunc("postReloadNote", [this, _prefix, _texture, _suffix], this);
 	}
 	
 	public function loadNoteAnims()
