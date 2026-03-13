@@ -1,88 +1,129 @@
 package funkin.utils;
 
 import openfl.Lib;
+
 import lime.app.Application;
 
 class WindowUtil
 {
 	public static var monitorResolutionWidth(get, never):Float;
 	public static var monitorResolutionHeight(get, never):Float;
-
+	
 	static function get_monitorResolutionWidth():Float return FlxG.stage.window.display.bounds.width;
+	
 	static function get_monitorResolutionHeight():Float return FlxG.stage.window.display.bounds.height;
-
+	
 	public static var defaultAppTitle(get, never):String;
+	
 	static function get_defaultAppTitle():String return Application.current.meta['name'];
-
-	/**
-	 * Whether the window is currently focused.
-	 */
-	public static var isFocused(get, never):Bool;
-	static inline function get_isFocused():Bool return FlxG.stage.window.focused;
-
+	
+	// /**
+	//  * Whether the window is currently focused.
+	//  */
+	// public static var isFocused(get, never):Bool;
+	// static inline function get_isFocused():Bool return FlxG.stage.window.focused;
+	
 	/**
 	 * The current window width in pixels.
 	 */
 	public static var windowWidth(get, never):Int;
+	
 	static inline function get_windowWidth():Int return FlxG.stage.window.width;
-
+	
 	/**
 	 * The current window height in pixels.
 	 */
 	public static var windowHeight(get, never):Int;
+	
 	static inline function get_windowHeight():Int return FlxG.stage.window.height;
-
+	
 	/**
 	 * The current `x` position of the window on the screen.
 	 */
 	public static var windowX(get, set):Int;
+	
 	static inline function get_windowX():Int return FlxG.stage.window.x;
-	static inline function set_windowX(value:Int):Int { FlxG.stage.window.x = value; return value; }
-
+	
+	static inline function set_windowX(value:Int):Int
+	{
+		FlxG.stage.window.x = value;
+		return value;
+	}
+	
 	/**
 	 * The current `y` position of the window on the screen.
 	 */
 	public static var windowY(get, set):Int;
+	
 	static inline function get_windowY():Int return FlxG.stage.window.y;
-	static inline function set_windowY(value:Int):Int { FlxG.stage.window.y = value; return value; }
-
+	
+	static inline function set_windowY(value:Int):Int
+	{
+		FlxG.stage.window.y = value;
+		return value;
+	}
+	
 	/**
 	 * Gets or sets the window's borderless state.
 	 */
 	public static var borderless(get, set):Bool;
+	
 	static inline function get_borderless():Bool return FlxG.stage.window.borderless;
-	static inline function set_borderless(value:Bool):Bool { FlxG.stage.window.borderless = value; return value; }
-
-	/**
-	 * Gets or sets the window's always-on-top state.
-	 */
-	public static var alwaysOnTop(get, set):Bool;
-	static inline function get_alwaysOnTop():Bool return FlxG.stage.window.alwaysOnTop;
-	static inline function set_alwaysOnTop(value:Bool):Bool { FlxG.stage.window.alwaysOnTop = value; return value; }
-
+	
+	static inline function set_borderless(value:Bool):Bool
+	{
+		FlxG.stage.window.borderless = value;
+		return value;
+	}
+	
+	// /**
+	//  * Gets or sets the window's always-on-top state.
+	//  */
+	// public static var alwaysOnTop(get, set):Bool;
+	// static inline function get_alwaysOnTop():Bool return FlxG.stage.window.alwaysOnTop;
+	// static inline function set_alwaysOnTop(value:Bool):Bool { FlxG.stage.window.alwaysOnTop = value; return value; }
+	
 	/**
 	 * Gets or sets the window opacity. Range is `0.0` (invisible) to `1.0` (fully opaque).
 	 * 
 	 * Note: Not supported on all platforms.
 	 */
 	public static var opacity(get, set):Float;
+	
 	static inline function get_opacity():Float return FlxG.stage.window.opacity;
-	static inline function set_opacity(value:Float):Float { FlxG.stage.window.opacity = value; return value; }
-
+	
+	static inline function set_opacity(value:Float):Float
+	{
+		FlxG.stage.window.opacity = value;
+		return value;
+	}
+	
 	/**
 	 * Gets or sets the window's minimized state.
 	 */
 	public static var minimized(get, set):Bool;
+	
 	static inline function get_minimized():Bool return FlxG.stage.window.minimized;
-	static inline function set_minimized(value:Bool):Bool { FlxG.stage.window.minimized = value; return value; }
-
+	
+	static inline function set_minimized(value:Bool):Bool
+	{
+		FlxG.stage.window.minimized = value;
+		return value;
+	}
+	
 	/**
 	 * Gets or sets the window's maximized state.
 	 */
 	public static var maximized(get, set):Bool;
+	
 	static inline function get_maximized():Bool return FlxG.stage.window.maximized;
-	static inline function set_maximized(value:Bool):Bool { FlxG.stage.window.maximized = value; return value; }
-
+	
+	static inline function set_maximized(value:Bool):Bool
+	{
+		FlxG.stage.window.maximized = value;
+		return value;
+	}
+	
 	/**
 	 * Returns a `FlxPoint` representing the monitor's resolution.
 	 */
@@ -90,7 +131,7 @@ class WindowUtil
 	{
 		return FlxPoint.weak(monitorResolutionWidth, monitorResolutionHeight);
 	}
-
+	
 	/**
 	 * Returns a `FlxPoint` representing the window's current position.
 	 */
@@ -98,7 +139,7 @@ class WindowUtil
 	{
 		return FlxPoint.weak(FlxG.stage.window.x, FlxG.stage.window.y);
 	}
-
+	
 	/**
 	 * Returns a `FlxPoint` representing the window's current size.
 	 */
@@ -106,7 +147,7 @@ class WindowUtil
 	{
 		return FlxPoint.weak(FlxG.stage.window.width, FlxG.stage.window.height);
 	}
-
+	
 	/**
 	 * Sets the window title. Optionally append to, prepend to, or replace the current title.
 	 * @param arg The string to apply. Defaults to the application name if `null`.
@@ -116,12 +157,12 @@ class WindowUtil
 	public static function setTitle(?arg:String, append:Bool = false, prepend:Bool = false)
 	{
 		arg ??= defaultAppTitle;
-
+		
 		if (prepend) FlxG.stage.window.title = arg + FlxG.stage.window.title;
 		else if (append) FlxG.stage.window.title += arg;
 		else FlxG.stage.window.title = arg;
 	}
-
+	
 	/**
 	 * Resets the window title to the default application name.
 	 */
@@ -129,7 +170,7 @@ class WindowUtil
 	{
 		FlxG.stage.window.title = defaultAppTitle;
 	}
-
+	
 	/**
 	 * Moves the window to an absolute position on the screen.
 	 * @param x The target `x` coordinate.
@@ -140,7 +181,7 @@ class WindowUtil
 		FlxG.stage.window.x = x;
 		FlxG.stage.window.y = y;
 	}
-
+	
 	/**
 	 * Centers the window on the monitor.
 	 */
@@ -149,7 +190,7 @@ class WindowUtil
 		FlxG.stage.window.x = Std.int((monitorResolutionWidth - FlxG.stage.window.width) / 2);
 		FlxG.stage.window.y = Std.int((monitorResolutionHeight - FlxG.stage.window.height) / 2);
 	}
-
+	
 	/**
 	 * Centers the window around a given point.
 	 * @param point The point to center on. Uses `(0, 0)` if `null`.
@@ -159,7 +200,7 @@ class WindowUtil
 		FlxG.stage.window.x = Std.int((point?.x ?? 0) - (FlxG.stage.window.width / 2));
 		FlxG.stage.window.y = Std.int((point?.y ?? 0) - (FlxG.stage.window.height / 2));
 	}
-
+	
 	/**
 	 * Returns the center point of the window in screen coordinates.
 	 */
@@ -167,7 +208,7 @@ class WindowUtil
 	{
 		return FlxPoint.weak(FlxG.stage.window.x + (FlxG.stage.window.width / 2), FlxG.stage.window.y + (FlxG.stage.window.height / 2));
 	}
-
+	
 	/**
 	 * Checks whether the window fits entirely within the monitor bounds.
 	 */
@@ -178,7 +219,7 @@ class WindowUtil
 			&& FlxG.stage.window.x + FlxG.stage.window.width <= monitorResolutionWidth
 			&& FlxG.stage.window.y + FlxG.stage.window.height <= monitorResolutionHeight;
 	}
-
+	
 	/**
 	 * If the window is partially or fully off-screen, re-centers it on the monitor.
 	 */
@@ -186,7 +227,7 @@ class WindowUtil
 	{
 		if (!isWindowOnScreen()) centerWindow();
 	}
-
+	
 	/**
 	 * Flashes the window in the taskbar to grab the user's attention.
 	 * 
@@ -196,13 +237,13 @@ class WindowUtil
 	{
 		FlxG.stage.window.alert('', '');
 	}
-
+	
 	public static function setGameDimensions(width:Int, height:Int, cameras:Array<FlxCamera>)
 	{
 		var newWidth:Int = width;
 		var newHeight:Int = height;
 		var scaledHeight:Int = height;
-
+		
 		for (camera in cameras)
 		{
 			camera.width = FlxG.width;
@@ -218,12 +259,12 @@ class WindowUtil
 			FlxG.stage.window.x = Std.int((monitorResolutionWidth - newWidth) / 2);
 			FlxG.stage.window.y = Std.int((monitorResolutionHeight - newHeight) / 2);
 		}
-
+		
 		var s = new funkin.backend.FunkinRatioScaleMode();
 		s.height = scaledHeight;
 		FlxG.scaleMode = s;
 	}
-
+	
 	/**
 	 * Gracefully exits the application.
 	 */
@@ -231,7 +272,7 @@ class WindowUtil
 	{
 		openfl.system.System.exit(0);
 	}
-
+	
 	#if FEATURE_DEBUG_TRACY
 	/**
 	 * Initialize the tracy profiler.
@@ -242,7 +283,7 @@ class WindowUtil
 		openfl.Lib.current.stage.addEventListener(openfl.events.Event.EXIT_FRAME, (e:openfl.events.Event) -> {
 			cpp.vm.tracy.TracyProfiler.frameMark();
 		});
-
+		
 		cpp.vm.tracy.TracyProfiler.setThreadName("main");
 	}
 	#end
