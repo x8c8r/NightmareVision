@@ -1498,7 +1498,7 @@ class PlayState extends MusicBeatState
 					sustainNote.gfNote = swagNote.gfNote;
 					sustainNote.noteType = type;
 					
-					if (ClientPrefs.guitarHeroSustains && !swagNote.hitCausesMiss) sustainNote.blockHit = true; // stops you from holding a note without key pressing first
+					if (ClientPrefs.guitarHeroSustains && !swagNote.hitCausesMiss && !swagNote.canMiss) sustainNote.blockHit = true; // stops you from holding a note without key pressing first
 					if (!sustainNote.alive) break;
 					
 					sustainNote.ID = unspawnNotes.length;
@@ -2738,7 +2738,7 @@ class PlayState extends MusicBeatState
 	
 	function popUpScore(note:Note = null):Void
 	{
-		if (note.hitCausesMiss) return;
+		if (note.hitCausesMiss || note.canMiss) return;
 		
 		var noteDiff:Float = Math.abs(note.strumTime - Conductor.songPosition + ClientPrefs.ratingOffset);
 		

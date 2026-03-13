@@ -466,7 +466,9 @@ class NoteUtil
 	{
 		final skin = getSkinFromID(player);
 		
-		var arr = skin.colors[id];
+		final idx = id > skin.keys ? 0 : id;
+
+		var arr = skin.colors[idx];
 		if (ClientPrefs.quants && quant != 0) arr = quantDefaultColors[quants.indexOf(quant)];
 		
 		// if (arr == null) arr = defaultColors[0];
@@ -476,7 +478,9 @@ class NoteUtil
 	
 	public static function colorToArray(color:ColorList):Array<FlxColor>
 	{
-		var arr:Array<FlxColor> = [color.r, color.g, color.b];
+		final _color = color ?? defaultColors[0];
+
+		var arr:Array<FlxColor> = [_color.r, _color.g, _color.b];
 		return arr;
 	}
 }
