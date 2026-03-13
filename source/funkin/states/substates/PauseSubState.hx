@@ -228,18 +228,18 @@ class PauseSubState extends MusicBeatSubstate
 			{
 				if (menuItems.length - 1 != curSelected && difficultyChoices.contains(daSelected))
 				{
-					if (debugBG.alpha != 0) debugBG.alpha = 0;
-					if (debugTxt.text != "") debugTxt.text = "";
+					debugBG.alpha = 0;
+					debugTxt.text = "";
 					
 					try
 					{
 						PlayState.SONG = Chart.fromSong(PlayState.SONG.song, curSelected);
 					}
-					catch (e:Dynamic)
+					catch (e)
 					{
 						FlxG.sound.play(Paths.sound('cancelMenu'), 0.7);
 						debugBG.alpha = 0.7;
-						debugTxt.text = e;
+						debugTxt.text = Std.string(e);
 						return;
 					}
 					
@@ -387,8 +387,8 @@ class PauseSubState extends MusicBeatSubstate
 			}
 		}
 		
-		if (debugBG.alpha != 0) debugBG.alpha = 0;
-		if (debugTxt.text != "") debugTxt.text = "";
+		debugBG.alpha = 0;
+		debugTxt.text = "";
 	}
 	
 	function regenMenu():Void
