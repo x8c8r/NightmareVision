@@ -86,7 +86,7 @@ class Stage extends FlxTypedContainer<FlxBasic>
 						{
 							(cast obj : Bopper).loadAtlas(info.asset);
 							
-							if (obj.frames == null && (cast obj : Bopper).animateAtlas == null) obj.loadGraphic(Paths.image(info.asset));
+							if (obj.frames == null) obj.loadGraphic(Paths.image(info.asset));
 						}
 					}
 					else
