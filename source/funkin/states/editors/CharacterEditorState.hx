@@ -538,12 +538,9 @@ class CharacterEditorState extends UIState // MUST EXTEND UI STATE needed for ac
 			{
 				// jank but removeAnim would crash //im just gonna leave this as is
 				@:privateAccess
-				if ((character.animateAtlas != null && Lambda.count(character.animateAtlas.anim._animations) == 1)
-					|| Lambda.count(character.animation._animations) == 1)
+				if (Lambda.count(character.animation._animations) == 1)
 				{
-					if (character.animateAtlas != null) character.animateAtlas.anim.destroyAnimations();
-					else character.animation.destroyAnimations();
-					
+					character.animation.destroyAnimations();
 					destroyedAllAnims = true;
 				}
 				else
@@ -619,9 +616,7 @@ class CharacterEditorState extends UIState // MUST EXTEND UI STATE needed for ac
 						@:privateAccess
 						{
 							character.removeAnim(animName);
-							var animController = character.animateAtlas != null ? character.animateAtlas.anim : character.animation;
-							
-							animController._curAnim = null; // ok
+							character.animation._curAnim = null; // ok
 						}
 						hadAnim = true;
 					}
