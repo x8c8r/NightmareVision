@@ -4,6 +4,8 @@ import funkin.data.CharacterData.CharacterParser;
 import funkin.data.CharacterData.AnimationInfo;
 import funkin.data.CharacterData.CharacterInfo;
 
+import animate.FlxAnimate;
+
 // taking some things from base game
 // add back miss anim stuff
 
@@ -97,7 +99,7 @@ class Character extends Bopper
 	/**
 	 * Array of all ghosts
 	 */
-	public var doubleGhosts:Array<FlxSprite> = [];
+	public var doubleGhosts:Array<FlxAnimate> = [];
 	
 	/**
 	 * Array of all ghosts tweens
@@ -157,7 +159,7 @@ class Character extends Bopper
 	{
 		for (i in 0...4)
 		{
-			final ghost = new FlxSprite();
+			final ghost = new FlxAnimate();
 			ghost.visible = false;
 			ghost.antialiasing = true;
 			ghost.alpha = ghostAlpha;
@@ -338,8 +340,6 @@ class Character extends Bopper
 		{
 			var appliedOffset = offset.x;
 			
-			final frameWidth = animateAtlas?.frameWidth ?? frameWidth;
-			
 			final scaleFactor = scalableOffsets ? scale.x : 1.0;
 			
 			offset.x = ((frameWidth * scaleFactor) - this.width) - appliedOffset;
@@ -348,8 +348,6 @@ class Character extends Bopper
 		if (flipY) // maybe a corrected offsets var
 		{
 			var appliedOffset = offset.y;
-			
-			final frameHeight = animateAtlas?.frameHeight ?? frameHeight;
 			
 			final scaleFactor = scalableOffsets ? scale.y : 1.0;
 			

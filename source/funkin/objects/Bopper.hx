@@ -13,8 +13,7 @@ import flixel.util.FlxSignal.FlxTypedSignal;
 
 // highly based of base games bopper class
 // i liked it alot
-// later rewrite this to extend directly from flxanimate
-class Bopper extends FlxSprite
+class Bopper extends FlxAnimate
 {
 	@:inheritDoc(flixel.animation.FlxAnimationController.onFinish)
 	public final onAnimationFinish = new FlxTypedSignal<(animName:String) -> Void>();
@@ -28,7 +27,14 @@ class Bopper extends FlxSprite
 	/**
 	 * Texture atlas instance. Initiated through `loadAtlas`.
 	 */
-	public var animateAtlas:Null<FlxAnimate> = null;
+	@:deprecated("animateAtlas is deprecated. Use this Bopper directly instead.")
+	public var animateAtlas(get, never):Null<FlxAnimate>;
+	
+	function get_animateAtlas():Null<FlxAnimate>
+	{
+		if (library != null) return this;
+		return null;
+	}
 	
 	/**
 	 *	Animation offsets
@@ -87,13 +93,6 @@ class Bopper extends FlxSprite
 		this.animation.onLoop.add((anim) -> onAnimationLoop.dispatch(anim));
 	}
 	
-	override function update(elapsed:Float)
-	{
-		animateAtlas?.update(elapsed);
-		
-		super.update(elapsed);
-	}
-	
 	/**
 	 * initiates the visual sprite for the class
 	 * 
@@ -107,21 +106,10 @@ class Bopper extends FlxSprite
 		final isAtlasSprite = FunkinAssets.exists(Paths.getPath('images/$path/Animation.json', null, true));
 		if (isAtlasSprite)
 		{
-			if (animateAtlas == null)
-			{
-				animateAtlas = new FlxAnimate();
-				
-				animateAtlas.animation.onFinish.add((anim) -> onAnimationFinish.dispatch(__prevPlayedAnimation));
-				animateAtlas.animation.onFrameChange.add((anim, num, idx) -> onAnimationFrameChange.dispatch(__prevPlayedAnimation, num, idx));
-				animateAtlas.animation.onLoop.add((anim) -> onAnimationLoop.dispatch(__prevPlayedAnimation));
-			}
-			
-			animateAtlas.frames = FlxAnimateFrames.fromAnimate(Paths.getPath('images/$path', null, true), null, null, null, false, {cacheOnLoad: true});
+			frames = FlxAnimateFrames.fromAnimate(Paths.getPath('images/$path', null, true), null, null, null, false, {cacheOnLoad: true});
 		}
 		else
 		{
-			animateAtlas = FlxDestroyUtil.destroy(animateAtlas);
-			
 			final frames = Paths.getMultiAtlas(path.split(','));
 			if (frames != null)
 			{
@@ -175,12 +163,7 @@ class Bopper extends FlxSprite
 		
 		if (correctedAnim == null) return;
 		
-		if (animateAtlas != null)
-		{
-			animateAtlas.anim.play(correctedAnim, isForced, isReversed, frame);
-			animateAtlas.update(0);
-		}
-		else animation.play(correctedAnim, isForced, isReversed, frame);
+		animation.play(correctedAnim, isForced, isReversed, frame);
 		
 		final animationOffsets = animOffsets.get(correctedAnim);
 		
@@ -258,41 +241,6 @@ class Bopper extends FlxSprite
 		if (!isAnimNull() && beat % danceEveryNumBeats == 0) dance();
 	}
 	
-	override function draw():Void
-	{
-		if (animateAtlas != null)
-		{
-			copyAtlasValues();
-			animateAtlas.draw();
-		}
-		else
-		{
-			super.draw();
-		}
-	}
-	
-	inline function copyAtlasValues():Void
-	{
-		animateAtlas.x = x;
-		animateAtlas.y = y;
-		animateAtlas.shader = shader;
-		animateAtlas.alpha = alpha;
-		animateAtlas.visible = visible;
-		animateAtlas.angle = angle;
-		animateAtlas.blend = blend;
-		animateAtlas.antialiasing = antialiasing;
-		animateAtlas.colorTransform = colorTransform;
-		animateAtlas.color = color;
-		animateAtlas.flipX = flipX;
-		animateAtlas.flipY = flipY;
-		
-		animateAtlas.cameras = cameras;
-		
-		animateAtlas.scale.copyFrom(scale);
-		animateAtlas.offset.copyFrom(offset);
-		animateAtlas.scrollFactor.copyFrom(scrollFactor);
-	}
-	
 	override function destroy()
 	{
 		onAnimationFinish.removeAll();
@@ -300,8 +248,6 @@ class Bopper extends FlxSprite
 		onAnimationFinish.removeAll();
 		
 		super.destroy();
-		
-		animateAtlas = FlxDestroyUtil.destroy(animateAtlas);
 	}
 	
 	// general functions needed for stuff
@@ -311,142 +257,98 @@ class Bopper extends FlxSprite
 	
 	public inline function hasAnim(anim:String):Bool
 	{
-		if (animateAtlas != null) return animateAtlas.anim.exists(anim);
-		else return animation.exists(anim);
+		return animation.exists(anim);
 	}
 	
 	public inline function isAnimNull():Bool
 	{
-		if (animateAtlas != null) return animateAtlas.anim.curAnim == null;
-		else return animation.curAnim == null;
+		return animation.curAnim == null;
 	}
 	
 	public inline function isAnimFinished():Bool
 	{
-		return isAnimNull() ? false : animateAtlas?.anim.finished ?? animation.curAnim.finished;
+		return isAnimNull() ? false : animation.curAnim.finished;
 	}
 	
 	public inline function pauseAnim():Void
 	{
-		if (animateAtlas != null) animateAtlas.anim.pause();
-		else animation.pause();
+		animation.pause();
 	}
 	
 	public inline function resumeAnim():Void
 	{
-		if (animateAtlas != null) animateAtlas.anim.resume();
-		else animation.resume();
+		animation.resume();
 	}
 	
 	public inline function getAnimNumFrames():Int
 	{
 		if (isAnimNull()) return 0;
 		
-		return animateAtlas?.anim.numFrames ?? animation.curAnim.numFrames;
+		return animation.curAnim.numFrames;
 	}
 	
 	public var animCurFrame(get, set):Int;
 	
 	inline function get_animCurFrame():Int
 	{
-		return isAnimNull() ? 0 : animateAtlas?.anim.curAnim.curFrame ?? animation.curAnim.curFrame;
+		return animation.curAnim.curFrame;
 	}
 	
 	inline function set_animCurFrame(value:Int):Int
 	{
 		if (isAnimNull()) return 0;
 		
-		if (animateAtlas != null) return animateAtlas.anim.curAnim.curFrame = value;
-		else return animation.curAnim.curFrame = value;
+		return animation.curAnim.curFrame = value;
 	}
 	
 	public function addAnimByPrefix(anim:String, prefix:String, fps:Int = 24, looping:Bool = true, flipX:Bool = false, flipY:Bool = false)
 	{
-		if (animateAtlas != null)
+		if (library != null && this.anim.findFrameLabelIndices(prefix).length > 0)
 		{
-			if (animateAtlas.anim.findFrameLabelIndices(prefix).length > 0) // if this matches then its probably a frame label anim
-			{
-				animateAtlas.anim.addByFrameLabel(anim, prefix, fps, looping, flipX, flipY);
-			}
-			else animateAtlas.anim.addBySymbol(anim, prefix, fps, looping, flipX, flipY);
+			this.anim.addByFrameLabel(anim, prefix, fps, looping, flipX, flipY);
 		}
-		else animation.addByPrefix(anim, prefix, fps, looping, flipX, flipY);
+		else if (library?.existsSymbol(prefix) ?? false)
+		{
+			this.anim.addBySymbol(anim, prefix, fps, looping, flipX, flipY);
+		}
+		else
+		{
+			animation.addByPrefix(anim, prefix, fps, looping, flipX, flipY);
+		}
 	}
 	
 	public function addAnimByIndices(anim:String, prefix:String, indices:Array<Int>, fps:Int = 24, looping:Bool = true, flipX:Bool = false, flipY:Bool = false)
 	{
-		if (animateAtlas != null)
+		if (library != null && this.anim.findFrameLabelIndices(prefix).length > 0)
 		{
-			if (animateAtlas.anim.findFrameLabelIndices(prefix).length > 0) // if this matches then its probably a frame label anim
-			{
-				animateAtlas.anim.addByFrameLabelIndices(anim, prefix, indices, fps, looping, flipX, flipY);
-			}
-			else animateAtlas.anim.addBySymbolIndices(anim, prefix, indices, fps, looping, flipX, flipY);
+			this.anim.addByFrameLabelIndices(anim, prefix, indices, fps, looping, flipX, flipY);
 		}
-		else animation.addByIndices(anim, prefix, indices, '', fps, looping, flipX, flipY);
+		else if (library?.existsSymbol(prefix) ?? false)
+		{
+			this.anim.addBySymbolIndices(anim, prefix, indices, fps, looping, flipX, flipY);
+		}
+		else
+		{
+			animation.addByIndices(anim, prefix, indices, '', fps, looping, flipX, flipY);
+		}
 	}
 	
 	public inline function removeAnim(anim:String)
 	{
-		if (animateAtlas != null) animateAtlas.anim.remove(anim);
-		else animation.remove(anim);
+		animation.remove(anim);
 	}
 	
 	public inline function finishAnim()
 	{
 		if (isAnimNull()) return;
 		
-		if (animateAtlas != null) animateAtlas.anim.finish();
-		else animation.finish();
+		animation.finish();
 	}
 	
 	public inline function stopAnim()
 	{
 		if (isAnimNull()) return;
 		
-		if (animateAtlas != null) animateAtlas.anim.stop();
-		else animation.stop();
+		animation.stop();
 	}
-	
-	override function get_width()
-	{
-		if (animateAtlas != null) return animateAtlas.width;
-		else return super.get_width();
-	}
-	
-	override function get_height()
-	{
-		if (animateAtlas != null) return animateAtlas.height;
-		else return super.get_height();
-	}
-	
-	#if FLX_DEBUG
-	override function drawDebugOnCamera(camera:FlxCamera):Void
-	{
-		if (!camera.visible || !camera.exists) return;
-		
-		final isOnScreen = animateAtlas?.isOnScreen(camera) ?? isOnScreen(camera);
-		
-		if (!isOnScreen) return;
-		
-		if (animateAtlas != null)
-		{
-			var rect = animateAtlas.getBoundingBox(camera);
-			var gfx:Graphics = animateAtlas.beginDrawDebug(camera);
-			
-			animateAtlas.drawDebugBoundingBox(gfx, rect, allowCollisions, immovable);
-			
-			animateAtlas.endDrawDebug(camera);
-		}
-		else
-		{
-			var rect = getBoundingBox(camera);
-			var gfx:Graphics = beginDrawDebug(camera);
-			
-			drawDebugBoundingBox(gfx, rect, allowCollisions, immovable);
-			
-			endDrawDebug(camera);
-		}
-	}
-	#end
 }
