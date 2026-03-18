@@ -59,17 +59,34 @@ class LocalRotateModifier extends NoteModifier
 		var diff = pos.subtract(origin);
 		var scale = FlxG.height;
 		diff.z *= scale;
-		var out = rotateV3(diff, getValue(player), getSubmodValue('${prefix}rotateY', player), getSubmodValue('${prefix}rotateZ', player));
+		
+		final vals = Vector3.get(getValue(player), getSubmodValue('${prefix}rotateY', player), getSubmodValue('${prefix}rotateZ', player));
+		
+		vals.x += getSubmodValue('${prefix}rotate${data}X', player);
+		vals.y += getSubmodValue('${prefix}rotate${data}Y', player);
+		vals.z += getSubmodValue('${prefix}rotate${data}Z', player);
+		
+		var out = rotateV3(diff, vals.x, vals.y, vals.z);
 		out.z /= scale;
 		
 		origin.add(out, pos);
 		out.put();
+		vals.put();
 		
 		return pos;
 	}
 	
 	override function getSubmods()
 	{
-		return ['${prefix}rotateY', '${prefix}rotateZ'];
+		var returns = ['${prefix}rotateY', '${prefix}rotateZ'];
+		
+		for (i in 0...PlayState.SONG.keys)
+		{
+			returns.push('${prefix}rotate${i}X');
+			returns.push('${prefix}rotate${i}Y');
+			returns.push('${prefix}rotate${i}Z');
+		}
+		
+		return returns;
 	}
 }

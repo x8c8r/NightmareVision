@@ -11,7 +11,7 @@ class RotateModifier extends NoteModifier
 		return a + (b - a) * c;
 	}
 	
-	var daOrigin:Vector3;
+	public var daOrigin:Vector3;
 	var prefix:String;
 	
 	public function new(modMgr:ModManager, ?prefix:String = '', ?origin:Vector3, ?parent:Modifier)
