@@ -2146,6 +2146,7 @@ class PlayState extends MusicBeatState
 				dad = dadGroup.change(name);
 			case 2:
 				gf = gfGroup.change(name);
+				gf.danceEveryNumBeats *= gfSpeed;
 		}
 		
 		scripts.set('boyfriend', boyfriend);
@@ -2156,8 +2157,6 @@ class PlayState extends MusicBeatState
 		
 		scripts.set('gf', gf);
 		scripts.set('gfGroup', gfGroup);
-		
-		gf.danceEveryNumBeats *= gfSpeed;
 		
 		callHUDFunc(hud -> hud.onCharacterChange());
 	}
