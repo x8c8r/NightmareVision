@@ -2755,7 +2755,7 @@ class PlayState extends MusicBeatState
 		
 		var field:PlayField = note.playField;
 		
-		if (!practiceMode && !(field?.autoPlayed ?? false))
+		if (!practiceMode && !cpuControlled && !(field?.autoPlayed ?? false))
 		{
 			if (defaultScoreAddition) songScore += judgeScore;
 			if (!note.ratingDisabled)
