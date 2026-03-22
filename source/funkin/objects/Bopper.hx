@@ -291,7 +291,7 @@ class Bopper extends FlxAnimate
 	
 	inline function get_animCurFrame():Int
 	{
-		return animation.curAnim.curFrame;
+		return isAnimNull() ? 0 : animation.curAnim.curFrame;
 	}
 	
 	inline function set_animCurFrame(value:Int):Int
