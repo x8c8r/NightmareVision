@@ -843,18 +843,9 @@ class CharacterEditorState extends UIState // MUST EXTEND UI STATE needed for ac
 		var frameInfo = '?';
 		if (character != null)
 		{
-			try
-			{
-				var maxFrames = character.getAnimNumFrames() - 1;
-				if (maxFrames < 0) maxFrames = 0;
-				frameInfo = '(' + character.animCurFrame + '/' + maxFrames + ')';
-			}
-			catch (e:haxe.Exception)
-			{
-				// itll do this if u load a character and none of the anims work yet. so.
-				// might as well have a catch to prevent crashes ig!
-				frameInfo = '(FRAME INFO IS NULL)';
-			}
+			var maxFrames = character.getAnimNumFrames() - 1;
+			if (maxFrames < 0) maxFrames = 0;
+			frameInfo = '(' + character.animCurFrame + '/' + maxFrames + ')';
 		}
 		
 		var animationText = 'Animation Frames: $frameInfo';
