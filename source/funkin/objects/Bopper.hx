@@ -96,10 +96,12 @@ class Bopper extends FlxAnimate
 	}
 	
 	/**
-	 * initiates the visual sprite for the class
+	 * Loads frames onto the sprite
 	 * 
-	 * If the path given is to a texture atlas, it will load a texture atlas
-	 * @param path 
+	 * It can load multiple sparrow, packer, and texture atlases simultaneously.
+	 * 
+	 * This is the recommended way to load frames for a bopper
+	 * @param path the image path to the frames. For multiple, split the path with `,` For texture atlas, Provide the path to the folder.
 	 * 
 	 * @return this `Bopper` instance. Useful for chaining
 	 */
@@ -119,7 +121,14 @@ class Bopper extends FlxAnimate
 				var atlas = FlxAnimateFrames.fromAnimate(Paths.getPath('images/$path', null, true), null, null, null, false, {cacheOnLoad: true});
 				if (atlas != null)
 				{
+					// unsure if flxanimate messes with the buffer or not but if it does then drop this
+					if (ClientPrefs.gpuCaching)
+					{
+						if (atlas.parent.bitmap != null) atlas.parent.bitmap.disposeImage();
+					}
+					
 					containsFlxAnimate = true;
+					
 					framesFound.push(atlas);
 				}
 			}
@@ -148,14 +157,6 @@ class Bopper extends FlxAnimate
 						}
 						
 						collection.parent.persist = false;
-					}
-					else
-					{
-						// unsure if flxanimate messes with the buffer or not but if it does then drop this
-						if (ClientPrefs.gpuCaching)
-						{
-							if (collection.parent.bitmap != null) collection.parent.bitmap.disposeImage();
-						}
 					}
 				}
 			}
@@ -223,8 +224,6 @@ class Bopper extends FlxAnimate
 				offset.y *= scale.y;
 			}
 		}
-		
-		__prevPlayedAnimation = animToPlay;
 	}
 	
 	final forcedAnimationTimer:FlxTimer = new FlxTimer();
@@ -296,10 +295,7 @@ class Bopper extends FlxAnimate
 		super.destroy();
 	}
 	
-	// general functions needed for stuff
-	var __prevPlayedAnimation:String = '';
-	
-	public inline function getAnimName():String return __prevPlayedAnimation;
+	public inline function getAnimName():String return isAnimNull() ? '' : animation.curAnim.name;
 	
 	public inline function hasAnim(anim:String):Bool
 	{
