@@ -345,7 +345,7 @@ class Bopper extends FlxAnimate
 		{
 			this.anim.addByFrameLabel(anim, prefix, fps, looping, flipX, flipY);
 		}
-		else if (library?.getSymbol(prefix) != null)
+		else if (checkLibraryForSymbol(library, prefix))
 		{
 			this.anim.addBySymbol(anim, prefix, fps, looping, flipX, flipY);
 		}
@@ -361,7 +361,7 @@ class Bopper extends FlxAnimate
 		{
 			this.anim.addByFrameLabelIndices(anim, prefix, indices, fps, looping, flipX, flipY);
 		}
-		else if (library?.getSymbol(prefix) != null)
+		else if (checkLibraryForSymbol(library, prefix))
 		{
 			this.anim.addBySymbolIndices(anim, prefix, indices, fps, looping, flipX, flipY);
 		}
@@ -388,5 +388,20 @@ class Bopper extends FlxAnimate
 		if (isAnimNull()) return;
 		
 		animation.stop();
+	}
+	
+	@:access(animate.FlxAnimateFrames)
+	static function checkLibraryForSymbol(atlasLibrary:FlxAnimateFrames, symbolName:String) // exists symbol doesnt check additional collections so heres my workaround.
+	{
+		if (atlasLibrary == null) return false;
+		
+		if (atlasLibrary.existsSymbol(symbolName)) return true;
+		
+		for (collection in atlasLibrary.addedCollections)
+		{
+			if (collection.dictionary.exists(symbolName)) return true;
+		}
+		
+		return false;
 	}
 }
