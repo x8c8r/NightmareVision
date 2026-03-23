@@ -149,6 +149,14 @@ class Bopper extends FlxAnimate
 						
 						collection.parent.persist = false;
 					}
+					else
+					{
+						// unsure if flxanimate messes with the buffer or not but if it does then drop this
+						if (ClientPrefs.gpuCaching)
+						{
+							if (collection.parent.bitmap != null) collection.parent.bitmap.disposeImage();
+						}
+					}
 				}
 			}
 			this.frames = FlxAnimateFrames.combineAtlas(framesFound);
