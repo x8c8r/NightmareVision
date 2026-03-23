@@ -1,5 +1,7 @@
 package funkin.objects;
 
+import flixel.graphics.frames.FlxAtlasFrames;
+
 import openfl.display.Graphics;
 import openfl.display.BlendMode;
 
@@ -103,19 +105,55 @@ class Bopper extends FlxAnimate
 	 */
 	public function loadAtlas(path:String):Bopper
 	{
-		final isAtlasSprite = FunkinAssets.exists(Paths.getPath('images/$path/Animation.json', null, true));
-		if (isAtlasSprite)
+		final splitPath = path.split(',');
+		
+		var framesFound:Array<FlxAtlasFrames> = [];
+		
+		var containsFlxAnimate:Bool = false;
+		
+		for (path in splitPath)
 		{
-			frames = FlxAnimateFrames.fromAnimate(Paths.getPath('images/$path', null, true), null, null, null, false, {cacheOnLoad: true});
-		}
-		else
-		{
-			final frames = Paths.getMultiAtlas(path.split(','));
-			if (frames != null)
+			final isAtlasSprite = FunkinAssets.exists(Paths.getPath('images/$path/Animation.json', null, true));
+			if (isAtlasSprite)
 			{
-				this.frames = frames;
+				var atlas = FlxAnimateFrames.fromAnimate(Paths.getPath('images/$path', null, true), null, null, null, false, {cacheOnLoad: true});
+				if (atlas != null)
+				{
+					containsFlxAnimate = true;
+					framesFound.push(atlas);
+				}
+			}
+			else
+			{
+				var atlas = Paths.getAtlasFrames(path);
+				
+				if (atlas != null)
+				{
+					framesFound.push(atlas);
+				}
 			}
 		}
+		
+		if (framesFound.length != 0)
+		{
+			if (containsFlxAnimate) // a bit hacky workaround.. we cant keep use cached bitmaps in multi collection // look into this later
+			{
+				for (collection in framesFound)
+				{
+					if (!Std.isOfType(collection, FlxAnimateFrames))
+					{
+						if (FunkinAssets.cache.currentTrackedGraphics.exists(collection.parent.key))
+						{
+							FunkinAssets.cache.currentTrackedGraphics.remove(collection.parent.key);
+						}
+						
+						collection.parent.persist = false;
+					}
+				}
+			}
+			this.frames = FlxAnimateFrames.combineAtlas(framesFound);
+		}
+		
 		return this;
 	}
 	
@@ -307,7 +345,7 @@ class Bopper extends FlxAnimate
 		{
 			this.anim.addByFrameLabel(anim, prefix, fps, looping, flipX, flipY);
 		}
-		else if (library?.existsSymbol(prefix) ?? false)
+		else if (library?.getSymbol(prefix) != null)
 		{
 			this.anim.addBySymbol(anim, prefix, fps, looping, flipX, flipY);
 		}
@@ -323,7 +361,7 @@ class Bopper extends FlxAnimate
 		{
 			this.anim.addByFrameLabelIndices(anim, prefix, indices, fps, looping, flipX, flipY);
 		}
-		else if (library?.existsSymbol(prefix) ?? false)
+		else if (library?.getSymbol(prefix) != null)
 		{
 			this.anim.addBySymbolIndices(anim, prefix, indices, fps, looping, flipX, flipY);
 		}
