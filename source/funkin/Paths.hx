@@ -1,12 +1,7 @@
 package funkin;
 
 import haxe.io.Path;
-import haxe.Json;
 
-import openfl.system.System;
-import openfl.utils.AssetType;
-import openfl.utils.Assets;
-import openfl.display.BitmapData;
 import openfl.media.Sound;
 
 import flixel.FlxG;
@@ -276,6 +271,8 @@ class Paths
 		
 		final firstKey:Null<String> = keys.shift()?.trim();
 		
+		if (firstKey == null) return null;
+		
 		var frames = getAtlasFrames(firstKey, parentFolder, allowGPU, checkMods);
 		
 		if (keys.length != 0)
@@ -296,7 +293,7 @@ class Paths
 	}
 	
 	/**
-	 * Retrieves atlas frames from either `Sparrow` or `Packer` 
+	 * Retrieves atlas frames from either `Sparrow`, `Aseprite` or `Packer` 
 	 * 
 	 * `Sparrow` has priority.
 	 */
@@ -312,6 +309,7 @@ class Paths
 		
 		final xmlPath = getPath('images/$key.xml', parentFolder, checkMods);
 		final txtPath = getPath('images/$key.txt', parentFolder, checkMods);
+		final jsonPath = getPath('images/$key.json', parentFolder, checkMods);
 		
 		final graphic = image(key, parentFolder, allowGPU, checkMods);
 		
@@ -321,7 +319,18 @@ class Paths
 			// until flixel does null safety
 			@:nullSafety(Off)
 			{
-				final frames = FlxAtlasFrames.fromSparrow(graphic, FunkinAssets.exists(xmlPath) ? FunkinAssets.getContent(xmlPath) : null);
+				final frames = FlxAtlasFrames.fromSparrow(graphic, FunkinAssets.getContent(xmlPath));
+				if (frames != null) tempAtlasFramesCache.set(directPath, frames);
+				return frames;
+			}
+		}
+		
+		if (FunkinAssets.exists(jsonPath))
+		{
+			//
+			@:nullSafety(Off) // until flixel does null safety
+			{
+				final frames = FlxAtlasFrames.fromAseprite(graphic, FunkinAssets.getContent(jsonPath));
 				if (frames != null) tempAtlasFramesCache.set(directPath, frames);
 				return frames;
 			}

@@ -2,12 +2,6 @@ package funkin.objects;
 
 import flixel.graphics.frames.FlxAtlasFrames;
 
-import openfl.display.Graphics;
-import openfl.display.BlendMode;
-
-import flixel.math.FlxRect;
-import flixel.util.FlxDirectionFlags;
-
 import animate.FlxAnimateFrames;
 import animate.FlxAnimate;
 

@@ -207,28 +207,12 @@ class CoolUtil
 	/**
 	 * Gets a `openfl.display.BlendMode` from a string
 	 */
-	public static function getBlendFromString(blend:Null<String>):BlendMode
+	public static function getBlendFromString(?blend:String):BlendMode
 	{
 		if (blend == null) return BlendMode.NORMAL;
-		return switch (blend.toLowerCase().trim())
-		{
-			case 'add': BlendMode.ADD;
-			case 'alpha': BlendMode.ALPHA;
-			case 'darken': BlendMode.DARKEN;
-			case 'difference': BlendMode.DIFFERENCE;
-			case 'erase': BlendMode.ERASE;
-			case 'hardlight': BlendMode.HARDLIGHT;
-			case 'invert': BlendMode.INVERT;
-			case 'layer': BlendMode.LAYER;
-			case 'lighten': BlendMode.LIGHTEN;
-			case 'multiply': BlendMode.MULTIPLY;
-			case 'normal': BlendMode.NORMAL;
-			case 'overlay': BlendMode.OVERLAY;
-			case 'screen': BlendMode.SCREEN;
-			case 'shader': BlendMode.SHADER;
-			case 'subtract': BlendMode.SUBTRACT;
-			default: BlendMode.NORMAL;
-		}
+		
+		@:privateAccess
+		return BlendMode.fromString(blend.toLowerCase().trim()) ?? NORMAL;
 	}
 	
 	/**

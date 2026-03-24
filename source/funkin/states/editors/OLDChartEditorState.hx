@@ -1396,7 +1396,7 @@ class OLDChartEditorState extends MusicBeatState
 			key++;
 		}
 		
-		var directories:Array<String> = [];
+		var directories:Array<String> = [Paths.getPath('data/notetypes/'), Paths.getPath('notetypes/')];
 		
 		#if MODS_ALLOWED
 		directories.push(Paths.mods('data/notetypes/'));
