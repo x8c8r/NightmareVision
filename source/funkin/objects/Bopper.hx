@@ -143,15 +143,21 @@ class Bopper extends FlxAnimate
 			{
 				for (collection in framesFound)
 				{
-					if (!Std.isOfType(collection, FlxAnimateFrames))
+					@:privateAccess
 					{
-						if (FunkinAssets.cache.currentTrackedGraphics.exists(collection.parent.key))
+						var path = collection.parent.key.withoutExtension();
+						if (Paths.tempAtlasFramesCache.exists(path))
 						{
-							FunkinAssets.cache.currentTrackedGraphics.remove(collection.parent.key);
+							Paths.tempAtlasFramesCache.remove(path);
 						}
-						
-						collection.parent.persist = false;
 					}
+					
+					if (FunkinAssets.cache.currentTrackedGraphics.exists(collection.parent.key))
+					{
+						FunkinAssets.cache.currentTrackedGraphics.remove(collection.parent.key);
+					}
+					
+					collection.parent.persist = false;
 				}
 			}
 			this.frames = FlxAnimateFrames.combineAtlas(framesFound);
