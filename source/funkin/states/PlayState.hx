@@ -1314,7 +1314,20 @@ class PlayState extends MusicBeatState
 					value1: v1,
 					value2: v2
 				};
-			events.push(ev);
+				
+			var isCopy:Bool = false;
+			
+			for (event in events)
+			{
+				if (FlxMath.equal(event.strumTime, ev.strumTime) && event.event == ev.event && event.value1 == ev.value1 && event.value2 == ev.value2)
+				{
+					isCopy = true;
+					
+					break;
+				}
+			}
+			
+			if (!isCopy) events.push(ev);
 		}
 		
 		if (FunkinAssets.exists(file))
