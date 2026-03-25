@@ -101,7 +101,7 @@ class ChartConverterState extends MusicBeatState
 				canSelect = false;
 				final nextState:NextState = goToFreeplay ? () -> new FreeplayState() : () -> new MasterEditorMenu();
 				FlxG.switchState(nextState);
-				
+				if (!goToFreeplay) FunkinSound.playMusic(Paths.music('freakyMenu'));
 				goToFreeplay = false;
 			}
 		}
