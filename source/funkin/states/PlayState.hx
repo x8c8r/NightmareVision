@@ -1236,14 +1236,11 @@ class PlayState extends MusicBeatState
 		songTime = time;
 	}
 	
-	var previousFrameTime:Int = 0;
 	var songTime:Float = 0;
 	
 	function startSong():Void
 	{
 		startingSong = false;
-		
-		previousFrameTime = FlxG.game.ticks;
 		
 		audio.inst.onComplete = finishSong.bind(false);
 		
@@ -1489,8 +1486,7 @@ class PlayState extends MusicBeatState
 				{
 					oldNote = unspawnNotes[Std.int(unspawnNotes.length - 1)];
 					
-					var sustainNote:Note = new Note(daStrumTime + (holdCrotchet * susNote),
-						daNoteData, oldNote, true, false, playfield);
+					var sustainNote:Note = new Note(daStrumTime + (holdCrotchet * susNote), daNoteData, oldNote, true, false, playfield);
 					sustainNote.visualLength = (getNoteInitialTime(sustainNote.strumTime + holdCrotchet) - sustainNote.visualTime);
 					sustainNote.sustainLength = holdCrotchet;
 					sustainNote.mustPress = (playfield == 0);
@@ -1948,8 +1944,7 @@ class PlayState extends MusicBeatState
 				
 				if (field.inControl && field.autoPlayed)
 				{
-					if (!daNote.wasGoodHit && !daNote.ignoreNote && daNote.strumTime <= Conductor.songPosition)
-						field.onNoteHit.dispatch(daNote, field);
+					if (!daNote.wasGoodHit && !daNote.ignoreNote && daNote.strumTime <= Conductor.songPosition) field.onNoteHit.dispatch(daNote, field);
 				}
 				
 				// Kill extremely late notes and cause misses
@@ -1957,8 +1952,7 @@ class PlayState extends MusicBeatState
 				{
 					daNote.garbage = true;
 					if (daNote.playField != null && daNote.playField.playerControls && !daNote.playField.autoPlayed && !daNote.ignoreNote
-						&& !daNote.canMiss && !endingSong && !daNote.wasGoodHit && field.playerControls && !field.autoPlayed)
-						field.onNoteMiss.dispatch(daNote, field);
+						&& !daNote.canMiss && !endingSong && !daNote.wasGoodHit && field.playerControls && !field.autoPlayed) field.onNoteMiss.dispatch(daNote, field);
 				}
 				
 				if (daNote.garbage)
@@ -1998,8 +1992,7 @@ class PlayState extends MusicBeatState
 					
 					daNote.angle = (deg - 90);
 					
-					if (daNote.wasGoodHit && daNote.parent?.sustainSplash != null && field.trackSustainSplashes)
-						daNote.parent.sustainSplash.angle = daNote.angle;
+					if (daNote.wasGoodHit && daNote.parent?.sustainSplash != null && field.trackSustainSplashes) daNote.parent.sustainSplash.angle = daNote.angle;
 					
 					daNote.x += (_skin.sustainOffsets[daNote.noteData].x * scaleXMult);
 					daNote.y += (_skin.sustainOffsets[daNote.noteData].y * scaleYMult);
