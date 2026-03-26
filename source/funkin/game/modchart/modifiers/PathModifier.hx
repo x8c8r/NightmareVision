@@ -72,8 +72,6 @@ class PathModifier extends NoteModifier
 	{
 		if (getValue(player) == 0) return pos;
 		
-		// tried to use visualDiff but didnt work :(
-		// will get it working later
 		final progress = (visualDiff / moveSpeed * totalDists[data]);
 		final clampProgress = FlxMath.bound(progress, 0, totalDists[data]);
 		
@@ -91,6 +89,8 @@ class PathModifier extends NoteModifier
 				return pos.lerp(interpPos, getValue(player));
 			}
 		}
+		
+		if (daPath.length == 0) return pos;
 		
 		return pos.lerp(daPath[0].position, getValue(player));
 	}

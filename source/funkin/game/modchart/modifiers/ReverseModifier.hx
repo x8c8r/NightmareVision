@@ -97,9 +97,6 @@ class ReverseModifier extends NoteModifier
 		
 		pos.y = (shift + (visualDiff * mult) + Note.swagWidth * .5);
 		
-		if (obj is Note && cast(obj, Note).isSustainNote)
-			pos.y -= obj.height * perc;
-		
 		return pos;
 	}
 	

@@ -212,8 +212,6 @@ class ModManager
 				x -= FlxG.width * 0.5 - Note.swagWidth * (keys / 2) - 100;
 		}
 		
-		x -= 56;
-		
 		return x;
 	}
 	
@@ -285,7 +283,7 @@ class ModManager
 		
 		if (!obj.active) return pos;
 		
-		pos.x = (getBaseX(data, player) + Note.swagWidth * .5);
+		pos.x = getBaseX(data, player);
 		pos.y = (50 + diff + Note.swagWidth * .5);
 		pos.z = 0;
 		
