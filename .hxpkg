@@ -33,13 +33,12 @@
             },
             {
                 "name": "hxcpp",
-                "link": "https://github.com/HaxeFoundation/hxcpp",
-                "branch": "8268ef2d518b1e7c8e8494114d0bdf6b5bc4147d"
+                "link": "https://github.com/funkinCrew/hxcpp",
+                "branch": "450d112e50acff57b1bc9d584dcf1374c9e33995"
             },
             {
                 "name": "hxvlc",
-                "link": "https://github.com/MAJigsaw77/hxvlc",
-                "branch": "a1ac9900248209a91a9a9c1ebc1ae8af5dfdfb86"
+                "version": "2.2.6"
             },
             {
                 "name": "lime",
