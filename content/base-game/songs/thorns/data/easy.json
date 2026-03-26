@@ -1,6 +1,7 @@
 {
 	"song": {
-				"arrowSkin": "pixel","player1": "bf-pixel",
+		"arrowSkins": ["pixel", "pixel"],
+		"player1": "bf-pixel",
 		"events": [],
 		"gfVersion": "gf-pixel",
 		"notes": [
