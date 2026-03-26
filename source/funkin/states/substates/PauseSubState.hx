@@ -25,6 +25,7 @@ import funkin.scripts.*;
 class PauseSubState extends MusicBeatSubstate
 {
 	var grpMenuShit:FlxTypedGroup<Alphabet>;
+	var corners:Array<FlxText> = [];
 	
 	public static var instance:PauseSubState;
 	
@@ -100,7 +101,6 @@ class PauseSubState extends MusicBeatSubstate
 		add(bg);
 		bg.alpha = 0;
 		
-		var corners:Array<FlxText> = [];
 		function createCornerText(text:String, addto:Bool = false)
 		{
 			var t = new FlxText(0, 15, cam.width - 15, text, 32);
@@ -262,19 +262,7 @@ class PauseSubState extends MusicBeatSubstate
 			switch (daSelected)
 			{
 				case 'Options':
-					PlayState.instance.paused = true;
-					PlayState.instance.audio.volume = 0;
-					FlxG.switchState(() -> new OptionsState());
-					@:privateAccess
-					{
-						if (pauseMusic._sound != null)
-						{
-							FunkinSound.playMusic(pauseMusic._sound, 0);
-							FlxTween.tween(FlxG.sound.music, {volume: 0.5}, 0.7);
-						}
-					}
-					
-					OptionsState.onPlayState = true;
+					toOptions();
 				case "Resume":
 					close();
 				case 'Change Difficulty':
@@ -333,7 +321,27 @@ class PauseSubState extends MusicBeatSubstate
 			PlayState.chartingMode = false;
 		}
 	}
-	
+
+	public function toOptions()
+	{
+		if (scriptGroup.call('onOptions', []) != ScriptConstants.STOP_FUNC)
+		{
+			PlayState.instance.paused = true;
+			PlayState.instance.audio.volume = 0;
+			FlxG.switchState(() -> new OptionsState());
+			@:privateAccess
+			{
+				if (pauseMusic._sound != null)
+				{
+					FunkinSound.playMusic(pauseMusic._sound, 0);
+					FlxTween.tween(FlxG.sound.music, {volume: 0.5}, 0.7);
+				}
+			}
+			
+			OptionsState.onPlayState = true;
+		}
+	}
+
 	public function restartSong(noTrans:Bool = false)
 	{
 		if (scriptGroup.call('onRestart', []) != ScriptConstants.STOP_FUNC)
