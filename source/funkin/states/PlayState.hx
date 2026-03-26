@@ -139,19 +139,8 @@ class PlayState extends MusicBeatState
 	function set_playbackRate(value:Float):Float
 	{
 		#if FLX_PITCH
-		if (generatedMusic)
-		{
-			audio.pitch = playbackRate;
-			
-			var ratio:Float = playbackRate / value;
-			if (ratio != 1)
-			{
-				for (note in notes.members)
-					note.resizeByRatio(ratio);
-				for (note in unspawnNotes)
-					note.resizeByRatio(ratio);
-			}
-		}
+		if (generatedMusic) audio.pitch = playbackRate;
+		
 		FlxG.animationTimeScale = value;
 		Conductor.safeZoneOffset = (ClientPrefs.safeFrames / 60) * 1000 * value;
 		
@@ -282,6 +271,8 @@ class PlayState extends MusicBeatState
 	public var noteKillOffset:Float = 350;
 	
 	public var spawnTime:Float = 3000;
+	
+	public var holdSubdivisions:Int = 1;
 	
 	/**
 	 * Specialized container for song audio
@@ -774,34 +765,16 @@ class PlayState extends MusicBeatState
 		playFields = new FlxTypedGroup<PlayField>();
 		add(playFields);
 		
+		notes = new FlxTypedGroup<Note>();
+		add(notes);
+		
 		playHUD = new funkin.game.huds.PsychHUD(this);
 		insert(members.indexOf(playFields), playHUD); // Data told me to do this
 		playHUD.cameras = [camHUD];
 		
 		meta = Metadata.getSong();
 		
-		generatedFields = false;
-		modifiersRegistered = false;
 		modManager = new ModManager(this);
-		scripts.set("modManager", modManager);
-		
-		if (genNotesBeforeCountdown) generatePlayfields();
-		generateSong(SONG.song);
-		#if FLX_DEBUG
-		FlxG.watch.addFunction('Conductor: ', () -> Conductor.songPosition);
-		FlxG.watch.addFunction('SongTime: ', () -> FlxStringUtil.formatTime(Conductor.songPosition / 1000)
-			+ ' / '
-			+ FlxStringUtil.formatTime(audio.songLength / 1000));
-			
-		FlxG.watch.addFunction('curSec: ', () -> curSection);
-		FlxG.watch.addFunction('curBeat: ', () -> curBeat);
-		FlxG.watch.addFunction('curStep: ', () -> curStep);
-		#end
-		
-		audio?.stop();
-		
-		noteTypeMap.clear();
-		noteTypeMap = null;
 		
 		camFollow = new FlxObject(0, 0, 1, 1);
 		camFollow.setPosition(camPos.x, camPos.y);
@@ -821,8 +794,6 @@ class PlayState extends MusicBeatState
 		
 		FlxG.worldBounds.set(0, 0, FlxG.width, FlxG.height);
 		
-		moveCameraSection();
-		
 		botplayTxt = new FlxText(400, 55, FlxG.width - 800, "BOTPLAY", 32);
 		botplayTxt.setFormat(Paths.DEFAULT_FONT, 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		botplayTxt.scrollFactor.set();
@@ -831,19 +802,37 @@ class PlayState extends MusicBeatState
 		if (ClientPrefs.downScroll) botplayTxt.y = FlxG.height - botplayTxt.height - 55;
 		add(botplayTxt);
 		
-		playFields.cameras = [camHUD];
 		notes.cameras = [camHUD];
+		playFields.cameras = [camHUD];
 		botplayTxt.cameras = [camHUD];
-		
-		scripts.set('playFields', playFields);
-		scripts.set('notes', notes);
-		
-		scripts.set('botplayTxt', botplayTxt);
-		
-		startingSong = true;
 		
 		addSongScripts('songs/${Paths.sanitize(SONG.song)}/');
 		addSongScripts('songs/${Paths.sanitize(SONG.song)}/scripts/');
+		
+		scripts.call('preNoteGeneration', []);
+		
+		if (genNotesBeforeCountdown) generatePlayfields();
+		generateSong(SONG.song);
+		
+		#if FLX_DEBUG
+		FlxG.watch.addFunction('Conductor: ', () -> Conductor.songPosition);
+		FlxG.watch.addFunction('SongTime: ', () -> FlxStringUtil.formatTime(Conductor.songPosition / 1000)
+			+ ' / '
+			+ FlxStringUtil.formatTime(audio.songLength / 1000));
+			
+		FlxG.watch.addFunction('curSec: ', () -> curSection);
+		FlxG.watch.addFunction('curBeat: ', () -> curBeat);
+		FlxG.watch.addFunction('curStep: ', () -> curStep);
+		#end
+		
+		moveCameraSection();
+		
+		noteTypeMap?.clear();
+		noteTypeMap = null;
+		
+		audio?.stop();
+		
+		startingSong = true;
 		
 		if (songStartCallback == null)
 		{
@@ -886,14 +875,6 @@ class PlayState extends MusicBeatState
 	
 	function set_songSpeed(value:Float):Float
 	{
-		if (generatedMusic)
-		{
-			var ratio:Float = (value / songSpeed) / playbackRate; // funny word huh
-			for (note in notes)
-				note.resizeByRatio(ratio);
-			for (note in unspawnNotes)
-				note.resizeByRatio(ratio);
-		}
 		songSpeed = value;
 		noteKillOffset = Math.max(Conductor.stepCrotchet, 350 / songSpeed * playbackRate);
 		return value;
@@ -1385,9 +1366,6 @@ class PlayState extends MusicBeatState
 		scripts.set('vocals', audio);
 		scripts.set('inst', audio.inst);
 		
-		notes = new FlxTypedGroup<Note>();
-		add(notes);
-		
 		// layering for notesplash stuff
 		for (i in splashLayering)
 			add(i);
@@ -1430,8 +1408,12 @@ class PlayState extends MusicBeatState
 		var cpuTime = Sys.time();
 		#end
 		
+		var holdCrotchet:Float = Math.max(Conductor.stepCrotchet / holdSubdivisions, 10);
+		
 		for (section in noteData)
 		{
+			if (section.changeBPM) holdCrotchet = (15000 / section.bpm / holdSubdivisions);
+			
 			for (songNotes in section.sectionNotes)
 			{
 				var daStrumTime:Float = songNotes[0];
@@ -1488,7 +1470,7 @@ class PlayState extends MusicBeatState
 				
 				var susLength:Float = swagNote.sustainLength;
 				
-				susLength = susLength / Conductor.stepCrotchet;
+				susLength = (susLength / holdCrotchet);
 				swagNote.ID = unspawnNotes.length;
 				unspawnNotes.push(swagNote);
 				
@@ -1503,10 +1485,10 @@ class PlayState extends MusicBeatState
 				{
 					oldNote = unspawnNotes[Std.int(unspawnNotes.length - 1)];
 					
-					var sustainNote:Note = new Note(daStrumTime
-						+ (Conductor.stepCrotchet * susNote)
-						+ (Conductor.stepCrotchet / FlxMath.roundDecimal(songSpeed, 2)), daNoteData, oldNote, true,
-						false, playfield);
+					var sustainNote:Note = new Note(daStrumTime + (holdCrotchet * susNote),
+						daNoteData, oldNote, true, false, playfield);
+					sustainNote.visualLength = (getNoteInitialTime(sustainNote.strumTime + holdCrotchet) - sustainNote.visualTime);
+					sustainNote.sustainLength = holdCrotchet;
 					sustainNote.mustPress = (playfield == 0);
 					sustainNote.gfNote = swagNote.gfNote;
 					sustainNote.noteType = type;
@@ -1556,7 +1538,7 @@ class PlayState extends MusicBeatState
 		speedChanges.sort(SortUtil.svSort);
 		
 		#if debug
-		trace('loadingChart took: ' + (Sys.time() - cpuTime));
+		trace('loading chart took: ' + (Sys.time() - cpuTime));
 		#end
 		
 		lastPlayfieldNotes = null;
@@ -1810,7 +1792,7 @@ class PlayState extends MusicBeatState
 		}
 		else
 		{
-			var deltaTime:Float = elapsed * 1000;
+			var deltaTime:Float = elapsed * 1000 * playbackRate;
 			if (audio.time == Conductor.lastSongPos) Conductor.songPosition += deltaTime;
 			else
 			{
@@ -1951,8 +1933,10 @@ class PlayState extends MusicBeatState
 				final field = daNote.playField;
 				final _skin = NoteUtil.getSkinFromID(daNote.player);
 				
-				final visPos = -((Conductor.visualPosition - daNote.visualTime) * songSpeed);
-				final pos = modManager.getPos(daNote.strumTime, visPos, daNote.strumTime - Conductor.songPosition, curDecBeat, daNote.noteData, daNote.lane, daNote, tempVector);
+				final visPos = ((daNote.visualTime - Conductor.visualPosition) * songSpeed);
+				final diff = (daNote.strumTime - Conductor.songPosition);
+				
+				final pos = modManager.getPos(daNote.strumTime, visPos, diff, curDecBeat, daNote.noteData, daNote.lane, daNote, tempVector);
 				
 				modManager.updateObject(curDecBeat, daNote, pos, daNote.lane);
 				
@@ -1961,21 +1945,19 @@ class PlayState extends MusicBeatState
 					
 				if (daNote.isSustainNote)
 				{
-					final futureSongPos = Conductor.visualPosition + (Conductor.stepCrotchet * 0.001);
-					final diff = daNote.visualTime - futureSongPos;
-					final vDiff = -((futureSongPos - daNote.visualTime) * songSpeed);
+					final futureSongPos = Conductor.getBeat(Conductor.songPosition + daNote.sustainLength);
 					
-					var nextPos = modManager.getPos(daNote.strumTime, vDiff, diff, Conductor.getStep(futureSongPos) / 4, daNote.noteData, daNote.lane, daNote);
+					final visPos = ((daNote.visualTime + daNote.visualLength - Conductor.visualPosition) * songSpeed);
+					final diff = (daNote.strumTime + daNote.sustainLength - Conductor.songPosition);
 					
-					final diffX = (nextPos.x - pos.x);
-					final diffY = (nextPos.y - pos.y);
+					var nextPos = modManager.getPos(daNote.strumTime + daNote.sustainLength, visPos, diff, Conductor.getBeat(futureSongPos), daNote.noteData, daNote.lane, daNote);
 					
-					final rad = Math.atan2(diffY, diffX);
+					final rad = Math.atan2(nextPos.y - pos.y, nextPos.x - pos.x);
 					
-					final deg = rad * (180 / Math.PI);
+					final deg = (rad * 180 / Math.PI);
 					
-					if (deg != 0) daNote.mAngle = (deg + 90);
-					else daNote.mAngle = 0;
+					if (deg != 0) daNote.angle = (deg - 90);
+					else daNote.angle = 0;
 					
 					daNote.x += (_skin.sustainOffsets[daNote.noteData].x * scaleXMult);
 					daNote.y += (_skin.sustainOffsets[daNote.noteData].y * scaleYMult);
@@ -1983,6 +1965,12 @@ class PlayState extends MusicBeatState
 					{
 						daNote.x += (_skin.susEndOffsets[daNote.noteData].x * scaleXMult);
 						daNote.y += (_skin.susEndOffsets[daNote.noteData].y * scaleYMult);
+					}
+					else
+					{
+						final dist:Float = Math.sqrt(Math.pow(pos.y - nextPos.y, 2) + Math.pow(pos.x - nextPos.x, 2));
+						
+						daNote.scale.y = daNote.defScale.y = (dist / (daNote.frameHeight - (daNote.antialiasing ? 1 : 0)));
 					}
 					
 					nextPos.put();
@@ -1993,9 +1981,7 @@ class PlayState extends MusicBeatState
 				
 				if (field.inControl && field.autoPlayed)
 				{
-					if (!daNote.wasGoodHit && !daNote.ignoreNote) if ((daNote.isSustainNote && daNote.canBeHit)
-						|| (!daNote.isSustainNote
-							&& daNote.strumTime <= Conductor.songPosition)) field.onNoteHit.dispatch(daNote, field);
+					if (!daNote.wasGoodHit && !daNote.ignoreNote && daNote.strumTime <= Conductor.songPosition) field.onNoteHit.dispatch(daNote, field);
 				}
 				
 				// Kill extremely late notes and cause misses
@@ -2895,7 +2881,7 @@ class PlayState extends MusicBeatState
 					if (daNote.isSustainNote
 						&& !daNote.blockHit
 						&& FlxG.keys.anyPressed(keysArray[daNote.noteData])
-						&& daNote.canBeHit
+						&& Conductor.songPosition >= daNote.strumTime
 						&& !daNote.tooLate
 						&& !daNote.wasGoodHit) daNote.playField.onNoteHit.dispatch(daNote, daNote.playField);
 				}

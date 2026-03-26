@@ -25,12 +25,14 @@ class ChartEditorUI extends flixel.group.FlxSpriteContainer
 		
 		songDialog = new SongDialog();
 		add(songDialog);
-		songDialog.showDialog(false);
 		
 		songDialog.x = 15;
 		songDialog.y = 50;
 		
+		songDialog.destroyOnClose = false;
 		songDialog.bindDialogToView(0); // cahrt editor wont have a toolbar so we can set the min y to be 0
+		
+		songDialog.showDialog(false);
 		
 		bind();
 	}

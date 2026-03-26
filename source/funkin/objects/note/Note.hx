@@ -33,9 +33,8 @@ class Note extends FlxSprite
 	
 	public var defScale:FlxPoint = FlxPoint.get(); // for modcharts to keep the scaling
 	
-	public var mAngle:Float = 0;
-	public var bAngle:Float = 0;
 	public var visualTime:Float = 0;
+	public var visualLength:Float = 0;
 	public var typeOffsetX:Float = 0; // used to offset notes, mainly for note types. use in place of offset.x and offset.y when offsetting notetypes
 	public var typeOffsetY:Float = 0;
 	
@@ -121,7 +120,7 @@ class Note extends FlxSprite
 	public var offsetY:Float = 0;
 	public var offsetAngle:Float = 0;
 	public var multAlpha:Float = 1;
-	public var multSpeed(default, set):Float = 1;
+	public var multSpeed:Float = 1;
 	
 	public var copyX:Bool = true;
 	public var copyY:Bool = true;
@@ -164,29 +163,6 @@ class Note extends FlxSprite
 			if (field != null && !field.notes.contains(this)) field.addNote(this);
 		}
 		return playField = field;
-	}
-	
-	private function set_multSpeed(value:Float):Float
-	{
-		resizeByRatio(value / multSpeed);
-		multSpeed = value;
-		return value;
-	}
-	
-	public function resizeByRatio(ratio:Float)
-	{
-		// for some fuckin reason this shit is still crashing but i cant figure it out. data got that 👀👀👀
-		try // why try catch
-		{
-			if (isSustainNote && (skipScale || !isSustainEnd))
-			{
-				scale.y *= ratio;
-				baseScaleY = scale.y;
-				defScale.y = scale.y;
-				updateHitbox();
-			}
-		}
-		catch (e) {}
 	}
 	
 	private function set_texture(value:String):String
@@ -286,32 +262,24 @@ class Note extends FlxSprite
 		{
 			hitsoundDisabled = true;
 			
-			offsetX += width / 2;
 			copyAngle = false;
 			
 			animation.play(animation.exists('holdend') ? 'holdend' : 'holdend$noteData');
 			isSustainEnd = true;
 			updateHitbox();
 			
-			offsetX -= width / 2;
-			
 			animSuffix = prevNote.animSuffix;
 			
 			if (prevNote.isSustainNote)
 			{
 				prevNote.animation.play(animation.exists('hold') ? 'hold' : 'hold$noteData');
-				prevNote.scale.y *= Conductor.stepCrotchet / 100 * 1.05;
 				prevNote.isSustainEnd = false;
-				if (PlayState.instance != null) prevNote.scale.y *= PlayState.instance.songSpeed;
 				
 				prevNote.updateHitbox();
-				prevNote.baseScaleX = prevNote.scale.x;
-				prevNote.baseScaleY = prevNote.scale.y;
 			}
 		}
 		else if (!isSustainNote) earlyHitMult = 1;
 		
-		x += offsetX;
 		baseScaleX = scale.x;
 		baseScaleY = scale.y;
 	}
@@ -355,14 +323,10 @@ class Note extends FlxSprite
 		
 		var atlasPath:String = arraySkin.join('/');
 		
-		final lastScaleY:Float = scale.y;
-		
 		isQuant = ClientPrefs.quants && (skin?.quantsEnabled ?? true) && canQuant;
 		
 		frames = Paths.getSparrowAtlas(atlasPath);
 		loadNoteAnims();
-		
-		if (isSustainNote) scale.y = lastScaleY;
 		
 		baseScaleX = scale.x;
 		baseScaleY = scale.y;

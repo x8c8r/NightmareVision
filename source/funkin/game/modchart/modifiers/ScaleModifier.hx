@@ -77,9 +77,6 @@ class ScaleModifier extends NoteModifier
 		
 		if (note.isSustainNote) scale.y = note.defScale.y;
 		
-		note.x += (Note.swagWidth * (1 - scale.x / note.defScale.x) * .5);
-		note.y += (Note.swagWidth * (1 - scale.y / note.defScale.y) * .5);
-		
 		note.scale.copyFrom(scale);
 		scale.putWeak();
 	}
@@ -96,9 +93,6 @@ class ScaleModifier extends NoteModifier
 			scale = getScale(receptor, FlxPoint.weak(scaleX, scaleY), receptor.noteData, player);
 		}
 		else scale = getScale(receptor, FlxPoint.weak(receptor.defScale.x, receptor.defScale.y), receptor.noteData, player);
-		
-		receptor.x += (Note.swagWidth * (1 - scale.x / receptor.defScale.x) * .5);
-		receptor.y += (Note.swagWidth * (1 - scale.y / receptor.defScale.y) * .5);
 		
 		var scale = getScale(receptor, FlxPoint.weak(receptor.defScale.x, receptor.defScale.y), receptor.noteData, player);
 		receptor.scale.copyFrom(scale);

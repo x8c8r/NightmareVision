@@ -47,7 +47,7 @@ class ModManager
 			quickRegister(Type.createInstance(mod, [this]));
 			
 		quickRegister(new RotateModifier(this));
-		quickRegister(new RotateModifier(this, 'center', Vector3.get((FlxG.width * 0.5) - (Note.swagWidth / 2), (FlxG.height * 0.5) - Note.swagWidth / 2)));
+		quickRegister(new RotateModifier(this, 'center', Vector3.get(FlxG.width * 0.5, FlxG.height * 0.5)));
 		quickRegister(new LocalRotateModifier(this, 'local'));
 		quickRegister(new SubModifier("noteSpawnTime", this));
 		setValue("noteSpawnTime", 2000);
@@ -219,8 +219,18 @@ class ModManager
 	
 	public function updateObject(beat:Float, obj:FlxSprite, pos:Vector3, player:Int)
 	{
-		obj.x = pos.x;
-		obj.y = pos.y;
+		final note:Note = (obj is Note ? cast obj : null);
+		
+		obj.x = (pos.x - obj.width * .5);
+		
+		if (note != null && note.isSustainNote)
+		{
+			note.y = pos.y;
+		}
+		else
+		{
+			obj.y = (pos.y - obj.height * .5);
+		}
 		
 		if (activeMods[player] != null)
 		{
@@ -234,13 +244,12 @@ class ModManager
 			}
 		}
 		
-		obj.updateHitbox();
 		obj.centerOrigin();
 		obj.centerOffsets();
 		
 		if (obj is StrumNote)
 		{
-			var strum:StrumNote = cast obj;
+			final strum:StrumNote = cast obj;
 			
 			final strumAnim = strum.animation.name;
 			final offsetsAdd = strum.animOffsets.get(strumAnim);
@@ -250,15 +259,13 @@ class ModManager
 				strum.offset.x += offsetsAdd[0];
 				strum.offset.y += offsetsAdd[1];
 			}
-			
-			strum.x -= ((strum.width - Note.swagWidth * strum.scale.x / strum.defScale.x) * .5);
-			strum.y -= ((strum.height - Note.swagWidth * strum.scale.y / strum.defScale.y) * .5);
 		}
-		else if ((obj is Note))
+		else if (note != null)
 		{
-			var cum:Note = cast obj;
-			cum.offset.x += cum.typeOffsetX;
-			cum.offset.y += cum.typeOffsetY;
+			if (note.isSustainNote) note.origin.y = note.offset.y = 0;
+			
+			note.offset.x += note.typeOffsetX;
+			note.offset.y += note.typeOffsetY;
 		}
 	}
 	
@@ -278,9 +285,10 @@ class ModManager
 		
 		if (!obj.active) return pos;
 		
-		pos.x = getBaseX(data, player);
-		pos.y = 50 + diff;
+		pos.x = (getBaseX(data, player) + Note.swagWidth * .5);
+		pos.y = (50 + diff + Note.swagWidth * .5);
 		pos.z = 0;
+		
 		if (activeMods[player] != null)
 		{
 			for (name in activeMods[player])
@@ -292,6 +300,7 @@ class ModManager
 				pos = mod.getPos(time, diff, tDiff, beat, pos, data, player, obj);
 			}
 		}
+		
 		return pos;
 	}
 	

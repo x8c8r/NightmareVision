@@ -306,7 +306,9 @@ class PlayField extends FlxTypedContainer<StrumNote>
 				return;
 			}
 			
-			PlayState.instance.health += note.hitHealth * PlayState.instance.healthGain;
+			final susMult:Float = (note.isSustainNote ? 1 / PlayState.instance.holdSubdivisions : 1);
+			
+			PlayState.instance.health += note.hitHealth * PlayState.instance.healthGain * susMult;
 		}
 		
 		var chars:Array<Null<Character>> = note.gfNote ? [PlayState.instance.gf] : field.singers;
@@ -392,7 +394,9 @@ class PlayField extends FlxTypedContainer<StrumNote>
 	
 	function noteMiss(note:Note, field:PlayField):Void
 	{
-		PlayState.instance.health -= note.missHealth * PlayState.instance.healthLoss;
+		final susMult:Float = (note.isSustainNote ? 1 / PlayState.instance.holdSubdivisions : 1);
+		
+		PlayState.instance.health -= note.missHealth * PlayState.instance.healthLoss * susMult;
 		
 		for (owner in field.singers)
 		{

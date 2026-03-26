@@ -23,11 +23,11 @@ class ReceptorScrollModifier extends NoteModifier
 		var revPerc = reversed ? 1 - vDiff % 1 : vDiff % 1;
 		// haha perc 30
 		var upscrollOffset = 50;
-		var downscrollOffset = FlxG.height - 150;
+		var downscrollOffset = FlxG.height - 50 - Note.swagWidth;
 		
 		var endY = upscrollOffset + ((downscrollOffset - Note.swagWidth / 2) * revPerc);
 		
-		pos.y = lerp(startY, endY, getValue(player));
+		pos.y = (lerp(startY, endY, getValue(player)) + Note.swagWidth * .5);
 		
 		return pos;
 	}

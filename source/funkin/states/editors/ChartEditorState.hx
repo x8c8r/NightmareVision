@@ -1388,6 +1388,9 @@ class ChartEditorState extends haxe.ui.backend.flixel.UIState
 	
 	override function update(elapsed:Float)
 	{
+		if (FlxG.keys.justPressed.SPACE)
+			ui.songDialog.show();
+		
 		final mouseControl:Bool = (!ToolKitUtils.isHaxeUIHovered(camHUD));
 		
 		ToolKitUtils.update();

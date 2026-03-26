@@ -31,47 +31,35 @@ class PathModifier extends NoteModifier
 	{
 		super(modMgr, parent);
 		moveSpeed = getMoveSpeed();
-		var path:Array<Array<Vector3>> = getPath();
-		var dir:Int = 0;
-		// ridiculous that haxe doesnt have a numeric for loop
 		
-		// neb from the future here
-		// .. it fucking does
-		// I forgot about (for start...end)
-		// You just can't set the interval.
-		// how did i forget it fucking has a numeric for loop im gonna kms.
+		final path:Array<Array<Vector3>> = getPath();
 		
-		// TODO: rewrite this.
-		
-		while (dir < path.length)
+		for (dir in 0 ... path.length)
 		{
-			var idx = 0;
 			totalDists[dir] = 0;
 			pathData[dir] = [];
-			while (idx < path[dir].length)
+			
+			for (idx in 0 ... path[dir].length)
 			{
-				var pos = path[dir][idx];
+				final pos = path[dir][idx];
 				
-				if (idx != 0)
+				if (idx > 0)
 				{
-					var last = pathData[dir][idx - 1];
-					totalDists[dir] += Math.abs(Vector3.distance(last.position, pos)); // idk if haxeflixel will for some reason ever return negative distance
-					var totalDist = totalDists[dir];
-					// roblox doesnt so im just making sure
+					final last = pathData[dir][idx - 1];
+					final totalDist = (totalDists[dir] += Vector3.distance(last.position, pos));
+					
 					last.end = totalDist;
 					last.dist = last.start - totalDist; // used for interpolation
 				}
 				
 				pathData[dir].push(
 					{
-						position: pos.add(Vector3.get(-Note.swagWidth / 2, -Note.swagWidth / 2)),
+						position: pos,
 						start: totalDists[dir],
-						end: 0,
+						end: totalDists[dir],
 						dist: 0
 					});
-				idx++;
 			}
-			dir++;
 		}
 		
 		for (dir in 0...totalDists.length)
@@ -83,36 +71,28 @@ class PathModifier extends NoteModifier
 	override function getPos(time:Float, visualDiff:Float, timeDiff:Float, beat:Float, pos:Vector3, data:Int, player:Int, obj:FlxSprite)
 	{
 		if (getValue(player) == 0) return pos;
-		// var vDiff = Math.abs(timeDiff);
-		var vDiff = -timeDiff;
+		
 		// tried to use visualDiff but didnt work :(
 		// will get it working later
+		final progress = (visualDiff / moveSpeed * totalDists[data]);
+		final clampProgress = FlxMath.bound(progress, 0, totalDists[data]);
 		
-		var progress = (vDiff / -moveSpeed) * totalDists[data];
-		var outPos = pos.clone();
-		var daPath = pathData[data];
-		if (progress <= 0) return pos.lerp(daPath[0].position, getValue(player));
+		final daPath = pathData[data];
 		
-		var idx:Int = 0;
-		// STILL ridiculous
-		// no its not im just dumb
-		
-		while (idx < daPath.length)
+		for (idx in 0 ... daPath.length - 1)
 		{
-			var cData = daPath[idx];
-			var nData = daPath[idx + 1];
-			if (nData != null && cData != null)
+			final cData = daPath[idx], nData = daPath[idx + 1];
+			
+			if (clampProgress >= cData.start && clampProgress <= cData.end)
 			{
-				if (progress > cData.start && progress < cData.end)
-				{
-					var alpha = (cData.start - progress) / cData.dist;
-					var interpPos:Vector3 = cData.position.lerp(nData.position, alpha);
-					outPos = pos.lerp(interpPos, getValue(player));
-				}
+				final alpha = ((cData.start - progress) / cData.dist);
+				final interpPos:Vector3 = cData.position.lerp(nData.position, alpha);
+				
+				return pos.lerp(interpPos, getValue(player));
 			}
-			idx++;
 		}
-		return outPos;
+		
+		return pos.lerp(daPath[0].position, getValue(player));
 	}
 	
 	override function getSubmods()
