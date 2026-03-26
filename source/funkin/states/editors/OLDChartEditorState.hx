@@ -4082,13 +4082,13 @@ class ChartingOptionsSubmenuOLD extends MusicBeatSubstate
 				case 'Resume':
 					close();
 				case 'Play from beginning':
-					ChartEditorState.enterSong();
+					OLDChartEditorState.enterSong();
 				case 'Play from here':
-					ChartEditorState.playSongFromTimestamp(FlxG.sound.music.time);
+					OLDChartEditorState.playSongFromTimestamp(FlxG.sound.music.time);
 				case 'Play from start time':
-					ChartEditorState.playSongFromTimestamp(ChartEditorState.startTime);
+					OLDChartEditorState.playSongFromTimestamp(OLDChartEditorState.startTime);
 				case 'Set start time':
-					ChartEditorState.startTime = FlxG.sound.music.time;
+					OLDChartEditorState.startTime = FlxG.sound.music.time;
 				// close();
 				// case 'Botplay':
 				// 	PlayState.instance.cpuControlled = !PlayState.instance.cpuControlled;
