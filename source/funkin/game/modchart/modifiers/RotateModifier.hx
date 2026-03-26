@@ -12,6 +12,7 @@ class RotateModifier extends NoteModifier
 	}
 	
 	public var daOrigin:Vector3;
+	
 	var prefix:String;
 	
 	public function new(modMgr:ModManager, ?prefix:String = '', ?origin:Vector3, ?parent:Modifier)
@@ -62,6 +63,14 @@ class RotateModifier extends NoteModifier
 	
 	override function getSubmods()
 	{
-		return ['${prefix}rotateY', '${prefix}rotateZ'];
+		var list = ['${prefix}rotateY', '${prefix}rotateZ'];
+		for (i in 0...PlayState.SONG.keys)
+		{
+			list.push('${prefix}rotate${i}X');
+			list.push('${prefix}rotate${i}Y');
+			list.push('${prefix}rotate${i}Z');
+		}
+		
+		return list;
 	}
 }
