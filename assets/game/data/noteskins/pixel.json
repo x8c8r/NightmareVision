@@ -30,8 +30,8 @@
 			{
 				"looping": false,
 				"offsets": [
-					-1,
-					-1
+					0,
+					0
 				],
 				"xmlName": "left confirm",
 				"anim": "confirm"
@@ -59,7 +59,7 @@
 			{
 				"looping": false,
 				"offsets": [
-					-2,
+					0,
 					0
 				],
 				"xmlName": "down confirm",
@@ -88,8 +88,8 @@
 			{
 				"looping": false,
 				"offsets": [
-					-1,
-					-1
+					0,
+					0
 				],
 				"xmlName": "up confirm",
 				"anim": "confirm"
@@ -117,7 +117,7 @@
 			{
 				"looping": false,
 				"offsets": [
-					-1,
+					0,
 					0
 				],
 				"xmlName": "right confirm",
