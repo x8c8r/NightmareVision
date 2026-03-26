@@ -2,15 +2,6 @@ package funkin.game.modchart.modifiers;
 
 import funkin.backend.math.Vector3;
 
-import flixel.math.FlxRect;
-import flixel.FlxSprite;
-import flixel.FlxG;
-
-import funkin.game.modchart.*;
-import funkin.states.*;
-import funkin.objects.note.*;
-import funkin.game.modchart.Modifier.ModifierOrder;
-
 class ReverseModifier extends NoteModifier
 {
 	inline function lerp(a:Float, b:Float, c:Float)
@@ -57,36 +48,6 @@ class ReverseModifier extends NoteModifier
 	override function shouldExecute(player:Int, val:Float) return true;
 	
 	override function ignoreUpdateNote() return false;
-	
-	override function updateNote(beat:Float, daNote:Note, pos:Vector3, player:Int)
-	{
-		if (!daNote.isSustainNote) return;
-		
-		final strum = modMgr.receptors[player][daNote.noteData];
-		
-		if (strum.sustainReduce && daNote.wasGoodHit && Conductor.songPosition >= daNote.strumTime)
-		{
-			final x:Float = (pos.x - (strum.x + strum.width * .5)), y:Float = (pos.y - (strum.y + strum.height * .5));
-			
-			final mag:Float = Math.sqrt(x * x + y * y);
-			
-			var swagRect = getNoteRect(daNote);
-			swagRect.y = (mag / daNote.scale.y);
-			swagRect.height -= swagRect.y;
-			
-			daNote.clipRect = swagRect;
-		}
-	}
-	
-	inline function getNoteRect(note:Note)
-	{
-		final rect = note.clipRect ?? new FlxRect();
-		rect.x = 0;
-		rect.y = 0;
-		rect.width = note.frameWidth;
-		rect.height = note.frameHeight;
-		return rect;
-	}
 	
 	override function getPos(time:Float, visualDiff:Float, timeDiff:Float, beat:Float, pos:Vector3, data:Int, player:Int, obj:FlxSprite)
 	{

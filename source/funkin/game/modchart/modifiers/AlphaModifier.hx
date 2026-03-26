@@ -135,9 +135,27 @@ class AlphaModifier extends NoteModifier
 		receptor.rgbShader.alphaMult = alpha;
 	}
 	
+	override function updateNoteSplash(beat:Float, splash:NoteSplash, pos:Vector3, player:Int)
+	{
+		var alpha = (1 - getSubmodValue('alpha', player)) * (1 - getSubmodValue('alpha${splash.noteData}', player));
+		alpha *= (1 - getSubmodValue('noteSplashAlpha', player)) * (1 - getSubmodValue('noteSplash${splash.noteData}Alpha', player));
+		
+		splash.rgbShader.alphaMult = alpha;
+	}
+	
+	override function updateSustainSplash(beat:Float, splash:SustainSplash, pos:Vector3, player:Int)
+	{
+		var alpha = (1 - getSubmodValue('alpha', player)) * (1 - getSubmodValue('alpha${splash.noteData}', player));
+		alpha *= (1 - getSubmodValue('sustainSplashAlpha', player)) * (1 - getSubmodValue('sustainSplash${splash.noteData}Alpha', player));
+		
+		splash.rgbShader.alphaMult = alpha;
+	}
+	
 	override function getSubmods()
 	{
 		var subMods:Array<String> = [
+			"sustainSplashAlpha",
+			"noteSplashAlpha",
 			"noteAlpha",
 			"alpha",
 			"hidden",
@@ -152,6 +170,8 @@ class AlphaModifier extends NoteModifier
 		];
 		for (i in 0...PlayState.SONG.keys)
 		{
+			subMods.push('sustainSplashAlpha$i');
+			subMods.push('noteSplashAlpha$i');
 			subMods.push('noteAlpha$i');
 			subMods.push('alpha$i');
 			subMods.push('dark$i');

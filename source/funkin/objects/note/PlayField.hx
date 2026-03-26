@@ -57,6 +57,9 @@ class PlayField extends FlxTypedContainer<StrumNote>
 	public var playerControls:Bool = false;
 	public var inControl(default, set):Bool = true; // incase you want to lock up the playfield
 	
+	public var trackNoteSplashes:Bool = true;
+	public var trackSustainSplashes:Bool = true; // splash angle follows sustain angle
+	
 	public var notes:Array<Note> = [];
 	public var keyCount(default, set):Int = 0;
 	
@@ -474,7 +477,7 @@ class PlayField extends FlxTypedContainer<StrumNote>
 		}
 	}
 	
-	public function spawnSplash(note:Note)
+	public function spawnSplash(note:Note):NoteSplash
 	{
 		if (ClientPrefs.noteSplashes
 			&& note != null
@@ -496,11 +499,15 @@ class PlayField extends FlxTypedContainer<StrumNote>
 				grpNoteSplashes.add(splash);
 				
 				PlayState.instance.scripts.call('onSpawnNoteSplash', [splash, note]);
+				
+				return note.noteSplash = splash;
 			}
 		}
+		
+		return null;
 	}
 	
-	public function spawnSusSplash(note:Note, isPlayer:Bool = false)
+	public function spawnSusSplash(note:Note, isPlayer:Bool = false):SustainSplash
 	{
 		if (_skin?.sustainSplashes && note.tail.length > 0)
 		{
@@ -516,8 +523,14 @@ class PlayField extends FlxTypedContainer<StrumNote>
 				var splash:SustainSplash = grpSusSplashes.recycle(SustainSplash);
 				splash.setupSplash(strum, note, time, isPlayer, colors, this);
 				grpSusSplashes.add(splash);
+				
+				PlayState.instance.scripts.call('onSpawnSustainSplash', [splash, note]);
+				
+				return note.sustainSplash = splash;
 			}
 		}
+		
+		return null;
 	}
 	
 	public inline function canInput():Bool

@@ -13,45 +13,52 @@ class ScaleModifier extends NoteModifier
 		return a + (b - a) * c;
 	}
 	
-	function getScale(sprite:Dynamic, scale:FlxPoint, data:Int, player:Int)
+	inline function getScale(prefix:String, sprite:Dynamic, scale:FlxPoint, data:Int, player:Int):FlxPoint
 	{
-		var y = scale.y;
-		scale.x *= 1 - getValue(player);
-		scale.y *= 1 - getValue(player);
-		var miniX = getSubmodValue("miniX", player) + getSubmodValue('mini${data}X', player);
-		var miniY = getSubmodValue("miniY", player) + getSubmodValue('mini${data}Y', player);
+		final isSus:Bool = ((sprite is Note) && sprite.isSustainNote && !sprite.isSustainEnd);
 		
-		scale.x *= 1 - miniX;
-		scale.y *= 1 - miniY;
+		final squish = lerp(1, 2, getSubmodValue("squish", player) + getSubmodValue('squish${data}', player));
+		final stretch = lerp(1, .5, getSubmodValue("stretch", player) + getSubmodValue('stretch${data}', player));
 		
-		if (sprite is StrumNote)
+		if (isSus)
 		{
-			scale.x *= 1 - getSubmodValue('receptor${data}ScaleX', player);
-			scale.y *= 1 - getSubmodValue('receptor${data}ScaleX', player);
+			scale.y = sprite.defScale.y;
+		}
+		else
+		{
+			scale.y *= (1 - getValue(player));
+			scale.y *= (1 - getSubmodValue('miniY', player));
+			scale.y *= (1 - getSubmodValue('mini${data}Y', player));
+			scale.y *= (1 - getSubmodValue('$prefix${data}ScaleY', player));
+			
+			scale.y /= squish;
+			scale.y /= stretch;
 		}
 		
-		var angle = 0;
+		scale.x *= (1 - getValue(player));
+		scale.x *= (1 - getSubmodValue('miniX', player));
+		scale.x *= (1 - getSubmodValue('mini${data}X', player));
+		scale.x *= (1 - getSubmodValue('$prefix${data}ScaleX', player));
 		
-		var stretch = getSubmodValue("stretch", player) + getSubmodValue('stretch${data}', player);
-		var squish = getSubmodValue("squish", player) + getSubmodValue('squish${data}', player);
-		
-		var stretchX = lerp(1, 0.5, stretch);
-		var stretchY = lerp(1, 2, stretch);
-		
-		var squishX = lerp(1, 2, squish);
-		var squishY = lerp(1, 0.5, squish);
-		
-		final sinAngle = FlxMath.fastSin(angle * Math.PI / 180);
-		final sinCos = FlxMath.fastCos(angle * Math.PI / 180);
-		
-		scale.x *= (sinAngle * squishY) + (sinCos * squishX);
-		scale.x *= (sinAngle * stretchY) + (sinCos * stretchX);
-		
-		scale.y *= (sinCos * stretchY) + (sinAngle * stretchX);
-		scale.y *= (sinCos * squishY) + (sinAngle * squishX);
-		if ((sprite is Note) && sprite.isSustainNote) scale.y = y;
+		scale.x *= squish;
+		scale.x *= stretch;
 		
 		return scale;
+	}
+	
+	function getObjectScale(obj:IModNote, prefix:String, player:Int):FlxPoint
+	{
+		if (getSubmodValue('${prefix}ScaleX', player) > 0 || getSubmodValue('${prefix}ScaleY', player) > 0)
+		{
+			var scaleX = getSubmodValue('${prefix}ScaleX', player);
+			var scaleY = getSubmodValue('${prefix}ScaleY', player);
+			if (scaleX == 0) scaleX = obj.defScale.x;
+			if (scaleY == 0) scaleY = obj.defScale.y;
+			
+			return getScale(prefix, obj, FlxPoint.weak(scaleX, scaleY), obj.noteData, player);
+		}
+		
+		return getScale(prefix, obj, FlxPoint.weak(obj.defScale.x, obj.defScale.y), obj.noteData, player);
 	}
 	
 	override function shouldExecute(player:Int, val:Float) return true;
@@ -64,40 +71,22 @@ class ScaleModifier extends NoteModifier
 	
 	override function updateNote(beat:Float, note:Note, pos:Vector3, player:Int)
 	{
-		var scale:FlxPoint = null;
-		if (getSubmodValue('noteScaleX', player) > 0 || getSubmodValue('noteScaleY', player) > 0)
-		{
-			var scaleX = getSubmodValue("noteScaleX", player);
-			var scaleY = getSubmodValue("noteScaleY", player);
-			if (scaleX == 0) scaleX = note.defScale.x;
-			if (scaleY == 0) scaleY = note.defScale.y;
-			scale = getScale(note, FlxPoint.weak(scaleX, scaleY), note.noteData, player);
-		}
-		else scale = getScale(note, FlxPoint.weak(note.defScale.x, note.defScale.y), note.noteData, player);
-		
-		if (note.isSustainNote) scale.y = note.defScale.y;
-		
-		note.scale.copyFrom(scale);
-		scale.putWeak();
+		note.scale.copyFrom(getObjectScale(note, 'note', player));
 	}
 	
 	override function updateReceptor(beat:Float, receptor:StrumNote, pos:Vector3, player:Int)
 	{
-		var scale:FlxPoint = null;
-		if (getSubmodValue('receptorScaleX', player) > 0 || getSubmodValue('receptorScaleY', player) > 0)
-		{
-			var scaleX = getSubmodValue("receptorScaleX", player);
-			var scaleY = getSubmodValue("receptorScaleY", player);
-			if (scaleX == 0) scaleX = receptor.defScale.x;
-			if (scaleY == 0) scaleY = receptor.defScale.y;
-			scale = getScale(receptor, FlxPoint.weak(scaleX, scaleY), receptor.noteData, player);
-		}
-		else scale = getScale(receptor, FlxPoint.weak(receptor.defScale.x, receptor.defScale.y), receptor.noteData, player);
-		
-		var scale = getScale(receptor, FlxPoint.weak(receptor.defScale.x, receptor.defScale.y), receptor.noteData, player);
-		receptor.scale.copyFrom(scale);
-		
-		scale.putWeak();
+		receptor.scale.copyFrom(getObjectScale(receptor, 'receptor', player));
+	}
+	
+	override function updateNoteSplash(beat:Float, splash:NoteSplash, pos:Vector3, player:Int)
+	{
+		splash.scale.copyFrom(getObjectScale(splash, 'noteSplash', player));
+	}
+	
+	override function updateSustainSplash(beat:Float, splash:SustainSplash, pos:Vector3, player:Int)
+	{
+		splash.scale.copyFrom(getObjectScale(splash, 'sustainSplash', player));
 	}
 	
 	override function getSubmods()
@@ -110,7 +99,11 @@ class ScaleModifier extends NoteModifier
 			"receptorScaleX",
 			"receptorScaleY",
 			"noteScaleX",
-			"noteScaleY"
+			"noteScaleY",
+			"noteSplashScaleX",
+			"noteSplashScaleY",
+			"sustainSplashScaleX",
+			"sustainSplashScaleY"
 		];
 		
 		var receptors = modMgr.receptors[0];
@@ -125,6 +118,10 @@ class ScaleModifier extends NoteModifier
 			subMods.push('receptor${i}ScaleY');
 			subMods.push('note${i}ScaleX');
 			subMods.push('note${i}ScaleY');
+			subMods.push('noteSplash${i}ScaleX');
+			subMods.push('noteSplash${i}ScaleY');
+			subMods.push('sustainSplash${i}ScaleX');
+			subMods.push('sustainSplash${i}ScaleY');
 		}
 		return subMods;
 	}

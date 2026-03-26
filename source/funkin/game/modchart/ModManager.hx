@@ -6,7 +6,6 @@ import flixel.FlxG;
 
 import funkin.game.modchart.modifiers.*;
 import funkin.game.modchart.events.*;
-import funkin.objects.*;
 
 // Weird amalgamation of Schmovin' modifier system, Andromeda modifier system and my own new shit -neb
 // todo more safety this crashes too easily //still to do aha..
@@ -237,33 +236,43 @@ class ModManager
 				var mod:Modifier = notemodRegister.get(name);
 				if (mod == null || !obj.active) continue;
 				
-				if ((obj is Note)) mod.updateNote(beat, cast obj, pos, player);
-				else if ((obj is StrumNote)) mod.updateReceptor(beat, cast obj, pos, player);
+				if (obj is Note) mod.updateNote(beat, cast obj, pos, player);
+				else if (obj is StrumNote) mod.updateReceptor(beat, cast obj, pos, player);
+				else if (obj is NoteSplash) mod.updateNoteSplash(beat, cast obj, pos, player);
+				else if (obj is SustainSplash) mod.updateSustainSplash(beat, cast obj, pos, player);
 			}
 		}
 		
 		obj.centerOrigin();
 		obj.centerOffsets();
 		
-		if (obj is StrumNote)
+		if (obj is SustainSplash)
 		{
-			final strum:StrumNote = cast obj;
+			final splash:SustainSplash = cast obj;
 			
-			final strumAnim = strum.animation.name;
-			final offsetsAdd = strum.animOffsets.get(strumAnim);
-			
-			if (offsetsAdd != null)
-			{
-				strum.offset.x += offsetsAdd[0];
-				strum.offset.y += offsetsAdd[1];
-			}
+			splash.origin.x += splash.skinOrigin.x;
+			splash.origin.y += splash.skinOrigin.y;
 		}
-		else if (note != null)
+		
+		if (note != null)
 		{
 			if (note.isSustainNote) note.origin.y = note.offset.y = 0;
 			
 			note.offset.x += note.typeOffsetX;
 			note.offset.y += note.typeOffsetY;
+		}
+		
+		if (obj is IModNote)
+		{
+			final obj:IModNote = cast obj;
+			
+			final offsetsAdd = obj.animOffsets.get(obj.animation.name);
+			
+			if (offsetsAdd != null)
+			{
+				obj.offset.x += offsetsAdd[0];
+				obj.offset.y += offsetsAdd[1];
+			}
 		}
 	}
 	

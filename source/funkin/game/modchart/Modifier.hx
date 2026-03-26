@@ -105,6 +105,10 @@ class Modifier
 	
 	public function updateNote(beat:Float, note:Note, pos:Vector3, player:Int) {}
 	
+	public function updateNoteSplash(beat:Float, splash:NoteSplash, pos:Vector3, player:Int) {}
+	
+	public function updateSustainSplash(beat:Float, splash:SustainSplash, pos:Vector3, player:Int) {}
+	
 	public function getPos(time:Float, diff:Float, tDiff:Float, beat:Float, pos:Vector3, data:Int, player:Int, obj:FlxSprite) return pos;
 	
 	public function update(elapsed:Float) {}

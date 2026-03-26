@@ -1177,9 +1177,13 @@ class PlayState extends MusicBeatState
 	
 	inline function disposeNote(note:Note):Void
 	{
-		note.kill();
-		notes.remove(note, true);
-		note.destroy();
+		if (note.exists)
+		{
+			note.garbage = true;
+			
+			notes.remove(note, true);
+			note.destroy();
+		}
 	}
 	
 	public function clearNotesBefore(time:Float):Void
@@ -1899,21 +1903,33 @@ class PlayState extends MusicBeatState
 		
 		var tempVector = funkin.backend.math.Vector3.get();
 		
-		if (modifiersRegistered)
+		final canUpdateModchart:Bool = (modifiersRegistered && playFields != null);
+		
+		inline function modchart(obj:Dynamic, id:Int, offsets:haxe.ds.Vector<FlxPoint>)
 		{
-			for (i in 0...playFields?.length)
+			final pos = modManager.getPos(0, 0, 0, curDecBeat, obj.noteData, id, obj, tempVector);
+			final offsets = (offsets != null ? offsets[obj.noteData] : null);
+			
+			modManager.updateObject(curDecBeat, obj, pos, id);
+			
+			obj.x += ((offsets?.x ?? 0) * obj.scale.x / obj.defScale.x);
+			obj.y += ((offsets?.y ?? 0) * obj.scale.y / obj.defScale.y);
+			
+			return pos;
+		}
+		
+		if (canUpdateModchart)
+		{
+			for (playField in playFields)
 			{
-				final strums:Null<PlayField> = getFieldFromID(i);
-				if (strums == null) continue;
-				strums.forEachAlive(strum -> {
-					final pos = modManager.getPos(0, 0, 0, curDecBeat, strum.noteData, i, strum, tempVector);
-					final offsets = strums._skin.receptorOffsets;
-					
-					modManager.updateObject(curDecBeat, strum, pos, i);
-					
-					strum.x += (offsets[strum.noteData].x * strum.scale.x / strum.defScale.x);
-					strum.y += (offsets[strum.noteData].y * strum.scale.y / strum.defScale.y);
-				});
+				final id = playField.ID;
+				final skin = playField._skin;
+				
+				playField.forEachAlive(function(strum) modchart(strum, id, skin.receptorOffsets));
+				
+				playField.grpSusSplashes.forEachAlive(function(splash) modchart(splash, id, skin.sustainSplashOffsets));
+				
+				if (playField.trackNoteSplashes) playField.grpNoteSplashes.forEachAlive(function(splash) modchart(splash, id, skin.splashOffsets));
 			}
 		}
 		
@@ -1928,9 +1944,33 @@ class PlayState extends MusicBeatState
 			}
 			
 			notes.forEachAlive(function(daNote:Note) {
-				if (!modifiersRegistered) return;
-				
 				final field = daNote.playField;
+				
+				if (field.inControl && field.autoPlayed)
+				{
+					if (!daNote.wasGoodHit && !daNote.ignoreNote && daNote.strumTime <= Conductor.songPosition)
+						field.onNoteHit.dispatch(daNote, field);
+				}
+				
+				// Kill extremely late notes and cause misses
+				if (Conductor.songPosition > noteKillOffset + daNote.strumTime)
+				{
+					daNote.garbage = true;
+					if (daNote.playField != null && daNote.playField.playerControls && !daNote.playField.autoPlayed && !daNote.ignoreNote
+						&& !daNote.canMiss && !endingSong && !daNote.wasGoodHit && field.playerControls && !field.autoPlayed)
+						field.onNoteMiss.dispatch(daNote, field);
+				}
+				
+				if (daNote.garbage)
+				{
+					daNote.active = false;
+					daNote.visible = false;
+					
+					return disposeNote(daNote);
+				}
+				
+				if (!canUpdateModchart || !daNote.exists) return; // ok modchart stuff
+				
 				final _skin = NoteUtil.getSkinFromID(daNote.player);
 				
 				final visPos = ((daNote.visualTime - Conductor.visualPosition) * songSpeed);
@@ -1956,8 +1996,10 @@ class PlayState extends MusicBeatState
 					
 					final deg = (rad * 180 / Math.PI);
 					
-					if (deg != 0) daNote.angle = (deg - 90);
-					else daNote.angle = 0;
+					daNote.angle = (deg - 90);
+					
+					if (daNote.wasGoodHit && daNote.parent?.sustainSplash != null && field.trackSustainSplashes)
+						daNote.parent.sustainSplash.angle = daNote.angle;
 					
 					daNote.x += (_skin.sustainOffsets[daNote.noteData].x * scaleXMult);
 					daNote.y += (_skin.sustainOffsets[daNote.noteData].y * scaleYMult);
@@ -1973,33 +2015,13 @@ class PlayState extends MusicBeatState
 						daNote.scale.y = daNote.defScale.y = (dist / (daNote.frameHeight - (daNote.antialiasing ? 1 : 0)));
 					}
 					
+					daNote.clip(daNote.playField.members[daNote.noteData]);
+					
 					nextPos.put();
 				}
 				
 				daNote.x += ((_skin.noteOffsets[daNote.noteData].x + daNote.offsetX) * scaleXMult);
 				daNote.y += ((_skin.noteOffsets[daNote.noteData].y + daNote.offsetY) * scaleYMult);
-				
-				if (field.inControl && field.autoPlayed)
-				{
-					if (!daNote.wasGoodHit && !daNote.ignoreNote && daNote.strumTime <= Conductor.songPosition) field.onNoteHit.dispatch(daNote, field);
-				}
-				
-				// Kill extremely late notes and cause misses
-				if (Conductor.songPosition > noteKillOffset + daNote.strumTime)
-				{
-					daNote.garbage = true;
-					if (daNote.playField != null && daNote.playField.playerControls && !daNote.playField.autoPlayed && !daNote.ignoreNote && !daNote.canMiss && !endingSong && !daNote.wasGoodHit)
-						if (field.playerControls
-						&& !field.autoPlayed) field.onNoteMiss.dispatch(daNote, field);
-				}
-				
-				if (daNote.garbage)
-				{
-					daNote.active = false;
-					daNote.visible = false;
-					
-					disposeNote(daNote);
-				}
 			});
 		}
 		

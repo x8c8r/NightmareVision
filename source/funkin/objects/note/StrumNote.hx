@@ -11,7 +11,7 @@ import funkin.game.shaders.RGBPalette.RGBShaderReference;
 import funkin.states.*;
 import funkin.data.*;
 
-class StrumNote extends FlxSprite
+class StrumNote extends FlxSprite implements funkin.game.modchart.IModNote
 {
 	public var intThing:Int = 0;
 	

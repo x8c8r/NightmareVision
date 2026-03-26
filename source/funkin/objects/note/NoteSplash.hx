@@ -9,17 +9,22 @@ import funkin.states.*;
 import funkin.data.NoteSkin;
 
 // @:nullSafety
-class NoteSplash extends FlxSprite
+class NoteSplash extends FlxSprite implements funkin.game.modchart.IModNote
 {
 	/**
 	 * Shader applied to the notesplash to support custom colours
 	 */
 	public var rgbShader:RGBShaderReference;
 	
+	public var defScale:FlxPoint = FlxPoint.get(); // for modcharts to keep the scaling
+	
+	public var animOffsets:Map<String, Array<Float>> = new Map();
+	
 	/**
 	 * The notedata of the splash
 	 */
-	public var data:Int = 0;
+	public var data(get, set):Int;
+	public var noteData:Int = 0;
 	
 	public var player:Int = 0;
 	
@@ -28,6 +33,8 @@ class NoteSplash extends FlxSprite
 	
 	// internal thing to optimize loading frames
 	@:noCompletion var _textureLoaded:Null<String> = null;
+	
+	public var skin:NoteSkin;
 	
 	public function new(x:Float = 0, y:Float = 0, noteData:Int = 0, player:Int = 0)
 	{
@@ -53,7 +60,7 @@ class NoteSplash extends FlxSprite
 		
 		player = field?.player ?? 0;
 		
-		final skin:NoteSkin = NoteUtil.getSkinFromID(player);
+		skin = NoteUtil.getSkinFromID(player);
 		
 		final sanitzedColourArray = colourInput ?? NoteUtil.colorToArray(skin.colors[data]);
 		
@@ -63,23 +70,38 @@ class NoteSplash extends FlxSprite
 		
 		if (skin != null)
 		{
-			scale.x *= skin.splashScale;
-			scale.y *= skin.splashScale;
+			scale.set(skin.splashScale, skin.splashScale);
+			defScale.copyFrom(scale);
 		}
 		
-		switch (texture)
+		updateHitbox();
+		
+		playAnim('note$data', true, colourInput);
+		
+		if (!field.trackNoteSplashes) _position();
+	}
+	
+	public function playAnim(name:String, forced:Bool = false, ?colors:Array<FlxColor>):Void
+	{
+		animation.play(name, forced);
+		
+		centerOrigin();
+		centerOffsets();
+		
+		if (animOffsets.exists(name))
 		{
-			default:
-				alpha = 1;
-				antialiasing = true;
-				animation.play('note' + data, true);
-				offset.set(-20, -20);
+			final _offsets = animOffsets.get(name);
+			offset.x += _offsets[0];
+			offset.y += _offsets[1];
 		}
 		
-		_position();
-		
-		rgbShader.enabled = skin.inEngineColoring;
-		rgbShader.setColors(sanitzedColourArray);
+		if (colors != null)
+		{
+			final sanitzedColourArray = colors ?? NoteUtil.colorToArray(skin.colors[data]);
+			
+			rgbShader.enabled = skin.inEngineColoring;
+			rgbShader.setColors(sanitzedColourArray);
+		}
 	}
 	
 	function loadAnims(skin:String)
@@ -97,41 +119,49 @@ class NoteSplash extends FlxSprite
 				{
 					if (data[noteData] == null || data[noteData].anim == null || data[noteData].xmlName == null) continue;
 					
+					final animName = data[noteData].anim;
+					final offsets = data[noteData].offsets;
+					
 					@:nullSafety(Off)
-					animation.addByPrefix(data[noteData].anim, data[noteData].xmlName, 24, false);
+					animation.addByPrefix(animName, data[noteData].xmlName, 24, false);
+					addOffset(animName, offsets[0], offsets[1]);
 				}
 		}
 		
 		_textureLoaded = skin;
 	}
 	
+	public function addOffset(name:String, x:Float = 0, y:Float = 0):Void animOffsets.set(name, [x, y]);
+	
 	override function update(elapsed:Float)
 	{
 		if (animation.curAnim != null) if (animation.curAnim.finished) kill();
-		
-		// alpha tracking
-		if (rgbShader != null)
-		{
-			final _a = (_note?.rgbShader?.alphaMult ?? 1);
-			rgbShader.alphaMult = _a;
-		}
 		
 		super.update(elapsed);
 	}
 	
 	// doing this so the splash tracks the location of the strumnote if ur moving the notes actively with modmanager
-	private function _position()
+	function _position()
 	{
 		if (_strum != null)
 		{
-			final swagWidth = _strum.swagWidth ?? Note.swagWidth;
 			final _skin:NoteSkin = NoteUtil.getSkinFromID(player);
 			
 			final offsets = _skin.splashOffsets != null ? _skin.splashOffsets[data] : null;
-			final _X = (_strum.x + (offsets?.x ?? 0));
-			final _Y = (_strum.y + (offsets?.y ?? 0));
+			final _X = (_strum.x + (offsets?.x ?? 0) * scale.x / defScale.x);
+			final _Y = (_strum.y + (offsets?.y ?? 0) * scale.y / defScale.y);
 			
-			setPosition(_X - swagWidth * 0.95, _Y - swagWidth);
+			setPosition(_X + (_strum.width - width) * .5, _Y + (_strum.height - height) * .5);
 		}
+	}
+	
+	inline function get_data():Int return noteData;
+	inline function set_data(v:Int):Int return noteData = v;
+	
+	public override function destroy():Void
+	{
+		defScale.put();
+		
+		super.destroy();
 	}
 }

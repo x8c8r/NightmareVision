@@ -4,13 +4,17 @@ import funkin.data.*;
 import funkin.objects.Bopper;
 import funkin.game.shaders.RGBPalette.RGBShaderReference;
 
-class SustainSplash extends FlxSprite
+class SustainSplash extends FlxSprite implements funkin.game.modchart.IModNote
 {
 	public var rgbShader:RGBShaderReference;
 	
+	public var defScale:FlxPoint = FlxPoint.get(); // for modcharts to keep the scaling
+	public var skinOrigin:FlxPoint = FlxPoint.get();
+	
 	public var animOffsets:Map<String, Array<Float>> = new Map();
 	
-	public var data:Int = 0;
+	public var data(get, set):Int;
+	public var noteData:Int = 0;
 	
 	public var player:Int = 0;
 	
@@ -22,6 +26,8 @@ class SustainSplash extends FlxSprite
 	
 	// internal thing to optimize loading frames
 	@:noCompletion var _textureLoaded:Null<String> = null;
+	
+	public var skin:NoteSkin;
 	
 	public function new(x:Float = 0, y:Float = 0, noteData:Int = 0, player:Int = 0)
 	{
@@ -64,17 +70,19 @@ class SustainSplash extends FlxSprite
 	
 	public function playAnim(name:String, forced:Bool = false, ?colors:Array<FlxColor>)
 	{
-		centerOrigin();
-		
 		animation.play(name, forced);
+		
+		centerOrigin();
+		centerOffsets();
 		
 		if (animOffsets.exists(name))
 		{
 			final _offsets = animOffsets.get(name);
-			offset.set(_offsets[0], _offsets[1]);
+			offset.x += _offsets[0];
+			offset.y += _offsets[1];
 		}
 		
-		final skin:NoteSkin = NoteUtil.getSkinFromID(this.player);
+		skin = NoteUtil.getSkinFromID(this.player);
 		
 		final sanitzedColourArray = colors ?? NoteUtil.colorToArray(skin.colors[data]);
 		tempColor = sanitzedColourArray;
@@ -91,13 +99,22 @@ class SustainSplash extends FlxSprite
 		data = note.noteData;
 		
 		visible = true;
+		angle = 0;
 		alpha = 1;
 		
 		this.player = field?.player ?? 0;
 		
 		final skin = NoteUtil.getSkinFromID(player);
 		
-		if (skin != null) scale.set(skin.susSplashScale, skin.susSplashScale);
+		if (skin != null)
+		{
+			scale.set(skin.susSplashScale, skin.susSplashScale);
+			defScale.copyFrom(scale);
+			
+			if (skin.susSplashOrigin != null) skinOrigin.set(skin.susSplashOrigin[0], skin.susSplashOrigin[1]);
+		}
+		
+		updateHitbox();
 		
 		playAnim('start$data', true, colourInput);
 		_position();
@@ -110,25 +127,31 @@ class SustainSplash extends FlxSprite
 	
 	override public function update(elapsed:Float)
 	{
-		// alpha tracking
-		if (rgbShader != null)
-		{
-			final _a = (_note?.rgbShader?.alphaMult ?? 1);
-			rgbShader.alphaMult = _a;
-		}
-		_position();
-		
 		super.update(elapsed);
 	}
 	
-	public function _position()
+	inline function get_data():Int return noteData;
+	inline function set_data(v:Int):Int return noteData = v;
+	
+	function _position()
 	{
-		// doing this so the splash tracks the location of the strumnote if ur moving the notes actively with modmanager
 		if (_strum != null)
 		{
-			// for some reason doing just .x and .y breaks. so. hooray for bandaid fixes!!!
-			var pos = _strum.getMidpoint();
-			setPosition(pos.x - (_strum.swagWidth / 2), pos.y - (_strum.swagWidth / 2));
+			final _skin:NoteSkin = NoteUtil.getSkinFromID(player);
+			
+			final offsets = _skin.sustainSplashOffsets != null ? _skin.sustainSplashOffsets[data] : null;
+			final _X = (_strum.x + (offsets?.x ?? 0) * scale.x / defScale.x);
+			final _Y = (_strum.y + (offsets?.y ?? 0) * scale.y / defScale.y);
+			
+			setPosition(_X + (_strum.width - width) * .5, _Y + (_strum.height - height) * .5);
 		}
+	}
+	
+	public override function destroy():Void
+	{
+		defScale.put();
+		skinOrigin.put();
+		
+		super.destroy();
 	}
 }

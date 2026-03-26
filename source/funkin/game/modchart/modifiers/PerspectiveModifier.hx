@@ -62,13 +62,11 @@ class PerspectiveModifier extends NoteModifier
 	
 	override function getPos(time:Float, visualDiff:Float, timeDiff:Float, beat:Float, pos:Vector3, data:Int, player:Int, obj:FlxSprite) return getVector(pos.z, pos);
 	
-	override function updateReceptor(beat:Float, receptor:StrumNote, pos:Vector3, player:Int)
-	{
-		receptor.scale.scale(1 / pos.z);
-	}
+	override function updateReceptor(beat:Float, receptor:StrumNote, pos:Vector3, player:Int) receptor.scale.scale(1 / pos.z);
 	
-	override function updateNote(beat:Float, note:Note, pos:Vector3, player:Int)
-	{
-		note.scale.scale(1 / pos.z);
-	}
+	override function updateNote(beat:Float, note:Note, pos:Vector3, player:Int) note.scale.scale(1 / pos.z);
+	
+	override function updateNoteSplash(beat:Float, splash:NoteSplash, pos:Vector3, player:Int) splash.scale.scale(1 / pos.z);
+	
+	override function updateSustainSplash(beat:Float, splash:SustainSplash, pos:Vector3, player:Int) splash.scale.scale(1 / pos.z);
 }

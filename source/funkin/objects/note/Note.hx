@@ -22,7 +22,7 @@ typedef EventNote =
 	value2:String
 }
 
-class Note extends FlxSprite
+class Note extends FlxSprite implements funkin.game.modchart.IModNote
 {
 	public static var defaultNotes = ['No Animation', 'GF Sing', ''];
 	
@@ -32,6 +32,8 @@ class Note extends FlxSprite
 	public var noteScript:Null<FunkinScript> = null;
 	
 	public var defScale:FlxPoint = FlxPoint.get(); // for modcharts to keep the scaling
+	
+	public var animOffsets:Map<String, Array<Float>> = new Map();
 	
 	public var visualTime:Float = 0;
 	public var visualLength:Float = 0;
@@ -149,6 +151,8 @@ class Note extends FlxSprite
 	
 	public var owner:Character = null;
 	public var playField(default, set):PlayField;
+	public var sustainSplash:SustainSplash = null;
+	public var noteSplash:NoteSplash = null;
 	
 	public var skin:NoteSkin;
 	
@@ -253,7 +257,7 @@ class Note extends FlxSprite
 			
 			texture = '';
 			
-			if (!isSustainNote) animation.play(animation.exists('scroll') ? 'scroll' : 'scroll$noteData');
+			if (!isSustainNote) playAnim(animation.exists('scroll') ? 'scroll' : 'scroll$noteData');
 		}
 		
 		if (prevNote != null) prevNote.nextNote = this;
@@ -264,7 +268,7 @@ class Note extends FlxSprite
 			
 			copyAngle = false;
 			
-			animation.play(animation.exists('holdend') ? 'holdend' : 'holdend$noteData');
+			playAnim(animation.exists('holdend') ? 'holdend' : 'holdend$noteData');
 			isSustainEnd = true;
 			updateHitbox();
 			
@@ -272,7 +276,7 @@ class Note extends FlxSprite
 			
 			if (prevNote.isSustainNote)
 			{
-				prevNote.animation.play(animation.exists('hold') ? 'hold' : 'hold$noteData');
+				prevNote.playAnim(animation.exists('hold') ? 'hold' : 'hold$noteData');
 				prevNote.isSustainEnd = false;
 				
 				prevNote.updateHitbox();
@@ -331,7 +335,7 @@ class Note extends FlxSprite
 		baseScaleX = scale.x;
 		baseScaleY = scale.y;
 		
-		if (animName != null) animation.play(animName, true);
+		if (animName != null) playAnim(animName, true);
 		
 		if (inEditor && !skipScale)
 		{
@@ -348,6 +352,16 @@ class Note extends FlxSprite
 		x += swagWidth * (noteData % (skin?.keys ?? 4));
 		
 		if (noteScript != null) noteScript.executeFunc("postReloadNote", [this, _prefix, _texture, _suffix], this);
+	}
+	
+	public function playAnim(anim:String, force:Bool = false)
+	{
+		animation.play(anim, force);
+		
+		centerOffsets();
+		centerOrigin();
+		
+		if (animOffsets.exists(anim)) offset.set(offset.x + animOffsets.get(anim)[0], offset.y + animOffsets.get(anim)[1]);
 	}
 	
 	public function loadNoteAnims()
@@ -375,6 +389,34 @@ class Note extends FlxSprite
 		
 		baseScaleX = scale.x;
 		baseScaleY = scale.y;
+	}
+	
+	public function clip(strum:StrumNote)
+	{
+		if (strum.sustainReduce && wasGoodHit && Conductor.songPosition >= strumTime)
+		{
+			final x:Float = (x - strum.x - (strum.width - width) * .5), y:Float = (y - strum.y - strum.height * .5);
+			final mag:Float = Math.sqrt(x * x + y * y);
+			
+			var swagRect:FlxRect = getRect();
+			
+			swagRect.y = (mag / scale.y);
+			swagRect.height -= swagRect.y;
+			
+			clipRect = swagRect;
+		}
+	}
+	
+	inline function getRect()
+	{
+		final rect = (clipRect ?? new FlxRect());
+		
+		rect.x = 0;
+		rect.y = 0;
+		rect.width = frameWidth;
+		rect.height = frameHeight;
+		
+		return rect;
 	}
 	
 	override function update(elapsed:Float)

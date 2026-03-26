@@ -128,39 +128,35 @@
 	"noteSplashAnimations": [
 		{
 			"offsets": [
-				37,
-				12
+				-2,
+				-2
 			],
 			"xmlName": "note splash",
-			"anim": "note0",
-			"fps": 12
+			"anim": "note0"
 		},
 		{
 			"offsets": [
-				37,
-				18
+				-2,
+				-2
 			],
 			"xmlName": "note splash",
-			"anim": "note1",
-			"fps": 12
+			"anim": "note1"
 		},
 		{
 			"offsets": [
-				37,
-				18
+				-2,
+				-2
 			],
 			"xmlName": "note splash",
-			"anim": "note2",
-			"fps": 12
+			"anim": "note2"
 		},
 		{
 			"offsets": [
-				37,
-				18
+				-2,
+				-2
 			],
 			"xmlName": "note splash",
-			"anim": "note3",
-			"fps": 12
+			"anim": "note3"
 		}
 	],
 	"noteAnimations": [
@@ -286,20 +282,20 @@
 			{
 				"anim": "start",
 				"xmlName": "start",
-				"offsets": [-10, -10],
+				"offsets": [0, 0],
 				"looping": false
 			},
 			{
 				"anim": "loop",
 				"xmlName": "loop",
-				"offsets": [35, 25],
+				"offsets": [-10, 15],
 				"looping": true,
 				"fps": 12
 			},
 			{
 				"anim": "end",
 				"xmlName": "end",
-				"offsets": [40, 50],
+				"offsets": [0, 0],
 				"looping": false
 			}
 		],
@@ -307,20 +303,20 @@
 			{
 				"anim": "start",
 				"xmlName": "start",
-				"offsets": [-10, -10],
+				"offsets": [0, 0],
 				"looping": false
 			},
 			{
 				"anim": "loop",
 				"xmlName": "loop",
-				"offsets": [35, 25],
+				"offsets": [-10, 15],
 				"looping": true,
 				"fps": 12
 			},
 			{
 				"anim": "end",
 				"xmlName": "end",
-				"offsets": [40, 50],
+				"offsets": [0, 0],
 				"looping": false
 			}
 		],
@@ -328,20 +324,20 @@
 			{
 				"anim": "start",
 				"xmlName": "start",
-				"offsets": [-10, -10],
+				"offsets": [0, 0],
 				"looping": false
 			},
 			{
 				"anim": "loop",
 				"xmlName": "loop",
-				"offsets": [35, 25],
+				"offsets": [-10, 15],
 				"looping": true,
 				"fps": 12
 			},
 			{
 				"anim": "end",
 				"xmlName": "end",
-				"offsets": [40, 50],
+				"offsets": [0, 0],
 				"looping": false
 			}
 		],
@@ -349,20 +345,20 @@
 			{
 				"anim": "start",
 				"xmlName": "start",
-				"offsets": [-10, -10],
+				"offsets": [0, 0],
 				"looping": false
 			},
 			{
 				"anim": "loop",
 				"xmlName": "loop",
-				"offsets": [35, 25],
+				"offsets": [-10, 15],
 				"looping": true,
 				"fps": 12
 			},
 			{
 				"anim": "end",
 				"xmlName": "end",
-				"offsets": [40, 50],
+				"offsets": [0, 0],
 				"looping": false
 			}
 		]
@@ -378,5 +374,6 @@
 	"inGameColoring": true,
 	"receptorScale": 6,
 	"noteScale": 6,
-	"splashScale": 1.0
+	"splashScale": 1.5,
+	"susSplashOrigin": [-10, 15]
 }

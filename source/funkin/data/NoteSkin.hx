@@ -56,6 +56,9 @@ class NoteSkin implements IFlxDestroyable
 	public var splashScale:Float = 1;
 	public var susSplashScale:Float = 1;
 	
+	// other
+	public var susSplashOrigin:Array<Float> = [];
+	
 	// coloring
 	public var inEngineColoring:Bool = true;
 	public var colors:Array<ColorList> = [];
@@ -93,28 +96,6 @@ class NoteSkin implements IFlxDestroyable
 		splashAnims = data.noteSplashAnimations;
 		susSplashAnims = data.susSplashAnimations;
 		
-		for (i in 0...keys)
-		{
-			var safeDir:Int = (i % data.noteAnimations.length),
-				safeSplashDir:Int = (i % data.noteSplashAnimations.length);
-				
-			var noteAnims = data.noteAnimations[safeDir],
-				splashAnims = data.noteSplashAnimations[safeSplashDir];
-				
-			noteOffsets[i].x = noteAnims[0].offsets[0];
-			noteOffsets[i].y = noteAnims[0].offsets[1];
-			
-			sustainOffsets[i].x = noteAnims[1].offsets[0];
-			sustainOffsets[i].y = noteAnims[1].offsets[1];
-			
-			susEndOffsets[i].x = noteAnims[2].offsets[0];
-			susEndOffsets[i].y = noteAnims[2].offsets[1];
-			susEndOffsets[i].y *= (ClientPrefs.downScroll ? -1 : 1);
-			
-			splashOffsets[i].x = splashAnims.offsets[0];
-			splashOffsets[i].y = splashAnims.offsets[1];
-		}
-		
 		noteTexture = data.noteTexture;
 		splashTexture = data.splashTexture;
 		sustainSplashTexture = data.sustainSplashTexture;
@@ -127,6 +108,8 @@ class NoteSkin implements IFlxDestroyable
 		noteScale = data.noteScale;
 		splashScale = data.splashScale;
 		susSplashScale = data.susSplashScale;
+		
+		susSplashOrigin = data.susSplashOrigin;
 		
 		inEngineColoring = data.inGameColoring;
 		colors = data.arrowRGB;
@@ -224,6 +207,8 @@ typedef NoteSkinData =
 	?noteScale:Float,
 	?splashScale:Float,
 	?susSplashScale:Float,
+	
+	?susSplashOrigin:Array<Float>,
 	
 	?inGameColoring:Bool,
 	?arrowRGB:Array<ColorList>
