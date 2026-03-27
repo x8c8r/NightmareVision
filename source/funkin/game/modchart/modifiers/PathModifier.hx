@@ -72,7 +72,7 @@ class PathModifier extends NoteModifier
 	{
 		if (getValue(player) == 0) return pos;
 		
-		final progress = (visualDiff / moveSpeed * totalDists[data]);
+		final progress = (timeDiff / moveSpeed * totalDists[data]);
 		final clampProgress = FlxMath.bound(progress, 0, totalDists[data]);
 		
 		final daPath = pathData[data];
