@@ -2950,6 +2950,8 @@ class PlayState extends MusicBeatState
 		input.destroy();
 		input = FlxDestroyUtil.destroy(input);
 		
+		modManager = FlxDestroyUtil.destroy(modManager);
+		
 		for (i in NoteUtil.noteskins)
 			i = FlxDestroyUtil.destroy(i);
 		NoteUtil.noteskins = [];

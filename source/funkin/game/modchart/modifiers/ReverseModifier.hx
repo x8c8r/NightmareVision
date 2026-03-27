@@ -47,8 +47,6 @@ class ReverseModifier extends NoteModifier
 	
 	override function shouldExecute(player:Int, val:Float) return true;
 	
-	override function ignoreUpdateNote() return false;
-	
 	override function getPos(time:Float, visualDiff:Float, timeDiff:Float, beat:Float, pos:Vector3, data:Int, player:Int, obj:FlxSprite)
 	{
 		var perc = getReverseValue(data, player);

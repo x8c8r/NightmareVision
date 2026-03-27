@@ -9,7 +9,7 @@ import funkin.game.modchart.events.*;
 
 // Weird amalgamation of Schmovin' modifier system, Andromeda modifier system and my own new shit -neb
 // todo more safety this crashes too easily //still to do aha..
-class ModManager
+class ModManager implements IFlxDestroyable
 {
 	/**
 	 * Essential mods for regular play
@@ -351,4 +351,9 @@ class ModManager
 	}
 	
 	public function queueFuncOnce(step:Float, callback:(CallbackEvent, Float) -> Void) timeline.addEvent(new CallbackEvent(step, callback, this));
+	
+	public function destroy():Void
+	{
+		modArray = FlxDestroyUtil.destroyArray(modArray);
+	}
 }

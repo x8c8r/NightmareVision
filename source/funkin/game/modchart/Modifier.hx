@@ -21,7 +21,7 @@ enum abstract ModifierOrder(Int) to Int
 	var LAST = 1000;
 }
 
-class Modifier
+class Modifier implements IFlxDestroyable
 {
 	public var modMgr:ModManager;
 	public var percents:Array<Float> = [0, 0];
@@ -32,12 +32,6 @@ class Modifier
 	// modifiers are only called if active is true
 	
 	public function getModType() return MISC_MOD; // if this is NOTE_MOD then this will be called on notes & receptors
-	
-	public function ignorePos() return false;
-	
-	public function ignoreUpdateReceptor() return true;
-	
-	public function ignoreUpdateNote() return true;
 	
 	public function doesUpdate() return getModType() == MISC_MOD; // override in your modifier if you want it to have update(elapsed) called
 	
@@ -112,4 +106,6 @@ class Modifier
 	public function getPos(time:Float, diff:Float, tDiff:Float, beat:Float, pos:Vector3, data:Int, player:Int, obj:FlxSprite) return pos;
 	
 	public function update(elapsed:Float) {}
+	
+	public function destroy():Void {}
 }

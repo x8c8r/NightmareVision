@@ -4,8 +4,6 @@ class AlphaModifier extends NoteModifier
 {
 	override function getName() return 'stealth';
 	
-	override function ignorePos() return true;
-	
 	public static var fadeDistY = 120;
 	
 	public function getHiddenSudden(player:Int = -1)
@@ -93,10 +91,6 @@ class AlphaModifier extends NoteModifier
 	}
 	
 	override function shouldExecute(player:Int, val:Float) return true;
-	
-	override function ignoreUpdateReceptor() return false;
-	
-	override function ignoreUpdateNote() return false;
 	
 	override function updateNote(beat:Float, note:Note, pos:Vector3, player:Int)
 	{

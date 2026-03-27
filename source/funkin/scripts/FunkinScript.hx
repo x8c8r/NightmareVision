@@ -277,6 +277,7 @@ class FunkinScript extends IrisEx implements IFlxDestroyable
 		set("ModManager", funkin.game.modchart.ModManager);
 		set("SubModifier", funkin.game.modchart.SubModifier);
 		set("NoteModifier", funkin.game.modchart.NoteModifier);
+		set("ScriptedModifier", funkin.game.modchart.ScriptedModifier);
 		set("EventTimeline", funkin.game.modchart.EventTimeline);
 		set("Modifier", funkin.game.modchart.Modifier);
 		set("StepCallbackEvent", funkin.game.modchart.events.StepCallbackEvent);
@@ -348,6 +349,8 @@ class FunkinScript extends IrisEx implements IFlxDestroyable
 		
 		set('inGameOver', false);
 		
+		set("game", FlxG.state);
+		
 		if ((FlxG.state is PlayState))
 		{
 			set("inPlaystate", true);
@@ -369,7 +372,6 @@ class FunkinScript extends IrisEx implements IFlxDestroyable
 			set('startedCountdown', false);
 			set('mustHitSection', PlayState.SONG?.notes[0]?.mustHitSection ?? false);
 			
-			set("game", FlxG.state);
 			set("global", PlayState.instance.variables);
 			set("getInstance", funkin.scripting.ScriptConstants.getInstance);
 			

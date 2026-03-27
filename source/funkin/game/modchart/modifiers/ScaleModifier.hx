@@ -63,12 +63,6 @@ class ScaleModifier extends NoteModifier
 	
 	override function shouldExecute(player:Int, val:Float) return true;
 	
-	override function ignorePos() return true;
-	
-	override function ignoreUpdateReceptor() return false;
-	
-	override function ignoreUpdateNote() return false;
-	
 	override function updateNote(beat:Float, note:Note, pos:Vector3, player:Int)
 	{
 		note.scale.copyFrom(getObjectScale(note, 'note', player));

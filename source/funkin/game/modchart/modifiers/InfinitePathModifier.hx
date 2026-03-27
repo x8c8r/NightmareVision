@@ -2,7 +2,10 @@ package funkin.game.modchart.modifiers;
 
 class InfinitePathModifier extends PathModifier
 {
-	override function getName() return 'infinite';
+	public function new(modMgr:ModManager, prefix:String = 'infinite', ?parent:Modifier)
+	{
+		super(modMgr, prefix, parent);
+	}
 	
 	override function getMoveSpeed()
 	{
@@ -13,6 +16,8 @@ class InfinitePathModifier extends PathModifier
 	{
 		var infPath:Array<Array<Vector3>> = [[], [], [], []];
 		
+		final step:Int = (ClientPrefs.lowQuality ? 15 : 3);
+		
 		var r = 0;
 		while (r < 360)
 		{
@@ -21,8 +26,9 @@ class InfinitePathModifier extends PathModifier
 				var rad = r * Math.PI / 180;
 				infPath[data].push(Vector3.get(FlxG.width * 0.5 + (FlxMath.fastSin(rad)) * 600, FlxG.height * 0.5 + (FlxMath.fastSin(rad) * FlxMath.fastCos(rad)) * 600, 0));
 			}
-			r += 15;
+			r += step;
 		}
+		
 		return infPath;
 	}
 }

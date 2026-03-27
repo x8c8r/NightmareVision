@@ -11,11 +11,13 @@ class PathInfo
 
 class PathModifier extends NoteModifier
 {
+	var prefix:String;
+	
 	var moveSpeed:Float;
 	var pathData:Array<Array<PathInfo>> = [];
 	var totalDists:Array<Float> = [];
 	
-	override function getName() return 'basePath';
+	override function getName() return prefix;
 	
 	public function getMoveSpeed()
 	{
@@ -27,12 +29,10 @@ class PathModifier extends NoteModifier
 		return [];
 	}
 	
-	public function new(modMgr:ModManager, ?parent:Modifier)
+	public function tracePath(path:Array<Array<Vector3>>):Void
 	{
-		super(modMgr, parent);
-		moveSpeed = getMoveSpeed();
-		
-		final path:Array<Array<Vector3>> = getPath();
+		pathData.resize(0);
+		totalDists.resize(0);
 		
 		for (dir in 0 ... path.length)
 		{
@@ -61,18 +61,28 @@ class PathModifier extends NoteModifier
 					});
 			}
 		}
+	}
+	
+	public function new(modMgr:ModManager, prefix:String = 'basePath', ?parent:Modifier)
+	{	
+		this.prefix = prefix;
 		
-		for (dir in 0...totalDists.length)
-		{
-			// trace(dir, totalDists[dir]);
-		}
+		super(modMgr, parent);
+		
+		moveSpeed = getMoveSpeed();
+		
+		tracePath(getPath());
 	}
 	
 	override function getPos(time:Float, visualDiff:Float, timeDiff:Float, beat:Float, pos:Vector3, data:Int, player:Int, obj:FlxSprite)
 	{
 		if (getValue(player) == 0) return pos;
 		
-		final progress = (timeDiff / moveSpeed * totalDists[data]);
+		final prefix:String = getName();
+		
+		final moveSpeed:Float = (moveSpeed * (1 - getSubmodValue('${prefix}speed', player)));
+		
+		final progress = ((getSubmodValue('${prefix}visual', player) > 0 ? visualDiff : timeDiff) / moveSpeed * totalDists[data]);
 		final clampProgress = FlxMath.bound(progress, 0, totalDists[data]);
 		
 		final daPath = pathData[data];
@@ -97,6 +107,8 @@ class PathModifier extends NoteModifier
 	
 	override function getSubmods()
 	{
-		return [];
+		final prefix:String = getName();
+		
+		return ['${prefix}visual', '${prefix}speed'];
 	}
 }
