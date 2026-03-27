@@ -24,7 +24,7 @@ class Main extends Sprite
 			fps: 60,
 			skipSplash: #if debug true #else false #end,
 			startFullScreen: false,
-			initialState: funkin.states.editors.WIPNoteSkinEditor
+			initialState: funkin.states.TitleState
 		};
 		
 	static function __init__()
