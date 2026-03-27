@@ -121,7 +121,8 @@ class PlayField extends FlxTypedContainer<StrumNote>
 	**/
 	public var grpSusSplashes:FlxTypedContainer<SustainSplash>;
 	
-	public function new(x:Float, y:Float, keyCount:Int = 4, ?who:Character, isPlayer:Bool = false, cpu:Bool = false, ?playerControls:Bool, player:Int = 0, skin:String = 'default')
+	public function new(x:Float, y:Float, keyCount:Int = 4, ?who:Character, isPlayer:Bool = false, cpu:Bool = false, ?playerControls:Bool, player:Int = 0, skin:String = 'default',
+			?_skinInput:Null<NoteSkin> = null)
 	{
 		super();
 		if (playerControls == null) playerControls = isPlayer;
@@ -137,8 +138,12 @@ class PlayField extends FlxTypedContainer<StrumNote>
 		this.baseY = y;
 		this.keyCount = keyCount;
 		
-		this._skin = new NoteSkin(skin, keyCount, player);
-		NoteUtil.noteskins.push(this._skin);
+		if (_skinInput != null) this._skin = _skinInput;
+		else
+		{
+			this._skin = new NoteSkin(skin, keyCount, player);
+			NoteUtil.noteskins.push(this._skin);
+		}
 		
 		splashLayer = new FlxTypedContainer();
 		
@@ -550,5 +555,22 @@ class PlayField extends FlxTypedContainer<StrumNote>
 		onMissPress.destroy();
 		
 		super.destroy();
+	}
+	
+	// just because
+	override public function toString():String
+	{
+		var str = 'keys: $keyCount, pos: [x: $baseX, y: $baseY], skin: ${_skin.name}';
+		
+		if (owner != null && singers.length > 0)
+		{
+			var _singers = [];
+			for (i in singers)
+				_singers.push(i?.curCharacter ?? 'dad');
+				
+			str += ', owner: ${owner?.curCharacter ?? 'dad'}, singers: $_singers';
+		}
+		
+		return '($str)';
 	}
 }

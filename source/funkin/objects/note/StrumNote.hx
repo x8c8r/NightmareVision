@@ -96,8 +96,11 @@ class StrumNote extends FlxSprite implements funkin.game.modchart.IModNote
 	{
 		if (!useRGBShader) return;
 		
+		final fallback = skin.colors != null ? NoteUtil.colorToArray(skin.colors[noteData]) : NoteUtil.getCurColors(noteData, (isQuant && note != null) ? note.quant : 4, player);
+		
 		var arr:Array<FlxColor> = note?.rgbShader?.colorArray ?? [];
-		if (arr == null || arr.length <= 0) arr = NoteUtil.getCurColors(noteData, (isQuant && note != null) ? note.quant : 4, player);
+		if (arr == null || arr.length <= 0) arr = fallback;
+		// if (arr == null || arr.length <= 0) arr = NoteUtil.getCurColors(noteData, (isQuant && note != null) ? note.quant : 4, player);
 		
 		if (isQuant && anim == 'pressed') arr = ClientPrefs.arrowRGBquant[0];
 		
