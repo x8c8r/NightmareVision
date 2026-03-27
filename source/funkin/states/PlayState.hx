@@ -609,6 +609,8 @@ class PlayState extends MusicBeatState
 		
 		FunkinAssets.cache.clearStoredMemory();
 		
+		funkin.backend.DebugDisplay.addPlugin(() -> 'curStep: $curStep • curBeat: $curBeat • curSection: $curSection');
+		
 		skipCountdown = false;
 		countdownSounds = true;
 		

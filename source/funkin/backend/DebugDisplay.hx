@@ -111,6 +111,8 @@ class DebugDisplay extends Sprite
 	
 	public var displayType:Int = FpsDisplayMode.SIMPLE;
 	
+	public var plugins:Array<Void -> Null<String>> = [];
+	
 	var times:Array<Float> = [];
 	
 	var deltaTimeout:Float = 0.0;
@@ -140,6 +142,15 @@ class DebugDisplay extends Sprite
 		
 		this.x = x;
 		this.y = y;
+	}
+	
+	public static function addPlugin(fun:Void -> String):Void -> Null<String>
+	{
+		if (instance == null || instance.plugins.contains(fun)) return fun;
+		
+		instance.plugins.push(fun);
+		
+		return fun;
 	}
 	
 	// Event Handlers
@@ -192,8 +203,21 @@ class DebugDisplay extends Sprite
 			
 			str += '\nState: $className';
 			
-			if (className.indexOf('PlayState') != -1)
-				str += '\ncurStep: ${PlayState.instance?.curStep ?? 0} • curBeat: ${PlayState.instance?.curBeat ?? 0} • curSection: ${PlayState.instance?.curSection ?? 0}';
+			for (fun in plugins)
+			{
+				try
+				{
+					final pluginStr:Null<String> = fun();
+					
+					if (pluginStr != null && pluginStr.length > 0) str += '\n$pluginStr';
+				}
+				catch (e:Dynamic)
+				{
+					Logger.log('Error on debug display plugin: $e', WARN);
+					
+					plugins.remove(fun);
+				}
+			}
 		}
 		
 		textField.text = str;
