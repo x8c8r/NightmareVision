@@ -1056,6 +1056,7 @@ class PlayState extends MusicBeatState
 		
 		modManager.registerEssentialModifiers();
 		modManager.registerDefaultModifiers();
+		modManager.registerScriptedModifiers();
 		modifiersRegistered = true;
 		
 		scripts.call('postModifierRegister');

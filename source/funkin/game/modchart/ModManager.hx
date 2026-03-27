@@ -55,6 +55,18 @@ class ModManager implements IFlxDestroyable
 			setValue('xmod$i', 1);
 	}
 	
+	public function registerScriptedModifiers()
+	{
+		for (file in Paths.listAllFilesInDirectory('scripts/modifiers').filter(path -> funkin.scripts.FunkinScript.isHxFile(path)))
+		{
+			var name = file.withoutExtension();
+			
+			quickRegister(new ScriptedModifier(this, name));
+			
+			Logger.log('Registered scripted modifier: $name');
+		}
+	}
+	
 	private var state:PlayState;
 	
 	public var lanes:Int = 2;
@@ -73,16 +85,16 @@ class ModManager implements IFlxDestroyable
 	
 	inline public function quickRegister(mod:Modifier) registerMod(mod.getName(), mod);
 	
-	public function registerMod(modName:String, mod:Modifier, ?registerSubmods = true)
+	public function registerMod(modName:String, mod:Modifier, registerSubmods:Bool = true)
 	{
+		final isNoteMod:Bool = (mod.getModType() == NOTE_MOD);
+		final modRegister:Map<String, Modifier> = (isNoteMod ? notemodRegister : miscmodRegister);
+		
+		if (modRegister.exists(modName)) return Logger.log('Modifier "$modName" is already registered', WARN);
+		
+		modRegister.set(modName, mod);
+		
 		register.set(modName, mod);
-		switch (mod.getModType())
-		{
-			case NOTE_MOD:
-				notemodRegister.set(modName, mod);
-			case MISC_MOD:
-				miscmodRegister.set(modName, mod);
-		}
 		timeline.addMod(modName);
 		modArray.push(mod);
 		

@@ -76,16 +76,16 @@ class PathModifier extends NoteModifier
 	
 	override function getPos(time:Float, visualDiff:Float, timeDiff:Float, beat:Float, pos:Vector3, data:Int, player:Int, obj:FlxSprite)
 	{
-		if (getValue(player) == 0) return pos;
+		if (getValue(player) == 0 || pathData.length == 0) return pos;
+		
+		final daPath = pathData[data % pathData.length], totalDist = totalDists[data % totalDists.length];
 		
 		final prefix:String = getName();
 		
 		final moveSpeed:Float = (moveSpeed * (1 - getSubmodValue('${prefix}speed', player)));
 		
-		final progress = ((getSubmodValue('${prefix}visual', player) > 0 ? visualDiff : timeDiff) / moveSpeed * totalDists[data]);
-		final clampProgress = FlxMath.bound(progress, 0, totalDists[data]);
-		
-		final daPath = pathData[data];
+		final progress = ((getSubmodValue('${prefix}visual', player) > 0 ? visualDiff : timeDiff) / moveSpeed * totalDist);
+		final clampProgress = FlxMath.bound(progress, 0, totalDist);
 		
 		for (idx in 0 ... daPath.length - 1)
 		{
