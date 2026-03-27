@@ -111,7 +111,7 @@ class DebugDisplay extends Sprite
 	
 	public var displayType:Int = FpsDisplayMode.SIMPLE;
 	
-	public var plugins:Array<Void -> Null<String>> = [];
+	public var plugins:Array<Void->Null<String>> = [];
 	
 	var times:Array<Float> = [];
 	
@@ -144,7 +144,7 @@ class DebugDisplay extends Sprite
 		this.y = y;
 	}
 	
-	public static function addPlugin(fun:Void -> String):Void -> Null<String>
+	public static function addPlugin(fun:Void->String):Void->Null<String>
 	{
 		if (instance == null || instance.plugins.contains(fun)) return fun;
 		
@@ -211,7 +211,7 @@ class DebugDisplay extends Sprite
 					
 					if (pluginStr != null && pluginStr.length > 0) str += '\n$pluginStr';
 				}
-				catch (e:Dynamic)
+				catch (e)
 				{
 					Logger.log('Error on debug display plugin: $e', WARN);
 					
