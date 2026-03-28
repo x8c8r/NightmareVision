@@ -44,7 +44,7 @@ class NoteSkin implements IFlxDestroyable
 	public var antialiasing:Bool = true;
 	
 	// alpha
-    // not functional yet cuz i wanna make hotswapping shit functional first
+	// not functional yet cuz i wanna make hotswapping shit functional first
 	public var receptorAlpha:Float = 1.0;
 	public var sustainAlpha:Float = 1.0;
 	public var splashAlpha:Float = 1.0;

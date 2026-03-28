@@ -1614,12 +1614,14 @@ class PlayState extends MusicBeatState
 						if (Math.isNaN(fieldID)) fieldID = 0;
 				}
 				
-				final skin = new NoteSkin(event.value1, SONG.keys, fieldID);
+				var skin = new NoteSkin(event.value1, SONG.keys, fieldID);
 				
 				// load the skin so game no lag when change le skin
-				Paths.getSparrowAtlas(skin.noteTexture);
-				Paths.getSparrowAtlas(skin.splashTexture);
-				Paths.getSparrowAtlas(skin.sustainSplashTexture);
+				Paths.getAtlasFrames(skin.noteTexture);
+				Paths.getAtlasFrames(skin.splashTexture);
+				Paths.getAtlasFrames(skin.sustainSplashTexture);
+				
+				skin = FlxDestroyUtil.destroy(skin);
 			case 'Change Character':
 				var charType:Int = 0;
 				switch (event.value1.toLowerCase())
