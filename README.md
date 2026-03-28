@@ -47,3 +47,5 @@ In a cmd within the project directory, in order run...
 > haxelib run hxpkg install
 
 After that is complete, run `lime test windows` and you should be compiling
+
+If you get errors related to lime, run `lime rebuild cpp`

@@ -1,6 +1,5 @@
 package funkin.states.editors.ui;
 
-import haxe.ui.containers.dialogs.Dialogs.FileDialogTypes;
 import haxe.ui.containers.dialogs.SaveFileDialog;
 import haxe.ui.backend.SaveFileDialogBase;
 import haxe.ui.components.Label;

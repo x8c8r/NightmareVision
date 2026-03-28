@@ -168,7 +168,7 @@ class DebugDisplay extends Sprite
 			return;
 		}
 		
-		currentFPS = times.length < FlxG.updateFramerate ? times.length : FlxG.updateFramerate;
+		currentFPS = times.length;
 		updateText();
 		textUnderlay.width = textField.width + 3;
 		textUnderlay.height = textField.height + (displayType == FpsDisplayMode.ADVANCED ? 0 : -5);

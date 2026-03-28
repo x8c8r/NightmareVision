@@ -1,16 +1,29 @@
 package extensions.openfl;
 
+import openfl.Lib;
+
+import lime.ui.FileDialog;
+
+import openfl.filesystem.File;
+
 import haxe.io.Path;
 import haxe.Timer;
 
-import lime.ui.FileDialogType;
-
+// import lime.ui.FileDialogType;
 import openfl.net.FileFilter;
 import openfl.net.FileReference;
 
+enum FileType
+{
+	OPEN;
+	OPEN_MULTIPLE;
+	SAVE;
+	OPEN_DIRECTORY;
+}
+
 typedef BrowseOptions =
 {
-	openStyle:FileDialogType,
+	openStyle:FileType,
 	?typeFilter:Array<FileFilter>,
 	?title:String,
 	?defaultSearch:String
@@ -92,46 +105,83 @@ class FileReferenceEx extends FileReference
 	 * Use over browse!
 	 */
 	@:inheritDoc(openfl.net.FileReference.browse)
-	public function browseForFile(browseOptions:BrowseOptions)
+	// public function browseForFile(browseOptions:BrowseOptions)
+	// {
+	// 	__data = null;
+	// 	__path = null;
+	// 	#if desktop
+	// 	var filter:String = null;
+	// 	if (browseOptions.typeFilter != null)
+	// 	{
+	// 		var filters:Array<String> = [];
+	// 		for (type in browseOptions.typeFilter)
+	// 		{
+	// 			filters.push(StringTools.replace(StringTools.replace(type.extension, "*.", ""), ";", ","));
+	// 		}
+	// 		filter = filters.join(";");
+	// 	}
+	// 	#if (lime && !macro)
+	// 	var openFileDialog = new lime.ui.FileDialog();
+	// 	openFileDialog.onCancel.add(openFileDialog_onCancel);
+	// 	if (browseOptions.openStyle == OPEN_MULTIPLE) openFileDialog.onSelectMultiple.add(openFileDialog_onSelectMultiple);
+	// 	else openFileDialog.onSelect.add(openFileDialog_onSelect);
+	// 	openFileDialog.browse(browseOptions.openStyle, filter, browseOptions.defaultSearch, browseOptions.title);
+	// 	return true;
+	// 	#end
+	// 	#elseif (js && html5)
+	// 	var filter:String = null;
+	// 	if (typeFilter != null)
+	// 	{
+	// 		var filters:Array<String> = [];
+	// 		for (type in typeFilter)
+	// 		{
+	// 			filters.push(StringTools.replace(StringTools.replace(type.extension, "*.", "."), ";", ","));
+	// 		}
+	// 		filter = filters.join(",");
+	// 	}
+	// 	if (filter != null)
+	// 	{
+	// 		__inputControl.setAttribute("accept", filter);
+	// 	}
+	// 	else
+	// 	{
+	// 		__inputControl.removeAttribute("accept");
+	// 	}
+	// 	__inputControl.onchange = function() {
+	// 		if (__inputControl.files.length == 0)
+	// 		{
+	// 			dispatchEvent(new Event(Event.CANCEL));
+	// 			return;
+	// 		}
+	// 		var file = __inputControl.files[0];
+	// 		modificationDate = Date.fromTime(file.lastModified);
+	// 		creationDate = modificationDate;
+	// 		size = file.size;
+	// 		type = "." + Path.extension(file.name);
+	// 		name = Path.withoutDirectory(file.name);
+	// 		__path = file.name;
+	// 		dispatchEvent(new Event(Event.SELECT));
+	// 	}
+	// 	__inputControl.click();
+	// 	return true;
+	// 	#end
+	// 	return false;
+	// }
+	public function browseForFile(browseOptions:BrowseOptions):Bool
 	{
 		__data = null;
 		__path = null;
 		
-		#if desktop
+		#if (js && html5)
 		var filter:String = null;
-		
 		if (browseOptions.typeFilter != null)
 		{
 			var filters:Array<String> = [];
-			
 			for (type in browseOptions.typeFilter)
 			{
-				filters.push(StringTools.replace(StringTools.replace(type.extension, "*.", ""), ";", ","));
+				browseOptions.filters.push(StringTools.replace(StringTools.replace(type.extension, "*.", "."), ";", ","));
 			}
-			
-			filter = filters.join(";");
-		}
-		
-		#if (lime && !macro)
-		var openFileDialog = new lime.ui.FileDialog();
-		openFileDialog.onCancel.add(openFileDialog_onCancel);
-		
-		if (browseOptions.openStyle == OPEN_MULTIPLE) openFileDialog.onSelectMultiple.add(openFileDialog_onSelectMultiple);
-		else openFileDialog.onSelect.add(openFileDialog_onSelect);
-		
-		openFileDialog.browse(browseOptions.openStyle, filter, browseOptions.defaultSearch, browseOptions.title);
-		return true;
-		#end
-		#elseif (js && html5)
-		var filter:String = null;
-		if (typeFilter != null)
-		{
-			var filters:Array<String> = [];
-			for (type in typeFilter)
-			{
-				filters.push(StringTools.replace(StringTools.replace(type.extension, "*.", "."), ";", ","));
-			}
-			filter = filters.join(",");
+			browseOptions.filter = browseOptions.filters.join(",");
 		}
 		if (filter != null)
 		{
@@ -144,7 +194,18 @@ class FileReferenceEx extends FileReference
 		__inputControl.onchange = function() {
 			if (__inputControl.files.length == 0)
 			{
-				dispatchEvent(new Event(Event.CANCEL));
+				#if openfl_pool_events
+				var cancelEvent = Event.__pool.get();
+				cancelEvent.type = Event.CANCEL;
+				#else
+				var cancelEvent = new Event(Event.CANCEL);
+				#end
+				
+				dispatchEvent(cancelEvent);
+				
+				#if openfl_pool_events
+				Event.__pool.release(cancelEvent);
+				#end
 				return;
 			}
 			var file = __inputControl.files[0];
@@ -154,9 +215,33 @@ class FileReferenceEx extends FileReference
 			type = "." + Path.extension(file.name);
 			name = Path.withoutDirectory(file.name);
 			__path = file.name;
-			dispatchEvent(new Event(Event.SELECT));
+			
+			#if openfl_pool_events
+			var selectEvent = Event.__pool.get();
+			selectEvent.type = Event.SELECT;
+			#else
+			var selectEvent = new Event(Event.SELECT);
+			#end
+			
+			dispatchEvent(selectEvent);
+			
+			#if openfl_pool_events
+			Event.__pool.release(selectEvent);
+			#end
 		}
 		__inputControl.click();
+		return true;
+		#else
+		FileDialog.openFile(Lib.current.stage.window, function(paths:Array<String>, filter):Void {
+			if (paths.length > 0)
+			{
+				openFileDialog_onSelect(paths[0]);
+			}
+			else
+			{
+				openFileDialog_onCancel();
+			}
+		}, @:privateAccess File.__getFilterTypes(browseOptions.typeFilter), __path, false);
 		return true;
 		#end
 		
