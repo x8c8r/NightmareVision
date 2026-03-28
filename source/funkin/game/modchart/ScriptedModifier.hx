@@ -21,7 +21,7 @@ class ScriptedModifier extends Modifier
 		
 		modName = (this.name = name).toLowerCase();
 		
-		script = FunkinScript.fromFile(FunkinScript.getPath('scripts/modifiers/$name'), PlayState.instance?.scripts?.scriptShareables);
+		script = FunkinScript.fromFile(FunkinScript.getPath('$name'), PlayState.instance?.scripts?.scriptShareables);
 		
 		script.set('NOTE_MOD', NOTE_MOD);
 		script.set('MISC_MOD', MISC_MOD);
