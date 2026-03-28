@@ -1617,9 +1617,9 @@ class PlayState extends MusicBeatState
 				final skin = new NoteSkin(event.value1, SONG.keys, fieldID);
 				
 				// load the skin so game no lag when change le skin
-				Paths.getSparrowAtlas(skin.noteTexture);
-				Paths.getSparrowAtlas(skin.splashTexture);
-				Paths.getSparrowAtlas(skin.sustainSplashTexture);
+				Paths.getAtlasFrames(skin.noteTexture);
+				Paths.getAtlasFrames(skin.splashTexture);
+				Paths.getAtlasFrames(skin.sustainSplashTexture);
 			case 'Change Character':
 				var charType:Int = 0;
 				switch (event.value1.toLowerCase())
