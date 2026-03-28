@@ -596,9 +596,17 @@ class PlayField extends FlxTypedContainer<StrumNote>
 		});
 		
 		grpNoteSplashes.forEachAlive((splash) -> {
+			splash.scale.set(_skin.splashScale, _skin.splashScale);
+			splash.defScale.copyFrom(splash.scale);
+			
 			splash.rgbShader.enabled = _skin.inEngineColoring;
 		});
 		grpSusSplashes.forEachAlive((splash) -> {
+			splash.scale.set(_skin.susSplashScale, _skin.susSplashScale);
+			splash.defScale.copyFrom(splash.scale);
+			
+			if (_skin.susSplashOrigin != null) splash.skinOrigin.set(_skin.susSplashOrigin[0], _skin.susSplashOrigin[1]);
+			
 			splash.rgbShader.enabled = _skin.inEngineColoring;
 		});
 	}

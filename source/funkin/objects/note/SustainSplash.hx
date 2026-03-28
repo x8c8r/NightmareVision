@@ -84,6 +84,14 @@ class SustainSplash extends FlxSprite implements funkin.game.modchart.IModNote
 		
 		skin = NoteUtil.getSkinFromID(this.player);
 		
+		if (skin != null)
+		{
+			scale.set(skin.susSplashScale, skin.susSplashScale);
+			defScale.copyFrom(scale);
+			
+			if (skin.susSplashOrigin != null) skinOrigin.set(skin.susSplashOrigin[0], skin.susSplashOrigin[1]);
+		}
+		
 		final sanitzedColourArray = colors ?? NoteUtil.colorToArray(skin.colors[data]);
 		tempColor = sanitzedColourArray;
 		
@@ -106,14 +114,6 @@ class SustainSplash extends FlxSprite implements funkin.game.modchart.IModNote
 		
 		final skin = NoteUtil.getSkinFromID(player);
 		
-		if (skin != null)
-		{
-			scale.set(skin.susSplashScale, skin.susSplashScale);
-			defScale.copyFrom(scale);
-			
-			if (skin.susSplashOrigin != null) skinOrigin.set(skin.susSplashOrigin[0], skin.susSplashOrigin[1]);
-		}
-		
 		updateHitbox();
 		
 		playAnim('start$data', true, colourInput);
@@ -131,6 +131,7 @@ class SustainSplash extends FlxSprite implements funkin.game.modchart.IModNote
 	}
 	
 	inline function get_data():Int return noteData;
+	
 	inline function set_data(v:Int):Int return noteData = v;
 	
 	function _position()

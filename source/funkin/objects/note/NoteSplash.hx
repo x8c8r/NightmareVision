@@ -24,6 +24,7 @@ class NoteSplash extends FlxSprite implements funkin.game.modchart.IModNote
 	 * The notedata of the splash
 	 */
 	public var data(get, set):Int;
+	
 	public var noteData:Int = 0;
 	
 	public var player:Int = 0;
@@ -49,6 +50,13 @@ class NoteSplash extends FlxSprite implements funkin.game.modchart.IModNote
 		rgbShader = NoteUtil.initRGBShader(this, noteData, 0, player);
 		
 		loadAnims(NoteUtil.getSkinFromID(player).splashTexture);
+		
+		final skin = NoteUtil.getSkinFromID(player);
+		if (skin != null)
+		{
+			scale.set(skin.splashScale, skin.splashScale);
+			defScale.copyFrom(scale);
+		}
 	}
 	
 	public function setupNoteSplash(strum:StrumNote, ?note:Note, ?texture:String, ?colourInput:Array<FlxColor>, ?field:PlayField)
@@ -67,12 +75,6 @@ class NoteSplash extends FlxSprite implements funkin.game.modchart.IModNote
 		texture ??= 'noteSplashes';
 		
 		if (_textureLoaded != texture) loadAnims(texture);
-		
-		if (skin != null)
-		{
-			scale.set(skin.splashScale, skin.splashScale);
-			defScale.copyFrom(scale);
-		}
 		
 		updateHitbox();
 		
@@ -156,6 +158,7 @@ class NoteSplash extends FlxSprite implements funkin.game.modchart.IModNote
 	}
 	
 	inline function get_data():Int return noteData;
+	
 	inline function set_data(v:Int):Int return noteData = v;
 	
 	public override function destroy():Void
