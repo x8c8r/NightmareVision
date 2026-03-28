@@ -91,6 +91,7 @@ class Note extends FlxSprite implements funkin.game.modchart.IModNote
 	
 	public var rgbShader:RGBShaderReference;
 	public var rgbEnabled:Bool = true;
+	public var reAssignable:Bool = true;
 	public var reColor:Array<FlxColor>;
 	
 	public static var globalRgbShaders:Array<RGBPalette> = [];
@@ -306,7 +307,7 @@ class Note extends FlxSprite implements funkin.game.modchart.IModNote
 		
 		if (noteScript != null) if (noteScript.executeFunc("onReloadNote", [this, _prefix, _texture, _suffix], this) == ScriptConstants.STOP_FUNC) return;
 		
-		skin = NoteUtil.getSkinFromID(player);
+		skin ??= NoteUtil.getSkinFromID(player);
 		
 		rgbShader.setColors(reColor);
 		
@@ -389,6 +390,28 @@ class Note extends FlxSprite implements funkin.game.modchart.IModNote
 		
 		baseScaleX = scale.x;
 		baseScaleY = scale.y;
+	}
+	
+	public function updateColors()
+	{
+		if (!reAssignable) return;
+		
+		reColor = NoteUtil.getCurColors(noteData, quant, player);
+		rgbShader.setColors(reColor);
+	}
+	
+	// SPECIFICALLY for note types, only use if u 100% do not want to have ur note re-colored
+	public function setCustomColor(color:Array<FlxColor>)
+	{
+		var fallback = NoteUtil.getCurColors(noteData, quant, player);
+		
+		reColor = fallback;
+		if (color != null || color.length == skin?.keys ?? 4)
+		{
+			reAssignable = false;
+			reColor = color;
+		}
+		rgbShader.setColors(reColor);
 	}
 	
 	public function clip(strum:StrumNote)

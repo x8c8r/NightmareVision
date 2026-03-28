@@ -1603,7 +1603,23 @@ class PlayState extends MusicBeatState
 						startTime: event.strumTime,
 						speed: speed
 					});
-					
+			case 'Change Noteskin':
+				var fieldID:Int = 0;
+				switch (event.value2.toLowerCase())
+				{
+					case 'dad' | 'opponent' | '1':
+						fieldID = 1;
+					default:
+						fieldID = Std.parseInt(event.value1);
+						if (Math.isNaN(fieldID)) fieldID = 0;
+				}
+				
+				final skin = new NoteSkin(event.value1, SONG.keys, fieldID);
+				
+				// load the skin so game no lag when change le skin
+				Paths.getSparrowAtlas(skin.noteTexture);
+				Paths.getSparrowAtlas(skin.splashTexture);
+				Paths.getSparrowAtlas(skin.sustainSplashTexture);
 			case 'Change Character':
 				var charType:Int = 0;
 				switch (event.value1.toLowerCase())
@@ -2263,6 +2279,18 @@ class PlayState extends MusicBeatState
 				
 				if (duration > 0) FlxTween.tween(camHUD, {alpha: leAlpha}, duration);
 				else camHUD.alpha = leAlpha;
+			case 'Camera Fade':
+				FlxTween.cancelTweensOf(camGame, ['alpha']);
+				
+				var leAlpha:Float = Std.parseFloat(value1);
+				if (Math.isNaN(leAlpha)) leAlpha = 1;
+				
+				var duration:Float = Std.parseFloat(value2);
+				if (Math.isNaN(duration)) duration = 1;
+				
+				if (duration > 0) FlxTween.tween(camGame, {alpha: leAlpha}, duration);
+				else camGame.alpha = leAlpha;
+				
 			case 'Play Animation':
 				var char:Character = dad;
 				switch (value2.toLowerCase().trim())
@@ -2342,7 +2370,23 @@ class PlayState extends MusicBeatState
 					
 					if (duration > 0 && intensity != 0) targetsArray[i].shake(intensity, duration);
 				}
+			case 'Change Noteskin':
+				var fieldID:Int = 0;
+				switch (value2.toLowerCase())
+				{
+					case 'dad' | 'opponent' | '1':
+						fieldID = 1;
+					default:
+						fieldID = Std.parseInt(value2);
+						if (Math.isNaN(fieldID)) fieldID = 0;
+				}
 				
+				var skin = new NoteSkin(value1, SONG.keys, fieldID);
+				skin.ID = fieldID;
+				
+				getFieldFromID(fieldID).changeSkin(skin);
+			// final field = getFieldFromID(ID)
+			
 			case 'Change Character':
 				var charType:Int = 0;
 				switch (value1)

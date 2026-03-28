@@ -183,44 +183,24 @@ class OLDChartEditorState extends MusicBeatState
 			'Change Character',
 			"Value 1: Character to change (Dad, BF, GF)\nValue 2: New character's name"
 		],
-		[
-			'Change Scroll Speed',
-			"Value 1: Scroll Speed Multiplier (1 is default)\nValue 2: Time it takes to change fully in seconds."
-		],
+		// my auto formatter is forcing it to be liek this. i will fix it later
+		['Change Noteskin', 'Value 1: name of the noteskin json to change to.\nValue 2: ID of strum to change. (0 -> player, 1 -> opponent, etc)'],
+		['Change Scroll Speed', "Value 1: Scroll Speed Multiplier (1 is default)\nValue 2: Time it takes to change fully in seconds."],
 		['Set Property', "Value 1: Variable name\nValue 2: New value"],
 		['HUD Fade', "Fades the HUD camera\n\nValue 1: Alpha\nValue 2: Duration"],
 		['Camera Fade', "Fades the game camera\n\nValue 1: Alpha\nValue 2: Duration"],
 		['Camera Flash', "Value 1: Color, Alpha (Optional)\nValue 2: Fade duration"],
-		[
-			'Camera Zoom',
-			"Changes the Camera Zoom.\n\nValue 1: Zoom Multiplier (1 is default)\n\nIn case you want a tween, use Value 2 like this:\n\n\"3, elasticOut\"\n(Duration, Ease Type)"
-		],
-		[
-			'Camera Zoom Chain',
-			"Value 1: Camera Zoom Values (0.015, 0.03)\n(also you can add another two values to make it\nzoom screen shake(0.015, 0.03, 0.01, 0.01))\n\nValue 2: Total Amount of Beat Cam Zooms and\nthe space with eachother (4, 1)"
-		],
-		[
-			'Screen Shake Chain',
-			"Value 1: Screen Shake Values (0.003, 0.0015)\n\nValue 2: Total Amount of Screen Shake per beat]"
-		],
-		['Set Cam Zoom', "Value 1: Zoom"],
-		['Set Cam Pos', "Value 1: X\nValue 2: Y"],
-		[
-			"Mult SV",
-			"Changes the notes' scroll velocity via multiplication.\nValue 1: Multiplier"
-		],
-		[
-			"Constant SV",
-			"Uses scroll velocity to set the speed to a constant number.\nValue 1: Constant"
-		],
-	];
-	
+		['Camera Zoom', "Changes the Camera Zoom.\n\nValue 1: Zoom Multiplier (1 is default)\n\nIn case you want a tween, use Value 2 like this:\n\n\"3, elasticOut\"\n(Duration, Ease Type)"],
+		['Camera Zoom Chain', "Value 1: Camera Zoom Values (0.015, 0.03)\n(also you can add another two values to make it\nzoom screen shake(0.015, 0.03, 0.01, 0.01))\n\nValue 2: Total Amount of Beat Cam Zooms and\nthe space with eachother (4, 1)"],
+		['Screen Shake Chain', "Value 1: Screen Shake Values (0.003, 0.0015)\n\nValue 2: Total Amount of Screen Shake per beat]"], ['Set Cam Zoom', "Value 1: Zoom"],
+		['Set Cam Pos', "Value 1: X\nValue 2: Y"], ["Mult SV", "Changes the notes' scroll velocity via multiplication.\nValue 1: Multiplier"],
+		["Constant SV", "Uses scroll velocity to set the speed to a constant number.\nValue 1: Constant"]];
+		
 	public var variables:Map<String, Dynamic> = new Map();
 	
 	var _file:FileReference;
 	
 	public static var UI_box:FlxUITabMenu;
-	
 	public static var goToPlayState:Bool = false;
 	
 	/**
@@ -233,7 +213,6 @@ class OLDChartEditorState extends MusicBeatState
 	private static var lastSong:String = '';
 	
 	var bpmTxt:FlxText;
-	
 	var camPos:FlxObject;
 	var strumLine:FlxSprite;
 	var quant:AttachedSprite;
@@ -241,7 +220,6 @@ class OLDChartEditorState extends MusicBeatState
 	var curSong:String = 'Test';
 	var amountSteps:Int = 0;
 	var bullshitUI:FlxGroup;
-	
 	var highlight:FlxSprite;
 	
 	public static var GRID_SIZE:Int = 40;
@@ -249,21 +227,16 @@ class OLDChartEditorState extends MusicBeatState
 	public var CAM_OFFSET:Float = 0;
 	
 	var dummyArrow:FlxSprite;
-	
 	var curRenderedSustains:FlxTypedGroup<FlxSprite>;
 	var curRenderedNotes:FlxTypedGroup<EditorNote>;
 	var curRenderedNoteType:FlxTypedGroup<FlxText>;
-	
 	var nextRenderedSustains:FlxTypedGroup<FlxSprite>;
 	var nextRenderedNotes:FlxTypedGroup<Note>;
-	
 	var prevRenderedSustains:FlxTypedGroup<FlxSprite>;
 	var prevRenderedNotes:FlxTypedGroup<Note>;
-	
 	var gridBG:FlxSprite;
 	var nextGridBG:FlxSprite;
 	var prevGridBG:FlxSprite;
-	
 	var daquantspot = 0;
 	var curEventSelected:Int = 0;
 	var curUndoIndex = 0;
@@ -276,7 +249,6 @@ class OLDChartEditorState extends MusicBeatState
 	**/
 	var curSelectedNotes:Array<Array<Dynamic>> = [];
 	var holdingNotes:Array<Array<Dynamic>> = [null, null, null, null, null, null, null, null];
-	
 	var tempBpm:Float = 0;
 	var playbackSpeed:Float = 1;
 	
@@ -286,20 +258,15 @@ class OLDChartEditorState extends MusicBeatState
 	var leftIcon:HealthIcon;
 	var rightIcon:HealthIcon;
 	var cameraIcon:FlxSprite;
-	
 	var value1InputText:FlxUIInputText;
 	var value2InputText:FlxUIInputText;
 	var currentSongName:String;
-	
 	var zoomTxt:FlxText;
-	
 	var zoomList:Array<Float> = [0.25, 0.5, 1, 2, 3, 4, 6, 8, 12, 16, 24];
 	var curZoom:Int = 2;
-	
 	private var blockPressWhileTypingOn:Array<FlxUIInputText> = [];
 	private var blockPressWhileTypingOnStepper:Array<FlxUINumericStepper> = [];
 	private var blockPressWhileScrolling:Array<FlxUIDropDownMenuEx> = [];
-	
 	var waveformSprite:FlxSprite;
 	var gridLayer:FlxTypedGroup<FlxSprite>;
 	
@@ -326,15 +293,12 @@ class OLDChartEditorState extends MusicBeatState
 	var bg:FlxSprite;
 	var gradient:FlxBackdrop;
 	var canAddNotes:Bool = true;
-	
 	var littleBF:OurLittleDiddy;
 	var littleDad:OurLittleDiddy;
 	var littleStage:FlxSprite;
-	
 	var dadIcon:String = 'dad';
 	var bfIcon:String = 'bf';
 	var gfIcon:String = 'gf';
-	
 	var endOffset:Int = 17;
 	var songEnded:Bool = false;
 	
@@ -1119,7 +1083,6 @@ class OLDChartEditorState extends MusicBeatState
 	var check_changeBPM:FlxUICheckBox;
 	var stepperSectionBPM:FlxUINumericStepper;
 	var check_altAnim:FlxUICheckBox;
-	
 	var sectionToCopy:Int = 0;
 	var notesCopied:Array<Dynamic>;
 	
