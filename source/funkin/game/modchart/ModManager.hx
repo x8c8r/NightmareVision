@@ -59,7 +59,7 @@ class ModManager implements IFlxDestroyable
 	{
 		for (file in Paths.listAllFilesInDirectory('scripts/modifiers').filter(path -> funkin.scripts.FunkinScript.isHxFile(path)))
 		{
-			var name = file.withoutExtension();
+			var name = file.withoutDirectory().withoutExtension();
 			
 			quickRegister(new ScriptedModifier(this, name));
 			
