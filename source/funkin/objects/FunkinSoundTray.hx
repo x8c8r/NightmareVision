@@ -22,7 +22,7 @@ class FunkinSoundTray extends FlxSoundTray
 	var lerpYPos:Float = 0;
 	var alphaTarget:Float = 0;
 	
-	var volumeMaxSound:String;
+	var volumeMaxSound:FlxSoundAsset;
 	
 	public function new()
 	{
@@ -74,8 +74,6 @@ class FunkinSoundTray extends FlxSoundTray
 		volumeUpSound = 'soundtray/Volup';
 		volumeDownSound = 'soundtray/Voldown';
 		volumeMaxSound = 'soundtray/VolMAX';
-		
-		// trace("Custom tray added!");
 	}
 	
 	override public function update(MS:Float):Void
@@ -140,7 +138,7 @@ class FunkinSoundTray extends FlxSoundTray
 		lerpYPos = 10;
 		visible = true;
 		active = true;
-		var globalVolume:Int = Math.round(FlxG.sound.volume * 10);
+		var globalVolume:Int = Math.round(FlxG.sound.logToLinear(FlxG.sound.volume) * 10);
 		
 		if (FlxG.sound.muted)
 		{
