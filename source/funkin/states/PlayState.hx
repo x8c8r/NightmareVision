@@ -1840,82 +1840,36 @@ class PlayState extends MusicBeatState
 			modManager.update(elapsed);
 		}
 		
-		if (unspawnNotes[0] != null)
+		final spawnOffset:Float = (spawnTime * playbackRate / songSpeed);
+		
+		while (unspawnNotes.length > 0 && (unspawnNotes[0].strumTime - Conductor.songPosition) < spawnOffset)
 		{
-			var time:Float = spawnTime * playbackRate; // shit be werid on 4:3
-			if (songSpeed < 1) time /= songSpeed;
+			final dunceNote:Note = unspawnNotes.shift();
 			
-			while (unspawnNotes.length > 0 && unspawnNotes[0].strumTime - Conductor.songPosition < time)
+			var doSpawn:Bool = (callNoteTypeScript(dunceNote.noteType, 'spawnNote', [dunceNote]) != ScriptConstants.STOP_FUNC);
+			if (doSpawn) doSpawn = (scripts.call('onSpawnNote', [dunceNote], false, [dunceNote.noteType]) != ScriptConstants.STOP_FUNC);
+			
+			final expectedPlayfield:Null<PlayField> = (doSpawn ? (getFieldFromID(dunceNote.lane) ?? dunceNote.parent?.playField) : null);
+			
+			if (expectedPlayfield == null)
 			{
-				final dunceNote:Note = unspawnNotes[0];
-				
-				var doSpawn:Bool = callNoteTypeScript(dunceNote.noteType, 'spawnNote', [dunceNote]) != ScriptConstants.STOP_FUNC;
-				
-				if (doSpawn) doSpawn = scripts.call('onSpawnNote', [dunceNote], false, [dunceNote.noteType]) != ScriptConstants.STOP_FUNC;
-				
-				if (doSpawn)
+				for (note in dunceNote.tail)
 				{
-					// rewrite this later this is messy
-					
-					final expectedPlayfield:Null<PlayField> = getFieldFromID(dunceNote.lane) ?? dunceNote.parent?.playField;
-					
-					if (expectedPlayfield != null) expectedPlayfield.addNote(dunceNote);
-					else
-					{
-						for (field in playFields?.members)
-						{
-							if (field.isPlayer == dunceNote.mustPress)
-							{
-								field.addNote(dunceNote);
-								break;
-							}
-						}
-					}
-					
-					if (dunceNote.playField == null)
-					{
-						var deadNotes:Array<Note> = [dunceNote];
-						for (note in dunceNote.tail)
-							deadNotes.push(note);
-							
-						for (note in deadNotes)
-						{
-							note.active = false;
-							note.visible = false;
-							note.ignoreNote = true;
-							
-							note.kill();
-							unspawnNotes.remove(note);
-							note.destroy();
-						}
-						break;
-					}
-					notes.insert(0, dunceNote);
-					dunceNote.spawned = true;
-					var index:Int = unspawnNotes.indexOf(dunceNote);
-					unspawnNotes.splice(index, 1);
-					
-					var ret:Dynamic = callNoteTypeScript(dunceNote.noteType, 'postSpawnNote', [dunceNote]);
-					if (ret != ScriptConstants.STOP_FUNC) scripts.call('onSpawnNotePost', [dunceNote], false, [dunceNote.noteType]);
+					unspawnNotes.remove(note);
+					note.destroy();
 				}
-				else
-				{
-					var deadNotes:Array<Note> = [dunceNote];
-					for (note in dunceNote.tail)
-						deadNotes.push(note);
-						
-					for (note in deadNotes)
-					{
-						note.active = false;
-						note.visible = false;
-						note.ignoreNote = true;
-						
-						note.kill();
-						unspawnNotes.remove(note);
-						note.destroy();
-					}
-				}
+				
+				dunceNote.destroy();
+				
+				continue;
 			}
+			
+			expectedPlayfield.addNote(dunceNote);
+			notes.insert(0, dunceNote);
+			dunceNote.spawned = true;
+			
+			var ret:Dynamic = callNoteTypeScript(dunceNote.noteType, 'postSpawnNote', [dunceNote]);
+			if (ret != ScriptConstants.STOP_FUNC) scripts.call('onSpawnNotePost', [dunceNote], false, [dunceNote.noteType]);
 		}
 		
 		var tempVector = funkin.backend.math.Vector3.get();
@@ -1939,14 +1893,9 @@ class PlayState extends MusicBeatState
 		{
 			for (playField in playFields)
 			{
-				final id = playField.ID;
-				final skin = playField._skin;
+				final id = playField.ID, skin = playField._skin;
 				
 				playField.forEachAlive(function(strum) modchart(strum, id, skin.receptorOffsets));
-				
-				playField.grpSusSplashes.forEachAlive(function(splash) modchart(splash, id, skin.sustainSplashOffsets));
-				
-				if (playField.trackNoteSplashes) playField.grpNoteSplashes.forEachAlive(function(splash) modchart(splash, id, skin.splashOffsets));
 			}
 		}
 		
@@ -1976,13 +1925,7 @@ class PlayState extends MusicBeatState
 						&& !daNote.canMiss && !endingSong && !daNote.wasGoodHit && field.playerControls && !field.autoPlayed) field.onNoteMiss.dispatch(daNote, field);
 				}
 				
-				if (daNote.garbage)
-				{
-					daNote.active = false;
-					daNote.visible = false;
-					
-					return disposeNote(daNote);
-				}
+				if (daNote.garbage) return disposeNote(daNote);
 				
 				if (!canUpdateModchart || !daNote.exists) return; // ok modchart stuff
 				
@@ -2037,6 +1980,18 @@ class PlayState extends MusicBeatState
 				daNote.x += ((_skin.noteOffsets[daNote.noteData].x + daNote.offsetX) * scaleXMult);
 				daNote.y += ((_skin.noteOffsets[daNote.noteData].y + daNote.offsetY) * scaleYMult);
 			});
+		}
+		
+		if (canUpdateModchart)
+		{
+			for (playField in playFields)
+			{
+				final id = playField.ID, skin = playField._skin;
+				
+				playField.grpSusSplashes.forEachAlive(function(splash) modchart(splash, id, skin.sustainSplashOffsets));
+				
+				if (playField.trackNoteSplashes) playField.grpNoteSplashes.forEachAlive(function(splash) modchart(splash, id, skin.splashOffsets));
+			}
 		}
 		
 		tempVector.put();
@@ -2999,9 +2954,8 @@ class PlayState extends MusicBeatState
 		
 		modManager = FlxDestroyUtil.destroy(modManager);
 		
-		for (i in NoteUtil.noteskins)
-			i = FlxDestroyUtil.destroy(i);
-		NoteUtil.noteskins = [];
+		FlxDestroyUtil.destroyArray(NoteUtil.noteskins);
+		NoteUtil.noteskins.resize(0);
 		
 		super.destroy();
 	}
