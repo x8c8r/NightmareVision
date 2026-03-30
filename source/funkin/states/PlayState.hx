@@ -1469,6 +1469,8 @@ class PlayState extends MusicBeatState
 				swagNote.gfNote = ((section.gfSection == swagNote.mustPress) && (songNotes[1] < SONG.keys));
 				
 				swagNote.noteType = type;
+				if(section.altAnim && type == '' || type == null)
+					swagNote.noteType == 'Alt Animation';
 				
 				swagNote.scrollFactor.set();
 				
