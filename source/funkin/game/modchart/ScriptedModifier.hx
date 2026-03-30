@@ -21,19 +21,11 @@ class ScriptedModifier extends Modifier
 		
 		modName = (this.name = name).toLowerCase();
 		
-		script = FunkinScript.fromFile(FunkinScript.getPath(name), name, PlayState.instance?.scripts?.scriptShareables);
+		final scriptPath:String = FunkinScript.getPath('scripts/modifiers/$name');
 		
-		script.set('NOTE_MOD', NOTE_MOD);
-		script.set('MISC_MOD', MISC_MOD);
+		if (FunkinAssets.exists(scriptPath)) script = FunkinScript.fromFile(scriptPath, name, PlayState.instance?.scripts?.scriptShareables);
 		
-		script.set('FIRST', FIRST);
-		script.set('PRE_REVERSE', PRE_REVERSE);
-		script.set('REVERSE', REVERSE);
-		script.set('POST_REVERSE', POST_REVERSE);
-		script.set('DEFAULT', DEFAULT);
-		script.set('LAST', LAST);
-		
-		if (script.__garbage)
+		if (script == null || script.__garbage)
 		{
 			Logger.log('Modifier script "$name" could not be loaded', WARN);
 			
@@ -41,6 +33,16 @@ class ScriptedModifier extends Modifier
 		}
 		else
 		{
+			script.set('NOTE_MOD', NOTE_MOD);
+			script.set('MISC_MOD', MISC_MOD);
+			
+			script.set('FIRST', FIRST);
+			script.set('PRE_REVERSE', PRE_REVERSE);
+			script.set('REVERSE', REVERSE);
+			script.set('POST_REVERSE', POST_REVERSE);
+			script.set('DEFAULT', DEFAULT);
+			script.set('LAST', LAST);
+			
 			@:privateAccess (cast script.interp : extensions.hscript.InterpEx).parent = this;
 			
 			modName = (script.executeFunc('getName', this) ?? modName);
