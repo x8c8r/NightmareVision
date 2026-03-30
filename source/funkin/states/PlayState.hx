@@ -1469,9 +1469,10 @@ class PlayState extends MusicBeatState
 				swagNote.gfNote = ((section.gfSection == swagNote.mustPress) && (songNotes[1] < SONG.keys));
 				
 				swagNote.noteType = type;
-				if(section.altAnim && type == '' || type == null)
-					swagNote.noteType == 'Alt Animation';
-				
+
+				if((section?.altAnim ?? false) && (type == '' || type == null))
+					swagNote.noteType = 'Alt Animation';
+
 				swagNote.scrollFactor.set();
 				
 				var susLength:Float = swagNote.sustainLength;
@@ -1496,7 +1497,7 @@ class PlayState extends MusicBeatState
 					sustainNote.sustainLength = holdCrotchet;
 					sustainNote.mustPress = (playfield == 0);
 					sustainNote.gfNote = swagNote.gfNote;
-					sustainNote.noteType = type;
+					sustainNote.noteType = swagNote.noteType;
 					
 					if (ClientPrefs.guitarHeroSustains && !swagNote.hitCausesMiss && !swagNote.canMiss) sustainNote.blockHit = true; // stops you from holding a note without key pressing first
 					if (!sustainNote.alive) break;
