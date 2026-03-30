@@ -1,5 +1,7 @@
 package funkin.backend;
 
+import flixel.system.frontEnds.SoundFrontEnd;
+
 import openfl.events.Event;
 
 import funkin.scripting.ScriptedState;
@@ -15,6 +17,10 @@ class FunkinGame extends flixel.FlxGame
 		_customSoundTray = funkin.objects.FunkinSoundTray;
 		
 		super.create(_);
+		
+		#if FLX_SOUND_SYSTEM
+		untyped FlxG.sound = new FunkinSoundFrontEnd();
+		#end
 	}
 	
 	override function switchState():Void
@@ -88,5 +94,15 @@ class FunkinGame extends flixel.FlxGame
 		#end
 		
 		FlxG.signals.postStateSwitch.dispatch();
+	}
+}
+
+class FunkinSoundFrontEnd extends SoundFrontEnd
+{
+	override function changeVolume(Amount:Float)
+	{
+		muted = false;
+		volume += Amount;
+		showSoundTray(Amount > 0);
 	}
 }
