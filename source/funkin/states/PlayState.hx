@@ -1787,10 +1787,6 @@ class PlayState extends MusicBeatState
 		super.update(elapsed);
 		input.update(elapsed);
 		
-		currentSV = getSV(Conductor.songPosition);
-		Conductor.visualPosition = getVisualPosition();
-		checkEventNote();
-		
 		if (controls.PAUSE && startedCountdown && canPause)
 		{
 			if (scripts.call('onPause', []) != ScriptConstants.STOP_FUNC) openPauseMenu();
@@ -1826,6 +1822,11 @@ class PlayState extends MusicBeatState
 				Conductor.lastSongPos = audio.time;
 			}
 		}
+		
+		currentSV = getSV(Conductor.songPosition);
+		Conductor.visualPosition = getVisualPosition();
+		
+		checkEventNote();
 		
 		if (camZooming)
 		{
@@ -1901,7 +1902,7 @@ class PlayState extends MusicBeatState
 				playField.forEachAlive(function(strum) modchart(strum, id, skin.receptorOffsets));
 			}
 		}
-		
+			
 		if (generatedMusic)
 		{
 			if (!inCutscene)
@@ -1912,7 +1913,11 @@ class PlayState extends MusicBeatState
 					&& !boyfriend.getAnimName().endsWith('miss')) boyfriend.dance(boyfriend.forceDance);
 			}
 			
-			notes.forEachAlive(function(daNote:Note) {
+			var i:Int = notes.length;
+			while (-- i >= 0)
+			{
+				var daNote = notes.members[i];
+				
 				final field = daNote.playField;
 				
 				if (field.inControl && field.autoPlayed)
@@ -1928,9 +1933,14 @@ class PlayState extends MusicBeatState
 						&& !daNote.canMiss && !endingSong && !daNote.wasGoodHit && field.playerControls && !field.autoPlayed) field.onNoteMiss.dispatch(daNote, field);
 				}
 				
-				if (daNote.garbage) return disposeNote(daNote);
+				if (daNote.garbage)
+				{
+					disposeNote(daNote);
+					
+					continue;
+				}
 				
-				if (!canUpdateModchart || !daNote.exists) return; // ok modchart stuff
+				if (!canUpdateModchart || !daNote.exists) continue; // ok modchart stuff
 				
 				final _skin = NoteUtil.getSkinFromID(daNote.player);
 				
@@ -1982,7 +1992,7 @@ class PlayState extends MusicBeatState
 				
 				daNote.x += ((_skin.noteOffsets[daNote.noteData].x + daNote.offsetX) * scaleXMult);
 				daNote.y += ((_skin.noteOffsets[daNote.noteData].y + daNote.offsetY) * scaleYMult);
-			});
+			}
 		}
 		
 		if (canUpdateModchart)
