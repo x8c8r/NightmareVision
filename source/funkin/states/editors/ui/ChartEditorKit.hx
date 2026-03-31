@@ -108,6 +108,56 @@ class ChartEditorUI extends flixel.group.FlxSpriteContainer
 		// 	// todo
 		// }
 		
+		// CHARTING
+		
+		songDialog.vortexCheckbox.value = FlxG.save.data.chart_vortex;
+		songDialog.vortexCheckbox.onChange = function(event) {
+			FlxG.save.data.chart_vortex = ChartEditorState.vortex = event.value.toBool();
+			charter.reloadGridLayer();
+		}
+		
+		songDialog.mouseWheelQuantCheckbox.value = FlxG.save.data.mouseScrollingQuant;
+		songDialog.mouseWheelQuantCheckbox.onChange = function(event) {
+			FlxG.save.data.mouseScrollingQuant = charter.mouseQuant = event.value.toBool();
+		}
+		
+		songDialog.playbackRateSlider.onChange = function(event) {
+			charter.playbackSpeed = songDialog.playbackRateSlider.value;
+		}
+		
+		songDialog.playerWaveCheckbox.value = FlxG.save.data.chart_waveformVoice;
+		songDialog.playerWaveCheckbox.onChange = function(event) {
+			FlxG.save.data.chart_waveformVoices = event.value.toBool();
+			charter.updateWaveform(true);
+		}
+		songDialog.opponentWaveCheckbox.value = FlxG.save.data.chart_waveformOpponentVoice;
+		songDialog.opponentWaveCheckbox.onChange = function(event) {
+			FlxG.save.data.chart_waveformOpponentVoices = event.value.toBool();
+			charter.updateWaveform(true);
+		}
+		songDialog.instrumentalWaveCheckbox.value = FlxG.save.data.chart_waveformInst;
+		songDialog.instrumentalWaveCheckbox.onChange = function(event) {
+			FlxG.save.data.chart_waveformInst = event.value.toBool();
+			charter.updateWaveform(true);
+		}
+		
+		songDialog.playerVolumeStepper.onChange = function(event) charter.updateVolume();
+		songDialog.opponentVolumeStepper.onChange = function(event) charter.updateVolume();
+		songDialog.instrumentalVolumeStepper.onChange = function(event) charter.updateVolume();
+		songDialog.metronomeVolumeStepper.onChange = function(event) charter.updateVolume();
+		
+		songDialog.playerMuteCheckbox.onChange = function(event) charter.updateVolume();
+		songDialog.opponentMuteCheckbox.onChange = function(event) charter.updateVolume();
+		songDialog.instrumentalMuteCheckbox.onChange = function(event) charter.updateVolume();
+		songDialog.metronomeMuteCheckbox.onChange = function(event) charter.updateVolume();
+		
+		songDialog.playerHitsoundCheckbox.onChange = function(event) charter.bfHitsound = event.value;
+		songDialog.opponentHitsoundCheckbox.onChange = function(event) charter.dadHitsound = event.value;
+		
+		songDialog.playbackRateSlider.onChange = function(event) {
+			charter.playbackSpeed = songDialog.playbackRateSlider.value;
+		}
+		
 		// SECTION
 		
 		songDialog.mustHitCheckbox.onChange = function(event) {
@@ -130,11 +180,13 @@ class ChartEditorUI extends flixel.group.FlxSpriteContainer
 		}
 		songDialog.bpmCheckbox.onChange = function(event) {
 			song.notes[ChartEditorState.curSec].changeBPM = event.value;
+			Conductor.mapBPMChanges(song);
 			
 			charter.reloadGridLayer();
 		}
 		songDialog.bpmStepper.onChange = function(event) {
 			song.notes[ChartEditorState.curSec].bpm = event.value;
+			Conductor.mapBPMChanges(song);
 			
 			charter.updateGrid();
 		}
@@ -414,9 +466,9 @@ class ChartEditorUI extends flixel.group.FlxSpriteContainer
 			
 			for (file in FunkinAssets.readDirectory(directory))
 			{
-				if (!file.endsWith('.json')) continue;
+				if (!FunkinAssets.isDirectory(directory + file) && file.extension() != 'json') continue;
 				
-				var stage:String = file.substr(0, file.length - 5);
+				final stage:String = file.withoutExtension();
 				
 				if (!stages.contains(stage)) stages.push(stage);
 			}

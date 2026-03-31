@@ -169,9 +169,8 @@ class MusicBeatState extends FlxUIState
 	{
 		var lastChange = Conductor.getBPMFromSeconds(Conductor.songPosition);
 		
-		var shit = ((Conductor.songPosition - ClientPrefs.noteOffset) - lastChange.songTime) / lastChange.stepCrotchet;
-		curDecStep = lastChange.stepTime + shit;
-		curStep = lastChange.stepTime + Math.floor(shit);
+		var stepOffset:Float = (((Conductor.songPosition - ClientPrefs.noteOffset) - lastChange.songTime) / lastChange.stepCrotchet);
+		curStep = Math.floor(curDecStep = (lastChange.stepTime + stepOffset));
 	}
 	
 	public static function getState():MusicBeatState

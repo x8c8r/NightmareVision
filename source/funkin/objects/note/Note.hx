@@ -231,7 +231,7 @@ class Note extends FlxSprite implements funkin.game.modchart.IModNote
 		
 		if (ClientPrefs.quants && canQuant)
 		{
-			var beat = Conductor.getBeatInMeasure(strumTime);
+			var beat = Conductor.getBeat(strumTime);
 			if (prevNote != null && isSustainNote) quant = prevNote.quant;
 			else quant = NoteUtil.getQuant(beat);
 		}

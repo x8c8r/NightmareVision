@@ -83,30 +83,34 @@
 				</vbox-->
 			</hbox>
 		</vbox>
-
-
-
+		
 		<vbox text="Charting" width="100%" style="padding: 5px;">
 			
 			<!-- <label text="General:"/> -->
 			<!-- <spacer height="4"/> -->
-            
-
-            <label text="Playback Rate"/>
-            <!-- <number-stepper pos="1" step="0.1" min="0.5" max="3"/> -->
-            <slider pos="1" min="0.5" max="3" precision="1" center="1" majorTicks="0.5"/>
-            
-            
-            <spacer height="5"/>
+			
+			<hbox style="spacing: 15px;" width="100%">
+				<vbox>
+					<label text="Playback Rate"/>
+					<!-- <number-stepper pos="1" step="0.1" min="0.5" max="3"/> -->
+					<slider id="playbackRateSlider" pos="1" min="0.5" max="3" precision="1" center="1" majorTicks="0.5"/>
+				</vbox>
+				<vbox style="spacing: 15px;">
+					<checkbox id="vortexCheckbox" text="Vortex Mode" tooltip="Enables keyboard controls similarly to ArrowVortex."/>
+					<checkbox id="mouseWheelQuantCheckbox" text="Mouse Wheel Quant" tooltip="If enabled, scrolling with the mouse wheel will snap to the nearest quant measure."/>
+				</vbox>
+			</hbox>
+			
+			<spacer height="5"/>
 			<rule/>
 			<spacer height="5"/>
 			
 			
-			<hbox>
+			<hbox width="100%">
 				<label text="Waveforms:" verticalAlign="center"/>
-				<checkbox text="Player" id="playerWaveformCheckbox" tooltip="If enabled, The Player's waveform will be visible"/>
-				<checkbox text="Opponent"  id="opponentWaveformCheckbox" tooltip="If enabled, The Opponent's waveform will be visible"/>
-				<checkbox text="Inst"  id="instWaveformCheckbox" tooltip="If enabled, The Opponent's waveform will be visible"/>
+				<checkbox id="playerWaveCheckbox" text="Player" tooltip="If enabled, The player's vocals waveform will be shown on the grid"/>
+				<checkbox id="opponentWaveCheckbox" text="Opponent" tooltip="If enabled, The opponent's vocals waveform will be shown on the grid"/>
+				<checkbox id="instrumentalWaveCheckbox" text="Inst" tooltip="If enabled, The instrumental's waveform will be shown on the grid"/>
 			</hbox>
 			
 			
@@ -118,20 +122,26 @@
 			<label text="Volume Control:"/>
 			<spacer height="4"/>
 			
-			<grid columns="3" style="spacing: 5px;" width="350">
+			<grid columns="4" style="spacing: 8px;" width="100%">
 				<label text="Player:" verticalAlign="center"/>
-				<number-stepper pos="1" width="75%" step="0.1" min="0" max="1"/>
-				<checkbox text="Muted?" verticalAlign="center"/>
+				<number-stepper id="playerVolumeStepper" pos="1" width="90%" step="0.1" min="0" max="1"/>
+				<checkbox id="playerMuteCheckbox" text="Mute?" verticalAlign="center"/>
+				<checkbox id="playerHitsoundCheckbox" text="Hitsound?" verticalAlign="center"/>
 				
 				<label text="Opponent:" verticalAlign="center"/>
-				<number-stepper pos="1" width="75%" step="0.1" min="0" max="1"/>
-				<checkbox text="Muted?" verticalAlign="center"/>
+				<number-stepper id="opponentVolumeStepper" pos="1" width="90%" step="0.1" min="0" max="1"/>
+				<checkbox id="opponentMuteCheckbox" text="Mute?" verticalAlign="center"/>
+				<checkbox id="opponentHitsoundCheckbox" text="Hitsound?" verticalAlign="center"/>
 				
 				<label text="Inst:" verticalAlign="center"/>
-				<number-stepper pos="0.6" width="75%" step="0.1" min="0" max="1"/>
-				<checkbox text="Muted?" verticalAlign="center"/>
+				<number-stepper id="instrumentalVolumeStepper" pos="0.6" width="90%" step="0.1" min="0" max="1"/>
+				<checkbox id="instrumentalMuteCheckbox" text="Mute?" verticalAlign="center"/>
+				<spacer/>
+
+				<label text="Metronome:" verticalAlign="center"/>
+				<number-stepper id="metronomeVolumeStepper" pos="1" width="90%" step="0.1" min="0" max="1"/>
+				<checkbox id="metronomeMuteCheckbox" text="Mute?" verticalAlign="center"/>
 			</grid>
-			
 			
 			<spacer height="5"/>
 			<rule/>
