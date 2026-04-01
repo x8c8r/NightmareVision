@@ -1469,10 +1469,9 @@ class PlayState extends MusicBeatState
 				swagNote.gfNote = ((section.gfSection == swagNote.mustPress) && (songNotes[1] < SONG.keys));
 				
 				swagNote.noteType = type;
-
-				if((section?.altAnim ?? false) && (type == '' || type == null))
-					swagNote.noteType = 'Alt Animation';
-
+				
+				if ((section?.altAnim ?? false) && (type == '' || type == null)) swagNote.noteType = 'Alt Animation';
+				
 				swagNote.scrollFactor.set();
 				
 				var susLength:Float = swagNote.sustainLength;
@@ -1844,7 +1843,7 @@ class PlayState extends MusicBeatState
 			modManager.update(elapsed);
 		}
 		
-		final spawnOffset:Float = (spawnTime * playbackRate / songSpeed);
+		final spawnOffset:Float = (spawnTime * playbackRate / (songSpeed < 1 ? songSpeed : 1));
 		
 		while (unspawnNotes.length > 0 && (unspawnNotes[0].strumTime - Conductor.songPosition) < spawnOffset)
 		{
@@ -1902,7 +1901,7 @@ class PlayState extends MusicBeatState
 				playField.forEachAlive(function(strum) modchart(strum, id, skin.receptorOffsets));
 			}
 		}
-			
+		
 		if (generatedMusic)
 		{
 			if (!inCutscene)
@@ -1914,7 +1913,7 @@ class PlayState extends MusicBeatState
 			}
 			
 			var i:Int = notes.length;
-			while (-- i >= 0)
+			while (--i >= 0)
 			{
 				var daNote = notes.members[i];
 				
