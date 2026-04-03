@@ -52,30 +52,23 @@ function onCountdownTick()
 	santa.dance(true);
 }
 
-// rewrite this
+var __didTransition:Bool = false;
+
 function onEndSong()
 {
-	// Check to see if horrorland is next up in the song list, and that we are in story mode.
-	if (Paths.sanitize(PlayState.SONG.song) == "eggnog" && PlayState.isStoryMode)
+	// Check to see if we already did the transition, if it's story mode and if the current song is Eggnog.
+	if (!__didTransition && PlayState.isStoryMode && PlayState.SONG.song.toLowerCase() == "eggnog")
 	{
-		var blackShit:FlxSprite = new FlxSprite(-FlxG.width * FlxG.camera.zoom, -FlxG.height * FlxG.camera.zoom).makeGraphic(FlxG.width * 3, FlxG.height * 3, FlxColor.BLACK);
-		blackShit.scrollFactor.set();
-		blackShit.cameras = [camOther];
-		add(blackShit);
+		for (cam in FlxG.cameras.list)
+			cam.visible = false;
 		
-		FlxG.sound.play(Paths.sound('Lights_Shut_off'));
+		// persist is much cooler
+		FlxG.sound.play(Paths.sound('Lights_Shut_off')).persist = true;
 		
 		// Begin our transition!
-		new FlxTimer().start(1.5, (_) -> {
-			PlayState.storyMeta.score += songScore;
-			PlayState.storyMeta.misses += songScore;
-			
-			PlayState.storyMeta.playlist.remove(PlayState.storyMeta.playlist[0]);
-			
-			PlayState.SONG = Chart.fromSong(PlayState.storyMeta.playlist[0], PlayState.storyMeta.difficulty);
-			CoolUtil.cancelMusicFadeTween();
-			FlxG.switchState(() -> new PlayState());
-		});
+		new FlxTimer().start(1.5, () -> endSong());
+
+		__didTransition = true;
 		
 		return Function_Stop;
 	}
