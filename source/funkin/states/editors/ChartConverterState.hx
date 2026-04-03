@@ -11,8 +11,6 @@ import moonchart.formats.fnf.legacy.FNFLegacy;
 import moonchart.formats.BasicFormat.FormatDifficulty;
 import moonchart.formats.fnf.FNFVSlice;
 
-import extensions.openfl.FileReferenceEx;
-
 import openfl.net.FileFilter;
 
 import moonchart.formats.fnf.FNFCodename;
@@ -33,8 +31,6 @@ class ChartConverterState extends MusicBeatState
 	var descriptionBG:FlxSprite;
 	var description:FlxText;
 	
-	var fileRef = new FileReferenceEx();
-	
 	var bgColour:FlxColor = 0xFF674B6C;
 	
 	var curSelection:Int = 0;
@@ -46,10 +42,6 @@ class ChartConverterState extends MusicBeatState
 		super.create();
 		
 		persistentUpdate = true;
-		
-		fileRef.onFileCancel = () -> {
-			Logger.log('File selecting was canceled.', WARN, true);
-		}
 		
 		bg = new FlxSprite(Paths.image('menuDesat'));
 		bg.scrollFactor.set();
@@ -206,7 +198,7 @@ class ChartConverterState extends MusicBeatState
 					}
 				}
 				
-				FileUtil.browseForMultipleFiles({typeFilter: [new FileFilter('json', 'json')]}, onSelect);
+				FileUtil.browseForMultipleFiles({typeFilter: [new FileFilter('json', 'json')]}, onSelect, onCancel);
 				
 			case 1: // cne
 			
@@ -253,10 +245,8 @@ class ChartConverterState extends MusicBeatState
 					}
 				}
 				
-				FileUtil.browseForMultipleFiles({typeFilter: [new FileFilter('json', 'json')]}, onSelect);
+				FileUtil.browseForMultipleFiles({typeFilter: [new FileFilter('json', 'json')]}, onSelect, onCancel);
 				
-			// fileRef.browseForFile({openStyle: OPEN_MULTIPLE, typeFilter: [new FileFilter('json', 'json')]});
-			
 			case 2: // psych 1.0
 				function onSelect(path:String)
 				{
@@ -274,8 +264,7 @@ class ChartConverterState extends MusicBeatState
 					}
 				}
 				
-				FileUtil.browseForFile({typeFilter: [new FileFilter('json', 'json')]}, onSelect);
-				// fileRef.browseForFile({openStyle: OPEN, typeFilter: [new FileFilter('json', 'json')]});
+				FileUtil.browseForFile({typeFilter: [new FileFilter('json', 'json')]}, onSelect, onCancel);
 		}
 	}
 	
@@ -295,7 +284,11 @@ class ChartConverterState extends MusicBeatState
 	
 	override function destroy()
 	{
-		fileRef?.destroy();
 		super.destroy();
+	}
+	
+	function onCancel()
+	{
+		Logger.log('File selecting was canceled.', WARN, true);
 	}
 }
