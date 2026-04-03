@@ -1,5 +1,9 @@
 package funkin.utils;
 
+import lime.utils.Bytes;
+
+import openfl.utils.ByteArray;
+
 import lime.ui.FileDialog;
 
 import openfl.net.FileFilter;
@@ -21,7 +25,7 @@ class FileUtil
 		final startPath = options.defaultSearch;
 		
 		FileDialog.openFile(FlxG.stage.window, title, (files, filter) -> {
-			if (files.length > 0)
+			if (files != null && files.length > 0)
 			{
 				if (onSelect != null) onSelect(files[0]);
 			}
@@ -39,7 +43,7 @@ class FileUtil
 		final startPath = options.defaultSearch;
 		
 		FileDialog.openFile(FlxG.stage.window, title, (files, filter) -> {
-			if (files.length > 0)
+			if (files != null && files.length > 0)
 			{
 				if (onSelect != null) onSelect(files);
 			}
@@ -50,21 +54,39 @@ class FileUtil
 		}, @:privateAccess File.__getFilterTypes(filters), startPath, true);
 	}
 	
-	public static function saveFile(options:BrowseOptions, ?onSelect:String->Void, ?onCancel:Void->Void)
+	public static function saveFile(data:Dynamic, ?fileName:String, ?onSelect:String->Void, ?onCancel:Void->Void)
 	{
-		final title = options.title;
-		final filters = options.typeFilter;
-		final startPath = options.defaultSearch;
+		if (data == null) return;
 		
-		FileDialog.saveFile(FlxG.stage.window, title, (file, filter) -> {
-			if (file.length > 0)
+		var filters = null;
+		if (fileName != null && fileName.extension().length > 0)
+		{
+			final ext:String = fileName.extension();
+			filters = [new lime.ui.FileDialogFilter('*.$ext', ext)];
+		}
+		
+		FileDialog.saveFile(FlxG.stage.window, 'Save', (file, filter) -> {
+			if (file != null && file.length > 0)
 			{
+				final bytes:ByteArray = if (data is ByteArrayData)
+				{
+					data;
+				}
+				else
+				{
+					var bArray = new ByteArray();
+					bArray.writeUTFBytes(Std.string(data));
+					bArray;
+				}
+				
+				Bytes.toFile(file, bytes);
+				
 				if (onSelect != null) onSelect(file);
 			}
 			else
 			{
 				if (onCancel != null) onCancel();
 			}
-		}, @:privateAccess File.__getFilterTypes(filters), startPath);
+		}, filters, fileName);
 	}
 }
