@@ -151,7 +151,8 @@ class ChartConverterState extends MusicBeatState
 		switch (curSelection)
 		{
 			case 0: // vslice
-				fileRef.onFileSelectMultiple = (files) -> {
+				function onSelect(files:Array<String>)
+				{
 					// this is a bit jank bnut itll do
 					
 					var pathToChart:Null<String> = null;
@@ -204,11 +205,13 @@ class ChartConverterState extends MusicBeatState
 						if (pathToMeta == null) Logger.log('Chart meta was not provided!', ERROR, true);
 					}
 				}
-				fileRef.browseForFile({openStyle: OPEN_MULTIPLE, typeFilter: [new FileFilter('json', 'json')]});
+				
+				FileUtil.browseForMultipleFiles({typeFilter: [new FileFilter('json', 'json')]}, onSelect);
 				
 			case 1: // cne
 			
-				fileRef.onFileSelectMultiple = (files) -> {
+				function onSelect(files:Array<String>)
+				{
 					var pathToChart:Null<String> = null;
 					
 					var pathToMeta:Null<String> = null;
@@ -249,10 +252,14 @@ class ChartConverterState extends MusicBeatState
 						if (pathToMeta == null) Logger.log('Chart meta was not provided!', ERROR, true);
 					}
 				}
-				fileRef.browseForFile({openStyle: OPEN_MULTIPLE, typeFilter: [new FileFilter('json', 'json')]});
 				
+				FileUtil.browseForMultipleFiles({typeFilter: [new FileFilter('json', 'json')]}, onSelect);
+				
+			// fileRef.browseForFile({openStyle: OPEN_MULTIPLE, typeFilter: [new FileFilter('json', 'json')]});
+			
 			case 2: // psych 1.0
-				fileRef.onFileSelect = (path) -> {
+				function onSelect(path:String)
+				{
 					try
 					{
 						if (!path.endsWith('.json')) throw "Did not recieve a Json!";
@@ -266,7 +273,9 @@ class ChartConverterState extends MusicBeatState
 						showError(e);
 					}
 				}
-				fileRef.browseForFile({openStyle: OPEN, typeFilter: [new FileFilter('json', 'json')]});
+				
+				FileUtil.browseForFile({typeFilter: [new FileFilter('json', 'json')]}, onSelect);
+				// fileRef.browseForFile({openStyle: OPEN, typeFilter: [new FileFilter('json', 'json')]});
 		}
 	}
 	
