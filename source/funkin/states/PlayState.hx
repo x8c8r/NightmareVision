@@ -31,8 +31,7 @@ import funkin.objects.note.*;
 import funkin.objects.note.Note.EventNote;
 import funkin.game.huds.BaseHUD;
 import funkin.scripts.*;
-import funkin.data.Song.SwagSong;
-import funkin.data.Song.SwagSection;
+import funkin.data.Song;
 import funkin.data.StageData;
 import funkin.objects.DialogueBoxPsych;
 import funkin.game.Rating;
@@ -57,7 +56,7 @@ class PlayState extends MusicBeatState
 	
 	public static var meta:Null<Metadata> = null; // bad?
 	
-	public static var SONG:Null<SwagSong> = null;
+	public static var SONG:Null<Song> = null;
 	
 	public static var storyMeta:StoryMeta = new StoryMeta();
 	
@@ -1374,7 +1373,7 @@ class PlayState extends MusicBeatState
 		for (i in splashLayering)
 			add(i);
 			
-		final noteData:Array<SwagSection> = songData.notes;
+		final noteData:Array<SongSection> = songData.notes;
 		
 		// loads note types
 		for (section in noteData)
@@ -2060,7 +2059,8 @@ class PlayState extends MusicBeatState
 		paused = true;
 		CoolUtil.cancelMusicFadeTween();
 		
-		FlxG.switchState(OLDChartEditorState.new);
+		ChartEditorState.song = SONG;
+		FlxG.switchState(FlxG.keys.pressed.SHIFT ? ChartEditorState.new : OLDChartEditorState.new);
 		chartingMode = true;
 		
 		if (automatedDiscord) DiscordClient.changePresence('Chart Editor');
