@@ -12,14 +12,48 @@ class FunkinSprite extends FlxAnimate
 	 * 
 	 * applied through `playAnim`
 	 */
-	public var animOffsets:Map<String, Array<Float>> = [];
+	public var animOffsets(default, null):Map<String, Array<Float>> = [];
 	
 	/**
-	 * Used in conjunction with `playAnim`
+	 * The current sprite offset.
 	 * 
-	 * If true, offsets will be scaled to match the current scale.
+	 * This offset is transformed by scale, angle and skew (whenever applicable) when drawing the sprite and is applied regardless of the current animation.
+	 */
+	public var spriteOffset(default, null):FlxPoint = FlxPoint.get();
+	
+	/**
+	 * The current animation offset.
+	 * 
+	 * This offset is transformed by scale, angle and skew (whenever applicable) when drawing the sprite.
+	 */
+	public var animOffset(default, null):FlxPoint = FlxPoint.get();
+	
+	/**
+	 * Base scale for sprite / animation offsets.
+	 */
+	public var baseScale(default, null):FlxPoint = FlxPoint.get(1, 1);
+	
+	/**
+	 * If true, animation offsets will scale with the sprite.
 	 */
 	public var scalableOffsets:Bool = true;
+	
+	/**
+	 * If true, animation offsets will rotate with the sprite.
+	 */
+	public var rotatableOffsets:Bool = true;
+	
+	/**
+	 * If true, animation offsets will skew with the sprite.
+	 */
+	public var skewableOffsets:Bool = true;
+	
+	/**
+	 * Corrects this sprite's animation offsets when it's flipped.
+	 * 
+	 * (incomplete saaave me saaave me)
+	 */
+	public var correctFlippedOffsets:Bool = false;
 	
 	/**
 	 * If `false`, playAnim will no longer function
@@ -137,13 +171,17 @@ class FunkinSprite extends FlxAnimate
 		
 		if (animationOffsets != null)
 		{
-			offset.x = animationOffsets[0];
-			offset.y = animationOffsets[1];
+			animOffset.set(animationOffsets[0], animationOffsets[1]);
 			
-			if (scalableOffsets)
+			if (correctFlippedOffsets)
 			{
-				offset.x *= scale.x;
-				offset.y *= scale.y;
+				final appliedOffset = animOffset.x,  scaleFactor = scalableOffsets ? scale.x : 1.0;
+				
+				animOffset.x = ((frameWidth * scaleFactor) - width) - appliedOffset;
+				
+				final appliedOffset = animOffset.y,  scaleFactor = scalableOffsets ? scale.y : 1.0;
+				
+				animOffset.y = ((frameHeight * scaleFactor) - height) - appliedOffset;
 			}
 		}
 	}
@@ -251,7 +289,11 @@ class FunkinSprite extends FlxAnimate
 	
 	inline function set_animCurFrame(value:Int):Int return isAnimNull() ? 0 : (animation.curAnim.curFrame = value);
 	
-	public inline function removeAnim(anim:String):Void animation.remove(anim);
+	public inline function removeAnim(anim:String):Void
+	{
+		animation.remove(anim);
+		animOffsets.remove(anim);
+	}
 	
 	public inline function finishAnim():Void
 	{
@@ -265,5 +307,46 @@ class FunkinSprite extends FlxAnimate
 		if (isAnimNull()) return;
 		
 		animation.stop();
+	}
+	
+	public override function destroy():Void
+	{
+		_transformedAnimOffset.put();
+		spriteOffset.put();
+		animOffset.put();
+		
+		super.destroy();
+	}
+	
+	var _transformedAnimOffset:FlxPoint = FlxPoint.get();
+	override function prepareDrawMatrix(matrix:flixel.math.FlxMatrix, camera:FlxCamera):Void
+	{
+		super.prepareDrawMatrix(matrix, camera);
+		
+		transformSpriteOffset(_transformedAnimOffset);
+		if (isPixelPerfectRender(camera)) _transformedAnimOffset.floor();
+		
+		matrix.translate(-_transformedAnimOffset.x, -_transformedAnimOffset.y);
+	}
+	
+	inline function transformSpriteOffset(?point:FlxPoint):FlxPoint
+	{
+		point ??= FlxPoint.weak();
+		
+		point.set(spriteOffset.x + animOffset.x, spriteOffset.y + animOffset.y);
+		
+		if (scalableOffsets) point.scale(scale.x / baseScale.x, scale.y / baseScale.y);
+		
+		if (rotatableOffsets && FlxMath.mod(angle, 360) > 0) point.rotateByDegrees(angle);
+		
+		if (skewableOffsets && (skew.x != 0 || skew.y != 0))
+		{
+			final pX:Float = point.x, pY:Float = point.y;
+			
+			point.x += (pY * Math.tan(skew.x / 180 * Math.PI));
+			point.y += (pX * Math.tan(skew.y / 180 * Math.PI));
+		}
+		
+		return point;
 	}
 }
