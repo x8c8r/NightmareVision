@@ -33,7 +33,6 @@ import funkin.game.huds.BaseHUD;
 import funkin.scripts.*;
 import funkin.data.Song;
 import funkin.data.StageData;
-import funkin.objects.DialogueBoxPsych;
 import funkin.game.Rating;
 import funkin.objects.*;
 import funkin.data.*;
@@ -927,38 +926,6 @@ class PlayState extends MusicBeatState
 		if (script.exists('onLoad')) script.call('onLoad');
 		scripts.addScript(script);
 		return script;
-	}
-	
-	public var psychDialogue:Null<DialogueBoxPsych> = null;
-	
-	// you should be able to do "startDialogue(DialogueBoxPsych.parseDialogue(pathToJson));""
-	public function startDialogue(dialogueFile:DialogueFile, ?song:String = null):Void
-	{
-		// TO DO: Make this more flexible, maybe?
-		if (psychDialogue != null) return;
-		
-		if (dialogueFile.dialogue.length > 0)
-		{
-			inCutscene = true;
-			
-			Paths.sound('dialogue');
-			Paths.sound('dialogueClose');
-			psychDialogue = new DialogueBoxPsych(dialogueFile, song);
-			psychDialogue.scrollFactor.set();
-			psychDialogue.finishThing = function() {
-				psychDialogue = null;
-				if (endingSong) endSong();
-				else startCountdown();
-			}
-			psychDialogue.cameras = [camHUD];
-			add(psychDialogue);
-		}
-		else
-		{
-			FlxG.log.warn('Your dialogue file is badly formatted!');
-			if (endingSong) endSong();
-			else startCountdown();
-		}
 	}
 	
 	public var skipArrowStartTween:Bool = false;

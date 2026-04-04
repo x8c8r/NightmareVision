@@ -21,8 +21,6 @@ class MasterEditorMenu extends MusicBeatState
 		'Mods Manager',
 		'Week Editor',
 		'Menu Character Editor',
-		'Dialogue Editor',
-		'Dialogue Portrait Editor'
 	];
 	private var grpTexts:FlxTypedGroup<Alphabet>;
 	private var directories:Array<String> = [null];
@@ -117,10 +115,6 @@ class MasterEditorMenu extends MusicBeatState
 					FlxG.switchState(() -> new WeekEditorState());
 				case 'Menu Character Editor':
 					FlxG.switchState(() -> new MenuCharacterEditorState());
-				case 'Dialogue Portrait Editor':
-					FlxG.switchState(DialogueCharacterEditorState.new);
-				case 'Dialogue Editor':
-					FlxG.switchState(DialogueEditorState.new);
 				case 'Chart Editor': // felt it would be cool maybe
 					FlxG.switchState(ChartEditorState.new);
 				// case 'Note Skin Editor':
