@@ -12,26 +12,26 @@ class FunkinSprite extends FlxAnimate
 	 * 
 	 * applied through `playAnim`
 	 */
-	public var animOffsets(default, null):Map<String, Array<Float>> = [];
+	public final animOffsets:Map<String, Array<Float>> = [];
 	
 	/**
 	 * The current sprite offset.
 	 * 
 	 * This offset is transformed by scale, angle and skew (whenever applicable) when drawing the sprite and is applied regardless of the current animation.
 	 */
-	public var spriteOffset(default, null):FlxPoint = FlxPoint.get();
+	public final spriteOffset:FlxPoint = FlxPoint.get();
 	
 	/**
 	 * The current animation offset.
 	 * 
 	 * This offset is transformed by scale, angle and skew (whenever applicable) when drawing the sprite.
 	 */
-	public var animOffset(default, null):FlxPoint = FlxPoint.get();
+	public final animOffset:FlxPoint = FlxPoint.get();
 	
 	/**
 	 * Base scale for sprite / animation offsets.
 	 */
-	public var baseScale(default, null):FlxPoint = FlxPoint.get(1, 1);
+	public final baseScale:FlxPoint = FlxPoint.get(1, 1);
 	
 	/**
 	 * If true, animation offsets will scale with the sprite.
@@ -175,11 +175,11 @@ class FunkinSprite extends FlxAnimate
 			
 			if (correctFlippedOffsets)
 			{
-				final appliedOffset = animOffset.x,  scaleFactor = scalableOffsets ? scale.x : 1.0;
+				final appliedOffset = animOffset.x, scaleFactor = scalableOffsets ? scale.x : 1.0;
 				
 				animOffset.x = ((frameWidth * scaleFactor) - width) - appliedOffset;
 				
-				final appliedOffset = animOffset.y,  scaleFactor = scalableOffsets ? scale.y : 1.0;
+				final appliedOffset = animOffset.y, scaleFactor = scalableOffsets ? scale.y : 1.0;
 				
 				animOffset.y = ((frameHeight * scaleFactor) - height) - appliedOffset;
 			}
@@ -218,13 +218,13 @@ class FunkinSprite extends FlxAnimate
 	@:inheritDoc(flixel.animation.FlxAnimationController.addByPrefix)
 	public function addAnimByPrefix(anim:String, prefix:String, fps:Int = 24, looping:Bool = true, flipX:Bool = false, flipY:Bool = false)
 	{
-		if (library != null && this.anim.findFrameLabelIndices(prefix).length > 0)
+		if (library != null && anim.findFrameLabelIndices(prefix).length > 0)
 		{
-			this.anim.addByFrameLabel(anim, prefix, fps, looping, flipX, flipY);
+			anim.addByFrameLabel(anim, prefix, fps, looping, flipX, flipY);
 		}
 		else if (checkLibraryForSymbol(library, prefix))
 		{
-			this.anim.addBySymbol(anim, prefix, fps, looping, flipX, flipY);
+			anim.addBySymbol(anim, prefix, fps, looping, flipX, flipY);
 		}
 		else
 		{
@@ -238,13 +238,13 @@ class FunkinSprite extends FlxAnimate
 	@:inheritDoc(flixel.animation.FlxAnimationController.addByIndices)
 	public function addAnimByIndices(anim:String, prefix:String, indices:Array<Int>, fps:Int = 24, looping:Bool = true, flipX:Bool = false, flipY:Bool = false)
 	{
-		if (library != null && this.anim.findFrameLabelIndices(prefix).length > 0)
+		if (library != null && anim.findFrameLabelIndices(prefix).length > 0)
 		{
-			this.anim.addByFrameLabelIndices(anim, prefix, indices, fps, looping, flipX, flipY);
+			anim.addByFrameLabelIndices(anim, prefix, indices, fps, looping, flipX, flipY);
 		}
 		else if (checkLibraryForSymbol(library, prefix))
 		{
-			this.anim.addBySymbolIndices(anim, prefix, indices, fps, looping, flipX, flipY);
+			anim.addBySymbolIndices(anim, prefix, indices, fps, looping, flipX, flipY);
 		}
 		else
 		{
@@ -319,6 +319,7 @@ class FunkinSprite extends FlxAnimate
 	}
 	
 	var _transformedAnimOffset:FlxPoint = FlxPoint.get();
+	
 	override function prepareDrawMatrix(matrix:flixel.math.FlxMatrix, camera:FlxCamera):Void
 	{
 		super.prepareDrawMatrix(matrix, camera);
