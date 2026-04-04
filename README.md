@@ -48,4 +48,4 @@ In a cmd within the project directory, in order run...
 
 After that is complete, run `lime test windows` and you should be compiling
 
-If you get errors related to lime, run `lime rebuild cpp`
+If you get errors related to lime, run `https://github.com/DuskieWhy/NightmareVision/blob/dev/projFiles/limeFixer.bat` and try again
