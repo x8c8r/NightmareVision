@@ -230,8 +230,7 @@ class PlayField extends FlxTypedContainer<StrumNote>
 	public inline function removeNote(note:Note)
 	{
 		notes.remove(note);
-		note.scale.set(note.baseScaleX, note.baseScaleY);
-		note.defScale.copyFrom(note.scale);
+		note.scale.copyFrom(note.baseScale);
 		note.updateHitbox();
 		
 		if (note.playField == this) note.playField = null;
@@ -253,7 +252,7 @@ class PlayField extends FlxTypedContainer<StrumNote>
 		
 		if (hasChangedSkin) note.updateColors();
 		
-		note.defScale.copyFrom(note.scale);
+		note.baseScale.copyFrom(note.scale);
 		note.updateHitbox();
 		if (note.playField != this || note.playField == null) note.playField = this;
 	}
@@ -282,17 +281,20 @@ class PlayField extends FlxTypedContainer<StrumNote>
 		
 		PlayState.instance.scripts.call('${scriptFunc}Pre', scriptArgs);
 		
-		if (field.autoPlayed)
+		final strum:StrumNote = field.members[note.noteData];
+		if (strum != null)
 		{
-			var time:Float = 0.15;
-			if (note.isSustainNote && !note.isSustainEnd) time += 0.15;
-			time /= PlayState.instance.playbackRate;
+			strum.lastNote = note;
+			strum.playAnim('confirm', true);
 			
-			if (field.playAnims) strumPlayAnim(field, Std.int(Math.abs(note.noteData)) % keyCount, time, note);
-		}
-		else if (field.playAnims)
-		{
-			members[note.noteData]?.playAnim('confirm', true, note);
+			if (field.autoPlayed)
+			{
+				var time:Float = 0.15;
+				if (note.isSustainNote && !note.isSustainEnd) time += 0.15;
+				time /= PlayState.instance.playbackRate;
+				
+				strum.resetAnim = time;
+			}
 		}
 		
 		if (ClientPrefs.guitarHeroSustains && !note.isSustainNote)
@@ -477,17 +479,6 @@ class PlayField extends FlxTypedContainer<StrumNote>
 		}
 	}
 	
-	function strumPlayAnim(field:PlayField, id:Int, time:Float, ?note:Note)
-	{
-		var spr:StrumNote = field.members[id];
-		
-		if (spr != null)
-		{
-			spr.playAnim('confirm', true, note);
-			spr.resetAnim = time;
-		}
-	}
-	
 	public function spawnSplash(note:Note):NoteSplash
 	{
 		if (ClientPrefs.noteSplashes
@@ -591,7 +582,8 @@ class PlayField extends FlxTypedContainer<StrumNote>
 			
 			note.reloadNote('', note.texture, '');
 			
-			note.defScale.set(_skin.noteScale, _skin.noteScale);
+			note.scale.set(_skin.noteScale, _skin.noteScale);
+			note.baseScale.copyFrom(note.scale);
 			
 			note.reColor = NoteUtil.getCurColors(note.noteData, note.quant, note.player);
 			note.rgbShader.setColors(note.reColor);
@@ -599,15 +591,13 @@ class PlayField extends FlxTypedContainer<StrumNote>
 		
 		grpNoteSplashes.forEachAlive((splash) -> {
 			splash.scale.set(_skin.splashScale, _skin.splashScale);
-			splash.defScale.copyFrom(splash.scale);
+			splash.baseScale.copyFrom(splash.scale);
 			
 			splash.rgbShader.enabled = _skin.inEngineColoring;
 		});
 		grpSusSplashes.forEachAlive((splash) -> {
 			splash.scale.set(_skin.susSplashScale, _skin.susSplashScale);
-			splash.defScale.copyFrom(splash.scale);
-			
-			if (_skin.susSplashOrigin != null) splash.skinOrigin.set(_skin.susSplashOrigin[0], _skin.susSplashOrigin[1]);
+			splash.baseScale.copyFrom(splash.scale);
 			
 			splash.rgbShader.enabled = _skin.inEngineColoring;
 		});

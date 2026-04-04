@@ -1852,8 +1852,7 @@ class PlayState extends MusicBeatState
 			
 			modManager.updateObject(curDecBeat, obj, pos, id);
 			
-			obj.x += ((offsets?.x ?? 0) * obj.scale.x / obj.defScale.x);
-			obj.y += ((offsets?.y ?? 0) * obj.scale.y / obj.defScale.y);
+			obj.spriteOffset.set(offsets?.x, offsets?.y);
 			
 			return pos;
 		}
@@ -1916,8 +1915,8 @@ class PlayState extends MusicBeatState
 				
 				modManager.updateObject(curDecBeat, daNote, pos, daNote.lane);
 				
-				var scaleXMult:Float = (daNote.scale.x / daNote.defScale.x),
-					scaleYMult:Float = (daNote.scale.y / daNote.defScale.y);
+				daNote.spriteOffset.x = (_skin.noteOffsets[daNote.noteData].x + daNote.offsetX);
+				daNote.spriteOffset.y = (_skin.noteOffsets[daNote.noteData].y + daNote.offsetY);
 					
 				if (daNote.isSustainNote)
 				{
@@ -1936,27 +1935,24 @@ class PlayState extends MusicBeatState
 					
 					if (daNote.wasGoodHit && daNote.parent?.sustainSplash != null && field.trackSustainSplashes) daNote.parent.sustainSplash.angle = daNote.angle;
 					
-					daNote.x += (_skin.sustainOffsets[daNote.noteData].x * scaleXMult);
-					daNote.y += (_skin.sustainOffsets[daNote.noteData].y * scaleYMult);
+					daNote.spriteOffset.x += _skin.sustainOffsets[daNote.noteData].x;
+					daNote.spriteOffset.y += _skin.sustainOffsets[daNote.noteData].y;
 					if (daNote.isSustainEnd)
 					{
-						daNote.x += (_skin.susEndOffsets[daNote.noteData].x * scaleXMult);
-						daNote.y += (_skin.susEndOffsets[daNote.noteData].y * scaleYMult);
+						daNote.spriteOffset.x += _skin.susEndOffsets[daNote.noteData].x;
+						daNote.spriteOffset.y += _skin.susEndOffsets[daNote.noteData].y;
 					}
 					else
 					{
 						final dist:Float = Math.sqrt(Math.pow(pos.y - nextPos.y, 2) + Math.pow(pos.x - nextPos.x, 2));
 						
-						daNote.scale.y = daNote.defScale.y = (dist / (daNote.frameHeight - (daNote.antialiasing ? 1 : 0)));
+						daNote.scale.y = daNote.baseScale.y = (dist / (daNote.frameHeight - (daNote.antialiasing ? 1 : 0)));
 					}
 					
 					daNote.clip(daNote.playField.members[daNote.noteData]);
 					
 					nextPos.put();
 				}
-				
-				daNote.x += ((_skin.noteOffsets[daNote.noteData].x + daNote.offsetX) * scaleXMult);
-				daNote.y += ((_skin.noteOffsets[daNote.noteData].y + daNote.offsetY) * scaleYMult);
 			}
 		}
 		

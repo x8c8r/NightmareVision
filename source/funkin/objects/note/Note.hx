@@ -22,7 +22,7 @@ typedef EventNote =
 	value2:String
 }
 
-class Note extends FlxSprite implements funkin.game.modchart.IModNote
+class Note extends FunkinSprite implements funkin.game.modchart.IModNote
 {
 	public static var defaultNotes = ['No Animation', 'GF Sing', ''];
 	
@@ -30,10 +30,6 @@ class Note extends FlxSprite implements funkin.game.modchart.IModNote
 	public var lane:Int = 0;
 	
 	public var noteScript:Null<FunkinScript> = null;
-	
-	public var defScale:FlxPoint = FlxPoint.get(); // for modcharts to keep the scaling
-	
-	public var animOffsets:Map<String, Array<Float>> = new Map();
 	
 	public var visualTime:Float = 0;
 	public var visualLength:Float = 0;
@@ -99,8 +95,6 @@ class Note extends FlxSprite implements funkin.game.modchart.IModNote
 	public var inEditor:Bool = false;
 	public var skipScale:Bool = false;
 	public var gfNote:Bool = false;
-	public var baseScaleX:Float = 1;
-	public var baseScaleY:Float = 1;
 	
 	private var earlyHitMult:Float = 0.5;
 	
@@ -285,8 +279,7 @@ class Note extends FlxSprite implements funkin.game.modchart.IModNote
 		}
 		else if (!isSustainNote) earlyHitMult = 1;
 		
-		baseScaleX = scale.x;
-		baseScaleY = scale.y;
+		baseScale.copyFrom(scale);
 	}
 	
 	var lastNoteOffsetXForPixelAutoAdjusting:Float = 0;
@@ -333,18 +326,11 @@ class Note extends FlxSprite implements funkin.game.modchart.IModNote
 		frames = Paths.getSparrowAtlas(atlasPath);
 		loadNoteAnims();
 		
-		baseScaleX = scale.x;
-		baseScaleY = scale.y;
-		
 		if (animName != null) playAnim(animName, true);
 		
-		if (inEditor && !skipScale)
-		{
-			setGraphicSize(ChartEditorState.GRID_SIZE, ChartEditorState.GRID_SIZE);
-			
-			baseScaleX = scale.x;
-			baseScaleY = scale.y;
-		}
+		if (inEditor && !skipScale) setGraphicSize(ChartEditorState.GRID_SIZE, ChartEditorState.GRID_SIZE);
+		
+		baseScale.copyFrom(scale);
 		
 		updateHitbox();
 		
@@ -355,14 +341,12 @@ class Note extends FlxSprite implements funkin.game.modchart.IModNote
 		if (noteScript != null) noteScript.executeFunc("postReloadNote", [this, _prefix, _texture, _suffix], this);
 	}
 	
-	public function playAnim(anim:String, force:Bool = false)
+	public override function playAnim(anim:String, force:Bool = false, isReversed:Bool = false, frame:Int = 0)
 	{
-		animation.play(anim, force);
+		super.playAnim(anim, force, isReversed, frame);
 		
 		centerOffsets();
 		centerOrigin();
-		
-		if (animOffsets.exists(anim)) offset.set(offset.x + animOffsets.get(anim)[0], offset.y + animOffsets.get(anim)[1]);
 	}
 	
 	public function loadNoteAnims()
@@ -384,12 +368,14 @@ class Note extends FlxSprite implements funkin.game.modchart.IModNote
 		final directionAnims = noteAnims[noteData % noteAnims.length];
 		
 		for (anim in directionAnims)
-			animation.addByPrefix(anim.anim, '${anim.xmlName}0', anim.fps, true);
+		{
+			addAnimByPrefix(anim.anim, '${anim.xmlName}0', anim.fps, true);
+			addOffset(anim.anim, anim.offsets[0], anim.offsets[1]);
+		}
 			
 		setGraphicSize(Std.int(width * skin.noteScale));
 		
-		baseScaleX = scale.x;
-		baseScaleY = scale.y;
+		baseScale.copyFrom(scale);
 	}
 	
 	public function updateColors()
@@ -480,7 +466,6 @@ class Note extends FlxSprite implements funkin.game.modchart.IModNote
 	{
 		if (playField != null) playField.removeNote(this);
 		prevNote = null;
-		defScale.put();
 		super.destroy();
 	}
 	

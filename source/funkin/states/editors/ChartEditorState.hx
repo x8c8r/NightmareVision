@@ -1285,7 +1285,8 @@ class ChartEditorState extends haxe.ui.backend.flixel.UIState
 					var strum = strumLineNotes.members[fullData];
 					if (strum != null)
 					{
-						strum.playAnim('confirm', true, note);
+						strum.lastNote = note;
+						strum.playAnim('confirm', true);
 						strum.resetAnim = (note.sustainLength / 1000) + 0.15;
 					}
 					

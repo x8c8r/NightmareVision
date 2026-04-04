@@ -784,7 +784,7 @@ class WIPNoteSkinEditor extends UIState
 	{
 		if (spr != null)
 		{
-			spr.playAnim(anim, true, null);
+			spr.playAnim(anim, true);
 			spr.resetAnim = time;
 		}
 	}
@@ -796,7 +796,7 @@ class WIPNoteSkinEditor extends UIState
 		{
 			note.addOffset(name, offsets[0], offsets[1]);
 			skin.data.receptorAnimations[note.noteData][getAnimIndex(name)].offsets = offsets;
-			note.playAnim(name, true, null);
+			note.playAnim(name, true);
 		}
 	}
 	
