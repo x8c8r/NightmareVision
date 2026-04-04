@@ -39,6 +39,8 @@ function onLoad()
 	
 	santa = new BGSprite('christmas/santa', -840, 150, 1, 1, ['santa idle in fear']);
 	add(santa);
+	
+	songEndCallback = doHorrorlandTransition;
 }
 
 function onCountdownTick()
@@ -52,26 +54,22 @@ function onCountdownTick()
 	santa.dance(true);
 }
 
-var __didTransition:Bool = false;
-
-function onEndSong()
+function doHorrorlandTransition()
 {
-	// Check to see if we already did the transition, if it's story mode and if the current song is Eggnog.
-	if (!__didTransition && PlayState.isStoryMode && PlayState.SONG.song.toLowerCase() == "eggnog")
+	// Check to see if we are in story mode and if the current song is Eggnog.
+	if (PlayState.isStoryMode && PlayState.SONG.song.toLowerCase() == "eggnog")
 	{
 		for (cam in FlxG.cameras.list)
 			cam.visible = false;
 		
-		// persist is much cooler
 		FlxG.sound.play(Paths.sound('Lights_Shut_off')).persist = true;
 		
-		// Begin our transition!
 		new FlxTimer().start(1.5, () -> endSong());
 
-		__didTransition = true;
-		
-		return Function_Stop;
+		return;
 	}
+
+	endSong();
 }
 
 function onBeatHit()
