@@ -39,7 +39,7 @@ jobs: # FUCK MY LIFE BROOOOO
                 cd .haxelib/lime/git/
                 git submodule update
                 cd ../../../
-                lime rebuild cpp
+                haxelib run lime rebuild cpp
             - name: Compile build
               run: haxelib run lime build windows -D ${{inputs.buildFlags}}
             - name: Publish artifact
