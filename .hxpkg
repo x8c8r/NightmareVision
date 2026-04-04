@@ -60,12 +60,12 @@
             {
                 "name": "haxeui-flixel",
                 "link": "https://github.com/haxeui/haxeui-flixel",
-                "branch": "b899a4c7d7318c5ff2b1bb645fbc73728fad1ac9"
+                "branch": "100f2c96beab619cfe72c567a058c41c71e3e998"
             },
             {
                 "name": "haxeui-core",
                 "link": "https://github.com/haxeui/haxeui-core",
-                "branch": "99d5d035e7120ce027256b117a25625c53b488dc"
+                "branch": "cfb6a1fa92540bab4d29fe4861b23278709dcfbb"
             },
             {
                 "name": "moonchart",
