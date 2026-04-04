@@ -2072,7 +2072,7 @@ class ChartEditorState extends haxe.ui.backend.flixel.UIState
 				curSec = getSectionIndex(newTime);
 			}
 			
-			if (newTime < audio.songLength)
+			if (newTime <= audio.songLength - endOffset)
 			{
 				audio.time = newTime;
 				
