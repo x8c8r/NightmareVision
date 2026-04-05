@@ -199,6 +199,7 @@ class ChartEditorUI extends flixel.group.FlxSpriteContainer
 		
 		// NOTES
 		
+		var _notesTabReady = false;
 		songDialog.noteTypeDropdown.onChange = function(event) {
 			charter.currentType = songDialog.noteTypeDropdown.selectedIndex;
 			
@@ -214,14 +215,18 @@ class ChartEditorUI extends flixel.group.FlxSpriteContainer
 			
 			if (changed) charter.updateGrid();
 		}
-		songDialog.strumTimeStepper.onChange = function(event) changeStrumTime(event.previousValue, event.value);
+		songDialog.strumTimeStepper.onChange = function(event)
+		{
+			if (_notesTabReady) changeStrumTime(event.previousValue, event.value);
+			FlxTimer.wait(0, function() _notesTabReady = true);
+		}
 		
 		final deinc = songDialog.strumTimeStepper.findComponent('deinc', haxe.ui.components.Button);
 		final inc = songDialog.strumTimeStepper.findComponent('inc', haxe.ui.components.Button);
 		deinc.onClick = function(event) strumTimeStep(-1);
 		inc.onClick = function(event) strumTimeStep(1);
 		
-		songDialog.sustainLengthStepper.onChange = function(event) changeSustainLength(event.previousValue, event.value);
+		songDialog.sustainLengthStepper.onChange = function(event) if (_notesTabReady) changeSustainLength(event.previousValue, event.value);
 		
 		final deinc = songDialog.sustainLengthStepper.findComponent('deinc', haxe.ui.components.Button);
 		final inc = songDialog.sustainLengthStepper.findComponent('inc', haxe.ui.components.Button);
