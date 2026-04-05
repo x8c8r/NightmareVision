@@ -1,9 +1,11 @@
+# Content
 content/ignore_*/*
-
-dump/*
-
-.haxelib/*
 content/avas_evil_secrets/*
+
+# Haxelib & HXPKG
+.haxelib/*
+hmm.json
+
 ### Mac
 .DS_Store
 .icloud
@@ -13,9 +15,12 @@ vscode-project.hxml
 export/*
 .vscode/*
 *.code-workspace
+dump/*
+
 # Local history which shouldn't be shared.
 .history
 .ionide
+
 # ! means a file should be added regardless of it it gets ignored prior.
 # Including to allow others to use already set-up configuration tweaked for the project.
 !.vscode/settings.json
