@@ -62,8 +62,11 @@ cargo install --git https://github.com/ninjamuffin99/hmm-rs hmm-rs
 hmm-rs clean
 hmm-rs install
 
+haxelib fixrepo
+
+haxelib install hmm
 haxelib remove grig.audio
-hmm reinstall grig.audio
+haxelib run hmm reinstall grig.audio
 ```
 
 ### Setup Lime
