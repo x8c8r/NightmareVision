@@ -67,6 +67,8 @@ haxelib fixrepo
 haxelib install hmm
 haxelib remove grig.audio
 haxelib run hmm reinstall grig.audio
+
+haxelib fixrepo
 ```
 
 ### Setup Lime
