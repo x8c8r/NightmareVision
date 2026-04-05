@@ -38,7 +38,7 @@ within the VS Community Installer, download `Desktop development with c++`
 
 ### Download the projects required libraries...
 
-#### Standard Method (Slower)
+#### Recommended Method (Slower)
 In a cmd within the project directory, in order run...
 
 ```sh
