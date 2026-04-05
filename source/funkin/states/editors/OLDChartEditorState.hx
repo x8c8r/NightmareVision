@@ -1578,6 +1578,7 @@ class OLDChartEditorState extends MusicBeatState
 	#if desktop
 	var waveformUseInstrumental:FlxUICheckBox;
 	var waveformUseVoices:FlxUICheckBox;
+	var waveformUseOpponentVoices:FlxUICheckBox;
 	#end
 	var instVolume:FlxUINumericStepper;
 	var voicesVolume:FlxUINumericStepper;
@@ -1591,6 +1592,7 @@ class OLDChartEditorState extends MusicBeatState
 		#if desktop
 		if (FlxG.save.data.chart_waveformInst == null) FlxG.save.data.chart_waveformInst = false;
 		if (FlxG.save.data.chart_waveformVoices == null) FlxG.save.data.chart_waveformVoices = false;
+		if (FlxG.save.data.chart_waveformOpponentVoices == null) FlxG.save.data.chart_waveformOpponentVoices = false;
 		
 		waveformUseInstrumental = new FlxUICheckBox(10, 90, null, null, "Waveform for Instrumental", 100);
 		waveformUseInstrumental.checked = FlxG.save.data.chart_waveformInst;
@@ -1605,8 +1607,21 @@ class OLDChartEditorState extends MusicBeatState
 		waveformUseVoices.checked = FlxG.save.data.chart_waveformVoices;
 		waveformUseVoices.callback = function() {
 			waveformUseInstrumental.checked = false;
+			waveformUseOpponentVoices.checked = false;
 			FlxG.save.data.chart_waveformInst = false;
+			FlxG.save.data.chart_waveformOpponentVoices = false;
 			FlxG.save.data.chart_waveformVoices = waveformUseVoices.checked;
+			updateWaveform();
+		};
+		
+		waveformUseOpponentVoices = new FlxUICheckBox(waveformUseVoices.x + 120, waveformUseVoices.y, null, null, "Waveform for Opponent Voices", 100);
+		waveformUseOpponentVoices.checked = FlxG.save.data.chart_waveformOpponentVoices;
+		waveformUseOpponentVoices.callback = function() {
+			waveformUseVoices.checked = false;
+			waveformUseInstrumental.checked = false;
+			FlxG.save.data.chart_waveformInst = false;
+			FlxG.save.data.chart_waveformVoices = false;
+			FlxG.save.data.chart_waveformOpponentVoices = waveformUseOpponentVoices.checked;
 			updateWaveform();
 		};
 		#end
@@ -1735,6 +1750,7 @@ class OLDChartEditorState extends MusicBeatState
 		#if desktop
 		tab_group_chart.add(waveformUseInstrumental);
 		tab_group_chart.add(waveformUseVoices);
+		tab_group_chart.add(waveformUseOpponentVoices);
 		#end
 		tab_group_chart.add(instVolume);
 		tab_group_chart.add(voicesVolume);
@@ -2709,7 +2725,7 @@ class OLDChartEditorState extends MusicBeatState
 		}
 		
 		#if desktop
-		if (FlxG.save.data.chart_waveformInst || FlxG.save.data.chart_waveformVoices)
+		if (FlxG.save.data.chart_waveformInst || FlxG.save.data.chart_waveformVoices || FlxG.save.data.chart_waveformOpponentVoices)
 		{
 			updateWaveform();
 		}
@@ -2758,7 +2774,7 @@ class OLDChartEditorState extends MusicBeatState
 		}
 		waveformPrinted = false;
 		
-		if (!FlxG.save.data.chart_waveformInst && !FlxG.save.data.chart_waveformVoices)
+		if (!FlxG.save.data.chart_waveformInst && !FlxG.save.data.chart_waveformVoices && !FlxG.save.data.chart_waveformOpponentVoices)
 		{
 			// trace('Epic fail on the waveform lol');
 			return;
@@ -2787,6 +2803,17 @@ class OLDChartEditorState extends MusicBeatState
 		if (FlxG.save.data.chart_waveformVoices)
 		{
 			var sound:FlxSound = vocals;
+			if (sound._sound != null && sound._sound.__buffer != null)
+			{
+				var bytes:Bytes = sound._sound.__buffer.data.toBytes();
+				
+				wavData = waveformData(sound._sound.__buffer, bytes, st, et, 1, wavData, Std.int(gridBG.height));
+			}
+		}
+		
+		if (FlxG.save.data.chart_waveformOpponentVoices)
+		{
+			var sound:FlxSound = opponentVocals;
 			if (sound._sound != null && sound._sound.__buffer != null)
 			{
 				var bytes:Bytes = sound._sound.__buffer.data.toBytes();
