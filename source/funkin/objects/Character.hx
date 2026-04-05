@@ -295,7 +295,7 @@ class Character extends Bopper
 		}
 		else if (isPlayer) holdTimer = 0;
 		
-		if (!isPlayer && holdTimer >= Conductor.stepCrotchet * 0.0011 * singDuration)
+		if (holdTimer >= Conductor.stepCrotchet * 0.0011 * singDuration)
 		{
 			if (hasAnim(getAnimName() + '-end'))
 			{
