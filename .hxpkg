@@ -83,15 +83,6 @@
                 "branch": "8567c4dad34cfeaf2ff23fe12c3796f5db80685e"
             },
             {
-                "name": "json2object",
-                "link": "https://github.com/FunkinCrew/json2object",
-                "branch": "a8c26f18463c98da32f744c214fe02273e1823fa"
-            },
-            {
-                "name": "hxjsonast",
-                "version": "1.1.0"
-            },
-            {
                 "name": "json5hx",
                 "version": "1.0.2"
             }
