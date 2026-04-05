@@ -216,19 +216,19 @@ class FunkinSprite extends FlxAnimate
 	 * Helper function add a animation by prefix. It will attempt to add by `frame label`, `symbol`, then `prefix`
 	 */
 	@:inheritDoc(flixel.animation.FlxAnimationController.addByPrefix)
-	public function addAnimByPrefix(anim:String, prefix:String, fps:Int = 24, looping:Bool = true, flipX:Bool = false, flipY:Bool = false)
+	public function addAnimByPrefix(name:String, prefix:String, fps:Int = 24, looping:Bool = true, flipX:Bool = false, flipY:Bool = false)
 	{
 		if (library != null && anim.findFrameLabelIndices(prefix).length > 0)
 		{
-			anim.addByFrameLabel(anim, prefix, fps, looping, flipX, flipY);
+			anim.addByFrameLabel(name, prefix, fps, looping, flipX, flipY);
 		}
 		else if (checkLibraryForSymbol(library, prefix))
 		{
-			anim.addBySymbol(anim, prefix, fps, looping, flipX, flipY);
+			anim.addBySymbol(name, prefix, fps, looping, flipX, flipY);
 		}
 		else
 		{
-			animation.addByPrefix(anim, prefix, fps, looping, flipX, flipY);
+			animation.addByPrefix(name, prefix, fps, looping, flipX, flipY);
 		}
 	}
 	
@@ -236,19 +236,19 @@ class FunkinSprite extends FlxAnimate
 	 * Helper function add a animation by indices. It will attempt to add by `frame label`, `symbol`, then `prefix`
 	 */
 	@:inheritDoc(flixel.animation.FlxAnimationController.addByIndices)
-	public function addAnimByIndices(anim:String, prefix:String, indices:Array<Int>, fps:Int = 24, looping:Bool = true, flipX:Bool = false, flipY:Bool = false)
+	public function addAnimByIndices(name:String, prefix:String, indices:Array<Int>, fps:Int = 24, looping:Bool = true, flipX:Bool = false, flipY:Bool = false)
 	{
 		if (library != null && anim.findFrameLabelIndices(prefix).length > 0)
 		{
-			anim.addByFrameLabelIndices(anim, prefix, indices, fps, looping, flipX, flipY);
+			anim.addByFrameLabelIndices(name, prefix, indices, fps, looping, flipX, flipY);
 		}
 		else if (checkLibraryForSymbol(library, prefix))
 		{
-			anim.addBySymbolIndices(anim, prefix, indices, fps, looping, flipX, flipY);
+			anim.addBySymbolIndices(name, prefix, indices, fps, looping, flipX, flipY);
 		}
 		else
 		{
-			animation.addByIndices(anim, prefix, indices, '', fps, looping, flipX, flipY);
+			animation.addByIndices(name, prefix, indices, '', fps, looping, flipX, flipY);
 		}
 	}
 	
