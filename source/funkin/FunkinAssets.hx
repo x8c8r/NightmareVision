@@ -167,11 +167,8 @@ class FunkinAssets
 		{
 			return cache.cacheBitmap(key, bitmap, allowGPU);
 		}
-		else
-		{
-			Logger.log('graphic ($key) was not found', WARN);
-			return null;
-		}
+		
+		return null;
 	}
 	
 	/**
