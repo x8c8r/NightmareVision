@@ -192,12 +192,14 @@ class Character extends Bopper
 		
 		this.danceEveryNumBeats = json.dance_every ?? 2;
 		
-		this.isPlayerInEditor = json._editor_isPlayer;
-		
 		this.gameoverCharacter = json.gameover_character;
 		this.gameoverConfirmDeathSound = json.gameover_confirm_sound;
 		this.gameoverLoopDeathSound = json.gameover_loop_sound;
 		this.gameoverInitialDeathSound = json.gameover_intial_sound;
+		
+		this.scalableOffsets = json.scalableOffsets ?? false;
+		
+		this.isPlayerInEditor = json._editor_isPlayer;
 		
 		loadAtlas(imageFile);
 		
