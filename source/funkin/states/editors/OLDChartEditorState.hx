@@ -1598,7 +1598,9 @@ class OLDChartEditorState extends MusicBeatState
 		waveformUseInstrumental.checked = FlxG.save.data.chart_waveformInst;
 		waveformUseInstrumental.callback = function() {
 			waveformUseVoices.checked = false;
+			waveformUseOpponentVoices.checked = false;
 			FlxG.save.data.chart_waveformVoices = false;
+			FlxG.save.data.chart_waveformOpponentVoices = false;
 			FlxG.save.data.chart_waveformInst = waveformUseInstrumental.checked;
 			updateWaveform();
 		};
