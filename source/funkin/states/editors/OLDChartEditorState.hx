@@ -181,7 +181,12 @@ class OLDChartEditorState extends MusicBeatState
 	var curUndoIndex = 0;
 	var curRedoIndex = 0;
 	
-	static var _song:Song;
+	static var _song(get, never):Song;
+	
+	static function get__song()
+	{
+		return (ChartEditorState.song ?? ChartEditorState.getDefaultSong());
+	}
 	
 	/*
 	 * WILL BE THE CURRENT / LAST PLACED NOTE
@@ -245,8 +250,6 @@ class OLDChartEditorState extends MusicBeatState
 	{
 		instance = this;
 		
-		_song = (ChartEditorState.song ?? ChartEditorState.getDefaultSong());
-		
 		initialKeyCount = _song.keys;
 		ClientPrefs.load();
 		
@@ -269,7 +272,7 @@ class OLDChartEditorState extends MusicBeatState
 		vortex = FlxG.save.data.chart_vortex;
 		ignoreWarnings = FlxG.save.data.ignoreWarnings;
 		
-		gradient = new FlxBackdrop(Y);
+		gradient = new FlxBackdrop(null, Y);
 		add(gradient);
 		
 		bg = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
@@ -3704,7 +3707,7 @@ class OLDChartEditorState extends MusicBeatState
 		{
 			final songName = Paths.sanitize(song);
 			
-			ChartEditorState.song = PlayState.SONG = Chart.fromPath(Paths.json('$songName/data/${Difficulty.getDifficultyFilePath()}'));
+			ChartEditorState.song = Chart.fromPath(Paths.json('$songName/data/${Difficulty.getDifficultyFilePath()}'));
 		}
 		catch (e)
 		{
