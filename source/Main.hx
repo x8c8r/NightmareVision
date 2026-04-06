@@ -32,6 +32,8 @@ class Main extends Sprite
 	static function __init__()
 	{
 		funkin.utils.MacroUtil.haxeVersionEnforcement();
+		
+		openfl.utils._internal.Log.level = openfl.utils._internal.Log.LogLevel.INFO;
 	}
 	
 	public static function main():Void
