@@ -93,7 +93,7 @@ class HealthIcon extends FlxSprite implements IUiSprite
 		
 		this.characterName = char;
 		
-		var name:String = 'icons/' + char;
+		var name:String = '${Paths.UI_PREFIX}icons/$char';
 		if (!Paths.fileExists('images/' + name + '.png')) name = 'icons/icon-' + char; // Older versions of psych engine's support
 		if (!Paths.fileExists('images/' + name + '.png')) name = 'icons/icon-face'; // Prevents crash from missing icon
 		
@@ -118,7 +118,8 @@ class HealthIcon extends FlxSprite implements IUiSprite
 	{
 		super.updateHitbox();
 		
-		if (updateOffset) {
+		if (updateOffset)
+		{
 			offset.x = iconOffsets[0];
 			offset.y = iconOffsets[1];
 		}
