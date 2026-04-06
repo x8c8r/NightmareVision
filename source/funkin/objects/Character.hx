@@ -299,7 +299,7 @@ class Character extends Bopper
 		{
 			if (hasAnim(getAnimName() + '-end'))
 			{
-				playEndAnim(getAnimName(), true);
+				playAnim(getAnimName() + '-end', true);
 			}
 			else
 			{
@@ -347,12 +347,6 @@ class Character extends Bopper
 		animToPlay += animSuffix;
 		
 		super.playAnim(animToPlay, isForced, isReversed, frame);
-	}
-	
-	public function playEndAnim(animName:String, isForced:Bool = false, isReversed:Bool = false, frame:Int = 0)
-	{
-		specialAnim = false;
-		playAnim(animName + '-end', isForced, isReversed, frame);
 	}
 	
 	override function onBeatHit(beat:Int)
