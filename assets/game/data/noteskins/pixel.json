@@ -369,7 +369,7 @@
 		{"r": -9313536, "g": -589850, "b": -16764672},
 		{"r": -30642, "g": -1291, "b": -9699328}
 	],
-	"splashTexture": "noteSplashes",
+	"splashTexture": "UI/notes/noteSplashes",
 	"antialiasing": false,
 	"inGameColoring": true,
 	"receptorScale": 6,

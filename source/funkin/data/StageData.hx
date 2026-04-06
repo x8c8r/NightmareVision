@@ -10,11 +10,6 @@ typedef StageFile =
 	var defaultZoom:Float;
 	
 	/**
-	 * If enabled, pixelUI will be enabled
-	 */
-	var isPixelStage:Bool;
-	
-	/**
 	 * The boyfriend postion as [x, y]
 	 */
 	var boyfriend:Array<Float>;
@@ -230,7 +225,6 @@ class StageData
 	
 	public static function getTemplateStageFile():StageFile return
 		{
-			isPixelStage: false,
 			defaultZoom: 0.8,
 			boyfriend: [500, 100],
 			girlfriend: [0, 100],

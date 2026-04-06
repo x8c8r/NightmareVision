@@ -27,6 +27,8 @@ class PsychHUD extends BaseHUD
 	var ratingSuffix:String = '';
 	var comboPrefix:String = "";
 	
+	var comboTween:Bool = true;
+	
 	var textDivider = '|';
 	var showRating:Bool = ClientPrefs.showRatings;
 	var showRatingNum:Bool = ClientPrefs.showRatings;
@@ -258,12 +260,15 @@ class PsychHUD extends BaseHUD
 		healthBar.percent = (newPercent != null ? newPercent : 0);
 	}
 	
-	override function popUpScore(ratingImage:String,
-			combo:Int) // only uses daRating.image for the moment, ill change this later since I imagine ppl will want to use other parts of the rating im just lazy and wanna get a poc out - Orbyy
+	override function popUpScore(daRating:funkin.game.Rating, combo:Int, note:funkin.objects.note.Note)
 	{
+		final ratingImage = daRating.image;
+		
 		final posX = FlxG.width * 0.35;
 		
 		if (ClientPrefs.hideHud) return;
+		
+		parent.scripts.call('onPopUpScore', [note, daRating, ratingGraphic, ratingNumGroup]);
 		
 		if (showRating)
 		{
@@ -276,15 +281,10 @@ class PsychHUD extends BaseHUD
 			ratingGraphic.x += comboOffsets[0];
 			ratingGraphic.y -= comboOffsets[1];
 			
-			if (!PlayState.isPixelStage)
+			if (comboTween)
 			{
 				ratingGraphic.scale.set(0.785, 0.785);
 				FlxTween.tween(ratingGraphic.scale, {x: 0.7, y: 0.7}, 0.5, {ease: FlxEase.expoOut});
-			}
-			else
-			{
-				ratingGraphic.antialiasing = false;
-				ratingGraphic.setGraphicSize(Std.int(ratingGraphic.width * pixelZoom * 0.85));
 			}
 			ratingGraphic.updateHitbox();
 			FlxTween.tween(ratingGraphic, {alpha: 0}, 0.5, {startDelay: Conductor.stepCrotchet * 0.01, ease: FlxEase.expoOut});
@@ -324,17 +324,11 @@ class PsychHUD extends BaseHUD
 				numScore.x += comboOffsets[2];
 				numScore.y -= comboOffsets[3];
 				
-				if (!PlayState.isPixelStage)
+				if (comboTween)
 				{
 					numScore.scale.set(0.6, 0.6);
 					FlxTween.cancelTweensOf(numScore, ['scale.x', 'scale.y']);
 					FlxTween.tween(numScore.scale, {x: 0.5, y: 0.5}, 0.5, {ease: FlxEase.expoOut});
-				}
-				else
-				{
-					numScore.antialiasing = false;
-					
-					numScore.setGraphicSize(Std.int(numScore.width * pixelZoom));
 				}
 				numScore.updateHitbox();
 				ratingNumGroup.add(numScore);
@@ -343,6 +337,8 @@ class PsychHUD extends BaseHUD
 				daLoop++;
 			}
 		}
+		
+		parent.scripts.call('onPopUpScorePost', [note, daRating, ratingGraphic, ratingNumGroup]);
 	}
 	
 	override function cachePopUpScore()

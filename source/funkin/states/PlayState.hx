@@ -64,8 +64,6 @@ class PlayState extends MusicBeatState
 	// how big to stretch the pixel art assets
 	public static var daPixelZoom:Float = 6;
 	
-	public static var isPixelStage:Bool = false;
-	
 	/**
 	 * Static reference to the state. used for other classes to reference
 	 */
@@ -534,6 +532,8 @@ class PlayState extends MusicBeatState
 	
 	public var playHUD:Null<BaseHUD> = null;
 	
+	public var countdownPrefix:String = Paths.COUNTDOWN_PREFIX;
+	
 	/**
 	 * Called when the Song should start
 	 * 
@@ -568,7 +568,6 @@ class PlayState extends MusicBeatState
 		
 		defaultCamZoom = file.defaultZoom;
 		FlxG.camera.zoom = file.defaultZoom;
-		isPixelStage = file.isPixelStage;
 		
 		BF_X = file.boyfriend[0];
 		BF_Y = file.boyfriend[1];
@@ -687,8 +686,6 @@ class PlayState extends MusicBeatState
 			
 			Logger.log('script: ' + stage.script.name + ' intialized');
 		}
-		
-		if (isPixelStage) introSoundsSuffix = '-pixel';
 		
 		if (scripts.call("onAddSpriteGroups", []) != ScriptConstants.STOP_FUNC)
 		{
@@ -1077,17 +1074,8 @@ class PlayState extends MusicBeatState
 				startTimer = new FlxTimer().start((Conductor.crotchet / 1000) / playbackRate, function(tmr:FlxTimer) {
 					handleBoppers(tmr.loopsLeft);
 					
-					var introAssets:Map<String, Array<String>> = new Map<String, Array<String>>();
-					introAssets.set('default', ['ready', 'set', 'go']);
-					introAssets.set('pixel', ['pixelUI/ready-pixel', 'pixelUI/set-pixel', 'pixelUI/date-pixel']);
-					
-					var introAlts:Array<String> = introAssets.get('default');
+					var introAlts:Array<String> = ['ready', 'set', 'go'];
 					var antialias:Bool = ClientPrefs.globalAntialiasing;
-					if (isPixelStage)
-					{
-						introAlts = introAssets.get('pixel');
-						antialias = false;
-					}
 					
 					switch (swagCounter)
 					{
@@ -1123,13 +1111,14 @@ class PlayState extends MusicBeatState
 	
 	function makeCountdownSprite(path:String):FlxSprite
 	{
-		final spr = new FlxSprite().loadGraphic(Paths.image(Paths.COUNTDOWN_PREFIX + path));
+		final pref = countdownPrefix != Paths.COUNTDOWN_PREFIX ? countdownPrefix : Paths.COUNTDOWN_PREFIX;
+		
+		final spr = new FlxSprite().loadGraphic(Paths.image(pref + path));
 		spr.scrollFactor.set();
 		spr.updateHitbox();
 		
-		if (PlayState.isPixelStage) spr.setGraphicSize(Std.int(spr.width * daPixelZoom));
 		spr.screenCenter();
-		spr.antialiasing = isPixelStage ? false : ClientPrefs.globalAntialiasing;
+		spr.antialiasing = ClientPrefs.globalAntialiasing;
 		
 		spr.cameras = [camHUD];
 		
@@ -2757,9 +2746,7 @@ class PlayState extends MusicBeatState
 				RecalculateRating(false);
 			}
 		}
-		scripts.call('onPopUpScore', [note, daRating]);
-		callHUDFunc(hud -> hud.popUpScore(daRating.image, combo)); // only pushing the image bc is anyone ever gonna need anything else???
-		scripts.call('onPopUpScorePost', [note, daRating]);
+		callHUDFunc(hud -> hud.popUpScore(daRating, combo, note)); // only pushing the image bc is anyone ever gonna need anything else???
 	}
 	
 	function onKeyPress(event:KeyboardEvent):Void
@@ -3117,11 +3104,5 @@ class PlayState extends MusicBeatState
 		if (bads > 0 || shits > 0) ratingFC = "FC";
 		if (songMisses > 0 && songMisses < 10) ratingFC = "SDCB";
 		else if (songMisses >= 10) ratingFC = "Clear";
-	}
-	
-	override public function startOutro(onOutroComplete:() -> Void)
-	{
-		if (stage != null && isPixelStage != stage.stageData.isPixelStage) isPixelStage = stage.stageData.isPixelStage;
-		super.startOutro(onOutroComplete);
 	}
 }

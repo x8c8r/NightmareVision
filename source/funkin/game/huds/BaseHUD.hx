@@ -43,9 +43,8 @@ class BaseHUD extends FlxTypedContainer<FlxBasic>
 	
 	public function onUpdateScore(score:Int = 0, accuracy:Float = 0, misses:Int = 0, missed:Bool = false):Void {}
 	
-	public function popUpScore(ratingImage:String,
-		combo:Int):Void {} // Rating only uses daRating.image for now, I plan on probably changing this later so that u can use any aspect of the rating but this is just temporary
-		
+	public function popUpScore(daRating:funkin.game.Rating, combo:Int, note:funkin.objects.note.Note):Void {}
+	
 	public function onEvent(ev:String, v1:String, v2:String, strumTime:Float):Void {}
 	
 	public function onCharacterChange() {}
