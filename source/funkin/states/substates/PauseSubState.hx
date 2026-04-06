@@ -25,6 +25,7 @@ import funkin.scripts.*;
 class PauseSubState extends MusicBeatSubstate
 {
 	var grpMenuShit:FlxTypedGroup<Alphabet>;
+	var cornerTexts:Array<FlxText> = [];
 	
 	public static var instance:PauseSubState;
 	
@@ -100,15 +101,14 @@ class PauseSubState extends MusicBeatSubstate
 		add(bg);
 		bg.alpha = 0;
 		
-		var corners:Array<FlxText> = [];
-		function createCornerText(text:String, addto:Bool = false)
+		function createCornerText(text:String, addtoo:Bool = false)
 		{
 			var t = new FlxText(0, 15, cam.width - 15, text, 32);
 			t.alignment = RIGHT;
 			t.setFormat(Paths.DEFAULT_FONT, 32);
 			t.scrollFactor.set();
-			corners.push(t);
-			if (addto) add(t);
+			cornerTexts.push(t);
+			if (addtoo) add(t);
 			return t;
 		}
 		
@@ -262,19 +262,7 @@ class PauseSubState extends MusicBeatSubstate
 			switch (daSelected)
 			{
 				case 'Options':
-					PlayState.instance.paused = true;
-					PlayState.instance.audio.volume = 0;
-					FlxG.switchState(() -> new OptionsState());
-					@:privateAccess
-					{
-						if (pauseMusic._sound != null)
-						{
-							FunkinSound.playMusic(pauseMusic._sound, 0);
-							FlxTween.tween(FlxG.sound.music, {volume: 0.5}, 0.7);
-						}
-					}
-					
-					OptionsState.onPlayState = true;
+					toOptions();
 				case "Resume":
 					close();
 				case 'Change Difficulty':
@@ -331,6 +319,26 @@ class PauseSubState extends MusicBeatSubstate
 			FunkinSound.playMusic(Paths.music('freakyMenu'));
 			PlayState.changedDifficulty = false;
 			PlayState.chartingMode = false;
+		}
+	}
+	
+	public function toOptions()
+	{
+		if (scriptGroup.call('onOptions', []) != ScriptConstants.STOP_FUNC)
+		{
+			PlayState.instance.paused = true;
+			PlayState.instance.audio.volume = 0;
+			FlxG.switchState(() -> new OptionsState());
+			@:privateAccess
+			{
+				if (pauseMusic._sound != null)
+				{
+					FunkinSound.playMusic(pauseMusic._sound, 0);
+					FlxTween.tween(FlxG.sound.music, {volume: 0.5}, 0.7);
+				}
+			}
+			
+			OptionsState.onPlayState = true;
 		}
 	}
 	
