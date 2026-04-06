@@ -185,7 +185,7 @@ class OLDChartEditorState extends MusicBeatState
 	
 	static function get__song()
 	{
-		return (ChartEditorState.song ?? ChartEditorState.getDefaultSong());
+		return (ChartEditorState.song);
 	}
 	
 	/*
@@ -249,6 +249,8 @@ class OLDChartEditorState extends MusicBeatState
 	override function create()
 	{
 		instance = this;
+		
+		ChartEditorState.song ??= ChartEditorState.getDefaultSong();
 		
 		initialKeyCount = _song.keys;
 		ClientPrefs.load();
