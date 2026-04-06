@@ -88,6 +88,8 @@ class SustainSplash extends FunkinSprite implements funkin.game.modchart.IModNot
 		
 		skin = NoteUtil.getSkinFromID(player);
 		
+		antialiasing = skin.antialiasing;
+		
 		if (skin?.susSplashScale != null) scale.set(skin.susSplashScale, skin.susSplashScale);
 		
 		baseScale.copyFrom(scale);

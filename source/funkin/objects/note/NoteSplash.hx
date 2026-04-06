@@ -66,6 +66,8 @@ class NoteSplash extends FunkinSprite implements funkin.game.modchart.IModNote
 		
 		skin = NoteUtil.getSkinFromID(player);
 		
+		antialiasing = skin.antialiasing;
+		
 		final sanitzedColourArray = colourInput ?? NoteUtil.colorToArray(skin.colors[data]);
 		
 		texture ??= 'noteSplashes';
