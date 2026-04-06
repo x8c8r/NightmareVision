@@ -433,15 +433,6 @@ class PlayState extends MusicBeatState
 	
 	public var beatsPerZoom:Int = 4;
 	
-	var totalBeat:Int = 0;
-	var totalShake:Int = 0;
-	var timeBeat:Float = 1;
-	var gameZ:Float = 0.015;
-	var hudZ:Float = 0.03;
-	var gameShake:Float = 0.003;
-	var hudShake:Float = 0.003;
-	var shakeTime:Bool = false;
-	
 	public var inCutscene:Bool = false;
 	public var ingameCutscene:Bool = false;
 	
@@ -2067,7 +2058,7 @@ class PlayState extends MusicBeatState
 				if (automatedDiscord) DiscordClient.changePresence("Game Over - " + rpcDescription, rpcSongName);
 				
 				isDead = true;
-				totalBeat = 0;
+				
 				return true;
 			}
 		}
@@ -2384,48 +2375,6 @@ class PlayState extends MusicBeatState
 							}
 						});
 				}
-				
-			case 'Camera Zoom Chain':
-				var split1:Array<String> = value1.split(',');
-				var gameZoom:Float = Std.parseFloat(split1[0].trim());
-				var hudZoom:Float = Std.parseFloat(split1[1].trim());
-				
-				if (!Math.isNaN(gameZoom)) gameZ = 0.015;
-				if (!Math.isNaN(hudZoom)) hudZ = 0.03;
-				
-				if (split1.length == 4)
-				{
-					var shGame:Float = Std.parseFloat(split1[2].trim());
-					var shHUD:Float = Std.parseFloat(split1[3].trim());
-					
-					if (!Math.isNaN(shGame)) gameShake = shGame;
-					if (!Math.isNaN(shHUD)) hudShake = shHUD;
-					shakeTime = true;
-				}
-				else shakeTime = false;
-				
-				var split2:Array<String> = value2.split(',');
-				var toBeat:Int = Std.parseInt(split2[0].trim());
-				var tiBeat:Float = Std.parseFloat(split2[1].trim());
-				
-				if (Math.isNaN(toBeat)) toBeat = 4;
-				if (Math.isNaN(tiBeat)) tiBeat = 1;
-				
-				totalBeat = toBeat;
-				timeBeat = tiBeat;
-				
-			case 'Screen Shake Chain':
-				var split1:Array<String> = value1.split(',');
-				var gmShake:Float = Std.parseFloat(split1[0].trim());
-				var hdShake:Float = Std.parseFloat(split1[1].trim());
-				
-				if (!Math.isNaN(gmShake)) gameShake = gmShake;
-				if (!Math.isNaN(hdShake)) hudShake = hdShake;
-				
-				var toBeat:Int = Std.parseInt(value2);
-				if (!Math.isNaN(toBeat)) totalShake = 4;
-				
-				totalShake = toBeat;
 				
 			case 'Set Cam Zoom':
 				defaultCamZoom = Std.parseFloat(value1);
@@ -2967,21 +2916,6 @@ class PlayState extends MusicBeatState
 		}
 		
 		lastBeatHit = curBeat;
-		
-		if (totalBeat > 0)
-		{
-			if (curBeat % timeBeat == 0)
-			{
-				triggerEventNote('Add Camera Zoom', '' + gameZ, '' + hudZ);
-				totalBeat -= 1;
-				
-				if (shakeTime) triggerEventNote('Screen Shake', (((1 / (Conductor.bpm / 60)) / 2) * timeBeat)
-					+ ', '
-					+ gameShake, (((1 / (Conductor.bpm / 60)) / 2) * timeBeat)
-					+ ', '
-					+ hudShake);
-			}
-		}
 		
 		scripts.set('curBeat', curBeat);
 		scripts.call('onBeatHit');
