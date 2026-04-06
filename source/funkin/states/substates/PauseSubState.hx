@@ -142,7 +142,7 @@ class PauseSubState extends MusicBeatSubstate
 		FlxTween.tween(bg, {alpha: 0.6}, 0.4);
 		
 		var yt:Float = 15;
-		for (k => i in corners)
+		for (k => i in cornerTexts)
 		{
 			i.y = yt - i.height;
 			i.alpha = 0;
