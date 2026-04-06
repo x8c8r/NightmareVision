@@ -2,7 +2,9 @@ helloe we hit single
 
 Havee fun with NightmareVision V1! (***[follow me on twitter](https://twitter.com/DuskieWhy)***)
 
-![](https://github.com/DuskieWhy/NightmareVision/blob/dev/assets/game/images/branding/NMV.png)
+![](https://github.com/NMVTeam/NightmareVision/blob/dev/assets/game/images/branding/watermarks/NMV.png)
+
+
 
 ## Special thanks to...
 
