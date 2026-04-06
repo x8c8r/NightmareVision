@@ -94,8 +94,8 @@ class HealthIcon extends FlxSprite implements IUiSprite
 		this.characterName = char;
 		
 		var name:String = '${Paths.UI_PREFIX}icons/$char';
-		if (!Paths.fileExists('images/' + name + '.png')) name = 'icons/icon-' + char; // Older versions of psych engine's support
-		if (!Paths.fileExists('images/' + name + '.png')) name = 'icons/icon-face'; // Prevents crash from missing icon
+		if (!Paths.fileExists('images/' + name + '.png')) name = '${Paths.UI_PREFIX}icons/icon-' + char; // Older versions of psych engine's support
+		if (!Paths.fileExists('images/' + name + '.png')) name = '${Paths.UI_PREFIX}icons/icon-face'; // Prevents crash from missing icon
 		
 		final graphic = Paths.image(name, null, false);
 		
