@@ -692,15 +692,15 @@ class CharacterEditorState extends UIState // MUST EXTEND UI STATE needed for ac
 				}
 				else if (obj == character)
 				{
-					if (isUndo) addRedoAction(action.type, obj, [character.offset.x, character.offset.y]);
-					else addUndoAction(action.type, obj, [character.offset.x, character.offset.y]);
+					if (isUndo) addRedoAction(action.type, obj, [character.animOffset.x, character.animOffset.y]);
+					else addUndoAction(action.type, obj, [character.animOffset.x, character.animOffset.y]);
 					
-					character.offset.x = action.value[0];
-					character.offset.y = action.value[1];
+					character.animOffset.x = action.value[0];
+					character.animOffset.y = action.value[1];
 					
 					updateCurrentAnimOffsets();
 					
-					popupText = 'Changed Character offset to ${character.offset}';
+					popupText = 'Changed Character offset to ${character.animOffset}';
 				}
 				
 			case MOVED_SLIDER:
@@ -925,7 +925,7 @@ class CharacterEditorState extends UIState // MUST EXTEND UI STATE needed for ac
 	
 	function updateCurrentAnimOffsets()
 	{
-		final offsets = [Std.int(character.offset.x), Std.int(character.offset.y)];
+		final offsets = [Std.int(character.animOffset.x), Std.int(character.animOffset.y)];
 		
 		character.addOffset(character.getAnimName(), offsets[0], offsets[1]);
 		
@@ -953,10 +953,10 @@ class CharacterEditorState extends UIState // MUST EXTEND UI STATE needed for ac
 		{
 			if (FlxG.mouse.justPressedRight)
 			{
-				addUndoAction(DRAGGED, character, [character.offset.x, character.offset.y]);
+				addUndoAction(DRAGGED, character, [character.animOffset.x, character.animOffset.y]);
 			}
-			character.offset.x -= FlxG.mouse.deltaViewX;
-			character.offset.y -= FlxG.mouse.deltaViewY;
+			character.animOffset.x -= FlxG.mouse.deltaViewX;
+			character.animOffset.y -= FlxG.mouse.deltaViewY;
 			
 			return true;
 		}
@@ -967,22 +967,22 @@ class CharacterEditorState extends UIState // MUST EXTEND UI STATE needed for ac
 		
 		if (FlxG.keys.justPressed.LEFT)
 		{
-			character.offset.x += moveDistance;
+			character.animOffset.x += moveDistance;
 			return true;
 		}
 		else if (FlxG.keys.justPressed.DOWN)
 		{
-			character.offset.y -= moveDistance;
+			character.animOffset.y -= moveDistance;
 			return true;
 		}
 		else if (FlxG.keys.justPressed.UP)
 		{
-			character.offset.y += moveDistance;
+			character.animOffset.y += moveDistance;
 			return true;
 		}
 		else if (FlxG.keys.justPressed.RIGHT)
 		{
-			character.offset.x -= moveDistance;
+			character.animOffset.x -= moveDistance;
 			return true;
 		}
 		
