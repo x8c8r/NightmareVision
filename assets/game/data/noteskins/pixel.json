@@ -282,20 +282,20 @@
 			{
 				"anim": "start",
 				"xmlName": "start",
-				"offsets": [0, 0],
+				"offsets": [-160, 0],
 				"looping": false
 			},
 			{
 				"anim": "loop",
 				"xmlName": "loop",
-				"offsets": [-10, 15],
+				"offsets": [-160, 0],
 				"looping": true,
 				"fps": 12
 			},
 			{
 				"anim": "end",
 				"xmlName": "end",
-				"offsets": [0, 0],
+				"offsets": [-160, 0],
 				"looping": false
 			}
 		],
@@ -303,20 +303,20 @@
 			{
 				"anim": "start",
 				"xmlName": "start",
-				"offsets": [0, 0],
+				"offsets": [-160, 0],
 				"looping": false
 			},
 			{
 				"anim": "loop",
 				"xmlName": "loop",
-				"offsets": [-10, 15],
+				"offsets": [-160, 0],
 				"looping": true,
 				"fps": 12
 			},
 			{
 				"anim": "end",
 				"xmlName": "end",
-				"offsets": [0, 0],
+				"offsets": [-160, 0],
 				"looping": false
 			}
 		],
@@ -324,20 +324,20 @@
 			{
 				"anim": "start",
 				"xmlName": "start",
-				"offsets": [0, 0],
+				"offsets": [-160, 0],
 				"looping": false
 			},
 			{
 				"anim": "loop",
 				"xmlName": "loop",
-				"offsets": [-10, 15],
+				"offsets": [-160, 0],
 				"looping": true,
 				"fps": 12
 			},
 			{
 				"anim": "end",
 				"xmlName": "end",
-				"offsets": [0, 0],
+				"offsets": [-160, 0],
 				"looping": false
 			}
 		],
@@ -345,20 +345,20 @@
 			{
 				"anim": "start",
 				"xmlName": "start",
-				"offsets": [0, 0],
+				"offsets": [-160, 0],
 				"looping": false
 			},
 			{
 				"anim": "loop",
 				"xmlName": "loop",
-				"offsets": [-10, 15],
+				"offsets": [-160, 0],
 				"looping": true,
 				"fps": 12
 			},
 			{
 				"anim": "end",
 				"xmlName": "end",
-				"offsets": [0, 0],
+				"offsets": [-160, 0],
 				"looping": false
 			}
 		]
@@ -370,10 +370,12 @@
 		{"r": -30642, "g": -1291, "b": -9699328}
 	],
 	"splashTexture": "UI/notes/noteSplashes",
+    "sustainSplashTexture": "pixelUI/holdCover",
 	"antialiasing": false,
 	"inGameColoring": true,
 	"receptorScale": 6,
 	"noteScale": 6,
 	"splashScale": 1.5,
-	"susSplashOrigin": [-10, 15]
+    "susSplashScale": 6,
+	"susSplashOrigin": [-160, 15]
 }
