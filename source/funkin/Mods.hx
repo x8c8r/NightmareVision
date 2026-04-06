@@ -395,8 +395,6 @@ class Mods
 		
 		inline function dirExists(dir:String):Bool return dir != null && FunkinAssets.isDirectory('content/${Mods.currentModDirectory}/images/$dir');
 		
-		trace(pack.uiPrefix + ' - exists? ${dirExists(pack.uiPrefix)}');
-		
 		Paths.UI_PREFIX = dirExists(pack.uiPrefix) ? pack.uiPrefix : 'UI/';
 		Paths.COMBO_PREFIX = dirExists(pack.comboPrefix) ? pack.comboPrefix : 'UI/combo/';
 		Paths.RATINGS_PREFIX = dirExists(pack.ratingsPrefix) ? pack.ratingsPrefix : 'UI/ratings/';
@@ -427,7 +425,6 @@ class Mods
 		var retVal = Paths.font('vcr.ttf');
 		var pack = getPack(mod);
 		if (pack != null && pack.defaultFont != null) retVal = Paths.font(pack.defaultFont);
-		trace(retVal);
 		return retVal;
 	}
 }
