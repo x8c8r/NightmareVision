@@ -269,6 +269,8 @@ class Note extends FunkinSprite implements funkin.game.modchart.IModNote
 			
 			animSuffix = prevNote.animSuffix;
 			
+			missHealth = ClientPrefs.guitarHeroSustains ? 0 : 0.0475;
+			
 			if (prevNote.isSustainNote)
 			{
 				prevNote.playAnim(animation.exists('hold') ? 'hold' : 'hold$noteData');
@@ -372,7 +374,7 @@ class Note extends FunkinSprite implements funkin.game.modchart.IModNote
 			addAnimByPrefix(anim.anim, '${anim.xmlName}0', anim.fps, true);
 			addOffset(anim.anim, anim.offsets[0], anim.offsets[1]);
 		}
-			
+		
 		setGraphicSize(Std.int(width * skin.noteScale));
 		
 		baseScale.copyFrom(scale);

@@ -29,7 +29,7 @@ class PsychHUD extends BaseHUD
 	
 	var comboTween:Bool = true;
 	
-	var textDivider = '|';
+	var textDivider = '•';
 	var showRating:Bool = ClientPrefs.showRatings;
 	var showRatingNum:Bool = ClientPrefs.showRatings;
 	var showCombo:Bool = ClientPrefs.showRatings;
