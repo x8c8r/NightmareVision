@@ -289,7 +289,7 @@ class ClientPrefs
 		
 		if (FlxG.save.data.mute != null) FlxG.sound.muted = FlxG.save.data.mute;
 		
-		if (FlxG.save.data.framerate == null) framerate = Std.int(FlxMath.bound(FlxG.stage.application.window.displayMode.refreshRate, 60, 240));
+		if (FlxG.save.data.framerate == null) framerate = Std.int(FlxMath.bound(FlxG.stage.application.window.displayMode.refreshRate, 60, 400));
 		
 		changeFps(framerate);
 		
@@ -306,7 +306,7 @@ class ClientPrefs
 	
 	public static function changeFps(fps:Int = 60)
 	{
-		fps = unlockedFramerate ? 0 : Std.int(FlxMath.bound(fps, 60, 240));
+		fps = unlockedFramerate ? 0 : Std.int(FlxMath.bound(fps, 60, 400));
 		
 		if (fps > FlxG.drawFramerate)
 		{
