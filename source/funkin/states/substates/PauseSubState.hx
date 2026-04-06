@@ -25,7 +25,7 @@ import funkin.scripts.*;
 class PauseSubState extends MusicBeatSubstate
 {
 	var grpMenuShit:FlxTypedGroup<Alphabet>;
-	var corners:Array<FlxText> = [];
+	var cornerTexts:Array<FlxText> = [];
 	
 	public static var instance:PauseSubState;
 	
@@ -101,14 +101,14 @@ class PauseSubState extends MusicBeatSubstate
 		add(bg);
 		bg.alpha = 0;
 		
-		function createCornerText(text:String, addto:Bool = false)
+		function createCornerText(text:String, addtoo:Bool = false)
 		{
 			var t = new FlxText(0, 15, cam.width - 15, text, 32);
 			t.alignment = RIGHT;
 			t.setFormat(Paths.DEFAULT_FONT, 32);
 			t.scrollFactor.set();
-			corners.push(t);
-			if (addto) add(t);
+			cornerTexts.push(t);
+			if (addtoo) add(t);
 			return t;
 		}
 		
@@ -321,7 +321,7 @@ class PauseSubState extends MusicBeatSubstate
 			PlayState.chartingMode = false;
 		}
 	}
-
+	
 	public function toOptions()
 	{
 		if (scriptGroup.call('onOptions', []) != ScriptConstants.STOP_FUNC)
@@ -341,7 +341,7 @@ class PauseSubState extends MusicBeatSubstate
 			OptionsState.onPlayState = true;
 		}
 	}
-
+	
 	public function restartSong(noTrans:Bool = false)
 	{
 		if (scriptGroup.call('onRestart', []) != ScriptConstants.STOP_FUNC)
