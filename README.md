@@ -38,14 +38,42 @@ within the VS Community Installer, download `Desktop development with c++`
 
 ### Download the projects required libraries...
 
+#### Recommended Method (Slower)
 In a cmd within the project directory, in order run...
 
-> haxelib install hxpkg
+```sh
+haxelib git hxpkg https://github.com/ADA-Funni/hxpkg add-hmm-compatibility
+haxelib run hxpkg setup
+haxelib run hxpkg install
+```
 
-> haxelib run hxpkg setup
+#### Advanced Method (Faster)
+> [!IMPORTANT]
+> This requires [Rust](https://rust-lang.org/tools/install/) to be installed!
 
-> haxelib run hxpkg install
+In a cmd within the project directory, in order run...
 
-After that is complete, run `haxelib run lime test windows` and you should be compiling
+```sh
+haxelib git hxpkg https://github.com/ADA-Funni/hxpkg add-hmm-compatibility
+haxelib run hxpkg setup
+haxelib run hxpkg to-hmm
+
+cargo install --git https://github.com/ninjamuffin99/hmm-rs hmm-rs
+hmm-rs clean
+hmm-rs install
+
+haxelib fixrepo
+
+haxelib install hmm
+haxelib remove grig.audio
+haxelib run hmm reinstall grig.audio
+
+haxelib fixrepo
+```
+
+### Setup Lime
+After that is complete, run `haxelib run lime rebuild cpp -release`
+
+Then, run `haxelib run lime test windows -release` and you should be compiling
 
 If you get errors related to lime, run [limeFixer](https://github.com/DuskieWhy/NightmareVision/blob/dev/projFiles/limeFixer.bat) and try again
