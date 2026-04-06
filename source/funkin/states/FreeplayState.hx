@@ -70,7 +70,7 @@ class FreeplayState extends MusicBeatState
 		{
 			CoolUtil.setTransSkip(true, false);
 			persistentUpdate = false;
-			FlxG.switchState(() -> new FallbackState('cannot load Freeplay as there are no weeks loaded.', () -> FlxG.switchState(MainMenuState.new)));
+			FlxG.switchState(() -> new FallbackState('Cannot load Freeplay as there are no weeks loaded.', () -> FlxG.switchState(MainMenuState.new)));
 			return;
 		}
 		
