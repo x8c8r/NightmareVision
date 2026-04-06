@@ -24,7 +24,7 @@ Havee fun with NightmareVision V1! (***[follow me on twitter](https://twitter.co
 ## How to compile NMV Engine
 
 ### Quick Note
-- Haxe 4.3.6 or newer is expected
+- Haxe 4.3.6 and Haxelib 4.2.0 or newer is expected
 - This engine ENFORCES the use of local libraries with hxpkg/hmm to prevent issues in relation to `hxvlc`
 - The expected library versions are listed within the .hxpkg file. 
 
