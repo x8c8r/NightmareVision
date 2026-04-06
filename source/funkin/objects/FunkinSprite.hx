@@ -350,4 +350,27 @@ class FunkinSprite extends FlxAnimate
 		
 		return point;
 	}
+	
+	override function clone():FunkinSprite
+	{
+		final spr = new FunkinSprite();
+		
+		spr.frames = this.frames;
+		spr.animation.copyFrom(this.animation);
+		
+		for (key in this.animOffsets.keys())
+		{
+			var offsets = this.animOffsets.get(key);
+			
+			spr.animOffsets.set(key, offsets);
+		}
+		
+		spr.spriteOffset.copyFrom(this.spriteOffset);
+		spr.baseScale.copyFrom(this.baseScale);
+		spr.scale.copyFrom(this.scale);
+		
+		spr.updateHitbox();
+		
+		return spr;
+	}
 }
