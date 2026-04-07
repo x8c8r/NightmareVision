@@ -1,11 +1,9 @@
 package funkin.utils;
 
 import lime.utils.Bytes;
-
-import openfl.utils.ByteArray;
-
 import lime.ui.FileDialog;
 
+import openfl.utils.ByteArray;
 import openfl.net.FileFilter;
 import openfl.filesystem.File;
 
@@ -16,6 +14,10 @@ typedef BrowseOptions =
 	var ?defaultSearch:String;
 }
 
+/**
+ * Utility class to make browsing and saving files a little bit more convenient
+ */
+@:nullSafety
 class FileUtil
 {
 	public static function browseForFile(options:BrowseOptions, ?onSelect:String->Void, ?onCancel:Void->Void)
@@ -33,7 +35,7 @@ class FileUtil
 			{
 				if (onCancel != null) onCancel();
 			}
-		}, @:privateAccess File.__getFilterTypes(filters), startPath);
+		}, @:privateAccess @:nullSafety(Off) File.__getFilterTypes(filters), startPath);
 	}
 	
 	public static function browseForMultipleFiles(options:BrowseOptions, ?onSelect:Array<String>->Void, ?onCancel:Void->Void)
@@ -51,7 +53,7 @@ class FileUtil
 			{
 				if (onCancel != null) onCancel();
 			}
-		}, @:privateAccess File.__getFilterTypes(filters), startPath, true);
+		}, @:privateAccess @:nullSafety(Off) File.__getFilterTypes(filters), startPath, true);
 	}
 	
 	public static function saveFile(data:Dynamic, ?fileName:String, ?onSelect:String->Void, ?onCancel:Void->Void)

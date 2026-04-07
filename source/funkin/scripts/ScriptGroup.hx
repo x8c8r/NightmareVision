@@ -8,8 +8,6 @@ import flixel.util.FlxDestroyUtil.IFlxDestroyable;
 
 /**
  * Container of `FunkinScript` instances
- * 
- * idea from friens static fyr thanks
  */
 @:nullSafety(Strict)
 class ScriptGroup implements IFlxDestroyable

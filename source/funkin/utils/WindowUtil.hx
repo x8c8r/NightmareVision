@@ -1,12 +1,23 @@
 package funkin.utils;
 
-import openfl.Lib;
-
 import lime.app.Application;
 
+import openfl.Lib;
+
+/**
+ * Utility class to make messing with window properties a bit easier
+ */
+@:nullSafety
 class WindowUtil
 {
+	/**
+	 * The width of the display in pixels.
+	 */
 	public static var monitorResolutionWidth(get, never):Float;
+	
+	/**
+	 * The height of the display in pixels.
+	 */
 	public static var monitorResolutionHeight(get, never):Float;
 	
 	static function get_monitorResolutionWidth():Float return FlxG.stage.window.display.bounds.width;
@@ -15,13 +26,8 @@ class WindowUtil
 	
 	public static var defaultAppTitle(get, never):String;
 	
+	@:nullSafety(Off)
 	static function get_defaultAppTitle():String return Application.current.meta['name'];
-	
-	// /**
-	//  * Whether the window is currently focused.
-	//  */
-	// public static var isFocused(get, never):Bool;
-	// static inline function get_isFocused():Bool return FlxG.stage.window.focused;
 	
 	/**
 	 * The current window width in pixels.
@@ -75,13 +81,6 @@ class WindowUtil
 		FlxG.stage.window.borderless = value;
 		return value;
 	}
-	
-	// /**
-	//  * Gets or sets the window's always-on-top state.
-	//  */
-	// public static var alwaysOnTop(get, set):Bool;
-	// static inline function get_alwaysOnTop():Bool return FlxG.stage.window.alwaysOnTop;
-	// static inline function set_alwaysOnTop(value:Bool):Bool { FlxG.stage.window.alwaysOnTop = value; return value; }
 	
 	/**
 	 * Gets or sets the window opacity. Range is `0.0` (invisible) to `1.0` (fully opaque).
@@ -297,7 +296,9 @@ class WindowUtil
 		
 		if (window == null) return;
 		
-		final dpiScale = (lime.system.System.getDisplay(0)?.dpi / 96) ?? 1.0;
+		final dpi = lime.system.System.getDisplay(0)?.dpi ?? 96;
+		
+		final dpiScale = dpi / 96;
 		
 		@:privateAccess
 		{
@@ -305,7 +306,6 @@ class WindowUtil
 			window.height = Std.int(Main.startMeta.height * dpiScale);
 		}
 		
-		window.x = Std.int((window.display.bounds.width - window.width) / 2);
-		window.y = Std.int((window.display.bounds.height - window.height) / 2);
+		centerWindow();
 	}
 }

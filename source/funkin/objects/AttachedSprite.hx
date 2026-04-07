@@ -38,7 +38,7 @@ class AttachedSprite extends FlxSprite
 		if (sprTracker != null)
 		{
 			setPosition(sprTracker.x + xAdd, sprTracker.y + yAdd);
-			scrollFactor.set(sprTracker.scrollFactor.x, sprTracker.scrollFactor.y);
+			scrollFactor.copyFrom(sprTracker.scrollFactor);
 			
 			if (copyAngle) angle = sprTracker.angle + angleAdd;
 			

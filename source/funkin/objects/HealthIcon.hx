@@ -87,9 +87,9 @@ class HealthIcon extends FlxSprite implements IUiSprite
 	/**
 	 * Attempts to load a new icon by file name
 	 */
-	public function changeIcon(char:String, overide:Bool = false):Void
+	public function changeIcon(char:String, forced:Bool = false):Void
 	{
-		if (this.characterName == char && !overide) return;
+		if (this.characterName == char && !forced) return;
 		
 		this.characterName = char;
 		

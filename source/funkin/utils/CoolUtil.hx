@@ -6,7 +6,7 @@ import flixel.addons.transition.FlxTransitionableState;
 import flixel.FlxG;
 
 /**
-	General Utility class for more one off functions
+	General Utility class
 **/
 @:nullSafety(Strict)
 class CoolUtil
