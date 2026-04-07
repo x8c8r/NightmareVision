@@ -1,4 +1,4 @@
-package funkin.data;
+package funkin.backend;
 
 import flixel.FlxG;
 import flixel.input.FlxInput;
@@ -9,7 +9,8 @@ import flixel.input.actions.FlxActionSet;
 import flixel.input.gamepad.FlxGamepadInputID;
 import flixel.input.keyboard.FlxKey;
 
-// will be remade pretty soon
+// at some point i do wanna rework this to be simpler and easier to work with
+
 enum abstract Action(String) to String from String
 {
 	var UI_UP = "ui_up";
@@ -88,6 +89,14 @@ enum KeyboardScheme
  */
 class Controls extends FlxActionSet
 {
+	public static var instance:Controls;
+	
+	public static function init()
+	{
+		instance = new Controls('player', Solo);
+		if (FlxG.gamepads.getByID(0) != null) instance.addDefaultGamepad(0);
+	}
+	
 	var _ui_up = new FlxActionDigital(Action.UI_UP);
 	var _ui_left = new FlxActionDigital(Action.UI_LEFT);
 	var _ui_right = new FlxActionDigital(Action.UI_RIGHT);
@@ -290,36 +299,6 @@ class Controls extends FlxActionSet
 		setKeyboardScheme(scheme, false);
 	}
 	
-	override function update()
-	{
-		super.update();
-	}
-	
-	// inline
-	public function checkByName(name:Action):Bool
-	{
-		#if debug
-		if (!byName.exists(name)) throw 'Invalid name: $name';
-		#end
-		return byName[name].check();
-	}
-	
-	public function getDialogueName(action:FlxActionDigital):String
-	{
-		var input = action.inputs[0];
-		return switch input.device
-		{
-			case KEYBOARD: return '[${(input.inputID : FlxKey)}]';
-			case GAMEPAD: return '(${(input.inputID : FlxGamepadInputID)})';
-			case device: throw 'unhandled device: $device';
-		}
-	}
-	
-	public function getDialogueNameFromToken(token:String):String
-	{
-		return getDialogueName(getActionFromControl(Control.createByName(token.toUpperCase())));
-	}
-	
 	function getActionFromControl(control:Control):FlxActionDigital
 	{
 		return switch (control)
@@ -337,12 +316,6 @@ class Controls extends FlxActionSet
 			case PAUSE: _pause;
 			case RESET: _reset;
 		}
-	}
-	
-	static function init():Void
-	{
-		var actions = new FlxActionManager();
-		FlxG.inputs.addUniqueType(actions);
 	}
 	
 	/**
@@ -398,22 +371,6 @@ class Controls extends FlxActionSet
 		}
 	}
 	
-	public function replaceBinding(control:Control, device:Device, ?toAdd:Int, ?toRemove:Int)
-	{
-		if (toAdd == toRemove) return;
-		
-		switch (device)
-		{
-			case Keys:
-				if (toRemove != null) unbindKeys(control, [toRemove]);
-				if (toAdd != null) bindKeys(control, [toAdd]);
-				
-			case Gamepad(id):
-				if (toRemove != null) unbindButtons(control, id, [toRemove]);
-				if (toAdd != null) bindButtons(control, id, [toAdd]);
-		}
-	}
-	
 	public function copyFrom(controls:Controls, ?device:Device)
 	{
 		for (name => action in controls.byName)
@@ -438,11 +395,6 @@ class Controls extends FlxActionSet
 			case Keys:
 				mergeKeyboardScheme(controls.keyboardScheme);
 		}
-	}
-	
-	inline public function copyTo(controls:Controls, ?device:Device)
-	{
-		controls.copyFrom(this, device);
 	}
 	
 	function mergeKeyboardScheme(scheme:KeyboardScheme):Void
@@ -605,7 +557,6 @@ class Controls extends FlxActionSet
 	
 	public function addDefaultGamepad(id):Void
 	{
-		#if !switch
 		addGamepadLiteral(id, [
 			Control.ACCEPT => [A],
 			Control.BACK => [B],
@@ -620,23 +571,6 @@ class Controls extends FlxActionSet
 			Control.PAUSE => [START],
 			Control.RESET => [8]
 		]);
-		#else
-		addGamepadLiteral(id, [
-			// Swap A and B for switch
-			Control.ACCEPT => [B],
-			Control.BACK => [A],
-			Control.UI_UP => [DPAD_UP, LEFT_STICK_DIGITAL_UP, RIGHT_STICK_DIGITAL_UP],
-			Control.UI_DOWN => [DPAD_DOWN, LEFT_STICK_DIGITAL_DOWN, RIGHT_STICK_DIGITAL_DOWN],
-			Control.UI_LEFT => [DPAD_LEFT, LEFT_STICK_DIGITAL_LEFT, RIGHT_STICK_DIGITAL_LEFT],
-			Control.UI_RIGHT => [DPAD_RIGHT, LEFT_STICK_DIGITAL_RIGHT, RIGHT_STICK_DIGITAL_RIGHT],
-			Control.NOTE_UP => [DPAD_UP, LEFT_STICK_DIGITAL_UP, RIGHT_STICK_DIGITAL_UP, X],
-			Control.NOTE_DOWN => [DPAD_DOWN, LEFT_STICK_DIGITAL_DOWN, RIGHT_STICK_DIGITAL_DOWN, B],
-			Control.NOTE_LEFT => [DPAD_LEFT, LEFT_STICK_DIGITAL_LEFT, RIGHT_STICK_DIGITAL_LEFT, Y],
-			Control.NOTE_RIGHT => [DPAD_RIGHT, LEFT_STICK_DIGITAL_RIGHT, RIGHT_STICK_DIGITAL_RIGHT, A],
-			Control.PAUSE => [START],
-			Control.RESET => [8],
-		]);
-		#end
 	}
 	
 	/**

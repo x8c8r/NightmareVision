@@ -74,7 +74,7 @@ class MusicBeatState extends FlxUIState
 		return scripted;
 	}
 	
-	inline function get_controls():Controls return PlayerSettings.player1.controls;
+	inline function get_controls():Controls return Controls.instance;
 	
 	override function create()
 	{
