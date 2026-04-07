@@ -4,7 +4,6 @@ import flixel.FlxSubState;
 import flixel.util.FlxDestroyUtil;
 import flixel.group.FlxGroup.FlxTypedGroup;
 
-import funkin.backend.PlayerSettings;
 import funkin.data.*;
 import funkin.scripts.*;
 
@@ -28,7 +27,7 @@ class MusicBeatSubstate extends FlxSubState
 	private var curDecBeat:Float = 0;
 	private var controls(get, never):Controls;
 	
-	inline function get_controls():Controls return PlayerSettings.player1.controls;
+	inline function get_controls():Controls return Controls.instance;
 	
 	public var scripted:Bool = false;
 	public var scriptName:String = '';

@@ -1,11 +1,11 @@
 package funkin.video;
 
 // sigh rework coming again soon
+import funkin.backend.Controls;
+
 #if VIDEOS_ALLOWED
 import hxvlc.flixel.FlxVideoSprite;
 import hxvlc.util.Location;
-
-import funkin.backend.PlayerSettings;
 
 // with hxvlcs improvements this is less needed but still has its values
 
@@ -95,7 +95,7 @@ class FunkinVideoSprite extends FlxVideoSprite
 	
 	inline function get_isPlaying():Bool return bitmap != null && bitmap.isPlaying;
 	
-    /**
+	/**
 	 * Returns a normalized progress value (`0.0` to `1.0`) representing
 	 * how far through the video playback currently is.
 	 * Returns `0.0` if the video has no duration.
@@ -115,7 +115,6 @@ class FunkinVideoSprite extends FlxVideoSprite
 	public var currentTime(get, never):Int;
 	
 	inline function get_currentTime():Int return bitmap != null ? haxe.Int64.toInt(bitmap.length) : -1;
-
 	
 	/**
 	 * Returns the total duration of the loaded video in milliseconds.
@@ -198,7 +197,7 @@ class FunkinVideoSprite extends FlxVideoSprite
 		if (bitmap != null) bitmap.onOpening.add(func, once, priority);
 	}
 	
-    	/**
+	/**
 	 * Adds a callback to be dispatched when the video is paused.
 	 * 
 	 * @param func The function to call when the video pauses.
@@ -233,8 +232,7 @@ class FunkinVideoSprite extends FlxVideoSprite
 	{
 		if (bitmap != null) bitmap.onEncounteredError.add(func, once, priority);
 	}
-
-
+	
 	/**
 	 * Adds a event to be dispatched when the video has formatted itself 
 	 * 
@@ -266,8 +264,8 @@ class FunkinVideoSprite extends FlxVideoSprite
 			bitmap.stop();
 		}
 	}
-
-    /**
+	
+	/**
 	 * Seeks to a specific time position in the video.
 	 * 
 	 * @param time The time in milliseconds to seek to.
@@ -276,8 +274,8 @@ class FunkinVideoSprite extends FlxVideoSprite
 	{
 		if (bitmap != null) bitmap.time = time;
 	}
-
-    /**
+	
+	/**
 	 * Seeks to a normalized position in the video.
 	 * 
 	 * @param value A value from `0.0` (start) to `1.0` (end).
@@ -287,10 +285,9 @@ class FunkinVideoSprite extends FlxVideoSprite
 		if (bitmap != null && bitmap.length > 0) bitmap.time = haxe.Int64.ofInt(Std.int(FlxMath.bound(value, 0.0, 1.0) * haxe.Int64.toInt(bitmap.length)));
 	}
 	
-	
 	override public function update(elapsed:Float)
 	{
-		if (canSkip && PlayerSettings.player1.controls.ACCEPT)
+		if (canSkip && Controls.instance.ACCEPT)
 		{
 			skip();
 		}
