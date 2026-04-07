@@ -175,13 +175,12 @@ class FunkinSprite extends FlxAnimate
 			
 			if (correctFlippedOffsets)
 			{
-				final appliedOffset = animOffset.x, scaleFactor = scalableOffsets ? scale.x : 1.0;
+				final scaleXFactor:Float = scalableOffsets ? scale.x : 1.0;
+				final scaleYFactor:Float = scalableOffsets ? scale.y : 1.0;
 				
-				animOffset.x = ((frameWidth * scaleFactor) - width) - appliedOffset;
+				if (flipX) animOffset.x = ((frameWidth * scaleXFactor) - width) - animOffset.x;
 				
-				final appliedOffset = animOffset.y, scaleFactor = scalableOffsets ? scale.y : 1.0;
-				
-				animOffset.y = ((frameHeight * scaleFactor) - height) - appliedOffset;
+				if (flipY) animOffset.y = ((frameHeight * scaleYFactor) - height) - animOffset.y;
 			}
 		}
 	}
