@@ -1,7 +1,9 @@
 package funkin.utils;
 
-import lime.utils.Bytes;
+import haxe.io.Bytes as HaxeBytes;
+
 import lime.ui.FileDialog;
+import lime.utils.Bytes;
 
 import openfl.utils.ByteArray;
 import openfl.net.FileFilter;
@@ -70,18 +72,7 @@ class FileUtil
 		FileDialog.saveFile(FlxG.stage.window, 'Save', (file, filter) -> {
 			if (file != null && file.length > 0)
 			{
-				final bytes:ByteArray = if (data is ByteArrayData)
-				{
-					data;
-				}
-				else
-				{
-					var bArray = new ByteArray();
-					bArray.writeUTFBytes(Std.string(data));
-					bArray;
-				}
-				
-				Bytes.toFile(file, bytes);
+				Bytes.toFile(file, dynamicToBytes(data));
 				
 				if (onSelect != null) onSelect(file);
 			}
@@ -90,5 +81,34 @@ class FileUtil
 				if (onCancel != null) onCancel();
 			}
 		}, filters, fileName);
+	}
+	
+	public static function saveFileToPath(data:Dynamic, path:String, ensureDirectory:Bool = true):Bool
+	{
+		try
+		{
+			if (ensureDirectory && path.directory() != '' && !FunkinAssets.isDirectory(path.directory()))
+			{
+				FileSystem.createDirectory(path.directory());
+			}
+			
+			Bytes.toFile(path, dynamicToBytes(data));
+			return true;
+		}
+		catch (e)
+		{
+			Logger.log('Failed to save to $path\nException: $e', ERROR);
+			return false;
+		}
+	}
+	
+	static function dynamicToBytes(input:Dynamic):Bytes
+	{
+		if (input is ByteArrayData || input is HaxeBytes) return input;
+		
+		final bytes = new ByteArray();
+		bytes.writeUTFBytes(Std.string(input));
+		
+		return bytes;
 	}
 }
