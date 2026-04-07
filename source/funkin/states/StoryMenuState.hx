@@ -16,6 +16,7 @@ import funkin.states.*;
 import funkin.states.substates.*;
 import funkin.objects.*;
 import funkin.backend.Difficulty;
+import funkin.backend.FallbackState;
 
 class StoryMenuState extends MusicBeatState
 {
@@ -55,6 +56,15 @@ class StoryMenuState extends MusicBeatState
 		
 		PlayState.isStoryMode = true;
 		WeekData.reloadWeekFiles(true);
+		
+		if (WeekData.weeksList.length == 0)
+		{
+			CoolUtil.setTransSkip(true, false);
+			persistentUpdate = false;
+			FlxG.switchState(() -> new FallbackState('Cannot load Story Mode as there are no weeks loaded.', () -> FlxG.switchState(MainMenuState.new)));
+			return;
+		}
+		
 		if (curWeek >= WeekData.weeksList.length) curWeek = 0;
 		persistentUpdate = persistentDraw = true;
 		
@@ -190,6 +200,8 @@ class StoryMenuState extends MusicBeatState
 	
 	override function update(elapsed:Float)
 	{
+		if (WeekData.weeksList.length == 0) return;
+		
 		scriptGroup.call('onUpdate', [elapsed]);
 		
 		// scoreText.setFormat('VCR OSD Mono', 32);
