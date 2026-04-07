@@ -1,10 +1,10 @@
 package funkin.backend;
 
+import funkin.backend.Controls;
+
 import flixel.input.keyboard.FlxKey;
 
 import openfl.events.KeyboardEvent;
-
-import funkin.backend.PlayerSettings;
 
 @:nullSafety
 class InputSystem implements flixel.util.IFlxDestroyable
@@ -13,7 +13,7 @@ class InputSystem implements flixel.util.IFlxDestroyable
 	public var _releaseCallback:KeyboardEvent->Void;
 	public var keys:Array<Dynamic> = [];
 	
-	private var controls:funkin.data.Controls;
+	private var controls:funkin.backend.Controls;
 	
 	public function new(press:KeyboardEvent->Void, release:KeyboardEvent->Void, keys:Array<Dynamic>)
 	{
@@ -24,7 +24,7 @@ class InputSystem implements flixel.util.IFlxDestroyable
 			FlxG.stage.addEventListener(KeyboardEvent.KEY_DOWN, press);
 			FlxG.stage.addEventListener(KeyboardEvent.KEY_UP, release);
 		}
-		controls = PlayerSettings.player1.controls;
+		controls = Controls.instance;
 		
 		this.keys = keys;
 	}

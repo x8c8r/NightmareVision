@@ -5,8 +5,8 @@ import funkin.backend.DebugDisplay;
 import flixel.input.keyboard.FlxKey;
 import flixel.util.FlxSave;
 
-import funkin.backend.PlayerSettings;
-import funkin.data.Controls.KeyboardScheme;
+import funkin.backend.Controls.KeyboardScheme;
+import funkin.backend.Controls;
 
 /**
  * to add new save options, make a static var with the `@saveVar` meta and itll be handled on its own
@@ -327,7 +327,7 @@ class ClientPrefs
 	
 	public static function reloadControls()
 	{
-		PlayerSettings.player1.controls.setKeyboardScheme(KeyboardScheme.Solo);
+		Controls.instance.setKeyboardScheme(KeyboardScheme.Solo);
 		
 		ClientPrefs.muteKeys = copyKey(keyBinds.get('volume_mute'));
 		ClientPrefs.volumeDownKeys = copyKey(keyBinds.get('volume_down'));
