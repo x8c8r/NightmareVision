@@ -101,8 +101,9 @@ class FreeplayState extends MusicBeatState
 		scoreText = new FlxText(0, 5, FlxG.width - 6, "", 32);
 		scoreText.setFormat(Paths.DEFAULT_FONT, 32, FlxColor.WHITE, RIGHT);
 		
-		var scoreBGSize:Int = freeplayTabs.length > 0 ? 132 : 66;
-		scoreBG = new FlxSprite(scoreText.x - 6, 0).makeGraphic(1, scoreBGSize, 0xFF000000);
+		final scoreBGSize = 66 + 33 * (Math.min(freeplayTabs.length, 2));
+		
+		scoreBG = new FlxSprite(scoreText.x - 6, 0).makeScaledGraphic(1, scoreBGSize, 0xFF000000);
 		scoreBG.alpha = 0.6;
 		add(scoreBG);
 		
@@ -120,11 +121,9 @@ class FreeplayState extends MusicBeatState
 		tabHint.color = FlxColor.GRAY;
 		add(tabHint);
 		
-		if (freeplayTabs.length == 0)
-		{
-			tabText.kill();
-			tabHint.kill();
-		}
+		if (freeplayTabs.length <= 1) tabHint.kill();
+		
+		if (freeplayTabs.length == 0) tabText.kill();
 		
 		add(scoreText);
 		
@@ -620,17 +619,13 @@ class FreeplayState extends MusicBeatState
 		
 		if (grpSongs != null)
 		{
-			grpSongs.forEach((t) -> {
-				t.destroy();
-			});
+			grpSongs.forEach(song -> song?.destroy());
+			
 			grpSongs.clear();
 		}
 		
-		if (iconArray != null && iconArray.length != 0)
-		{
-			for (i in iconArray)
-				i.kill();
-		}
+		iconArray = FlxDestroyUtil.destroyArray(iconArray);
+		
 		iconArray = [];
 	}
 	
