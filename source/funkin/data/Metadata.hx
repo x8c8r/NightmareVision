@@ -10,7 +10,12 @@ typedef MetaVariables =
 	?composers:Array<String>,
 	?charters:Array<String>,
 	?artists:Array<String>,
-	?coders:Array<String>
+	?coders:Array<String>,
+	
+	?displayName:String,
+	
+	?freeplayColor:String,
+	?freeplayIcon:String,
 }
 
 // if u want to do to it hardcoded u can just fuckin go var meta:Metadata = {composers: 'penis'}; //blalblalbla
