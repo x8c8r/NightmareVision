@@ -139,6 +139,7 @@ class FreeplayState extends MusicBeatState
 		
 		if (freeplayTabs.length > 0) loadTab(0);
 		else createSongs();
+		
 		WeekData.setDirectoryFromWeek();
 		
 		if (freeplayTabs.length > 0) changeTab();
@@ -413,14 +414,13 @@ class FreeplayState extends MusicBeatState
 		{
 			if (!i.enabled) continue;
 			
-			var modMeta:ModMeta = Mods.getPack(i.folder);
+			var freeplayData = getFreeplayData(i.folder);
+			Mods.currentModDirectory = i.folder;
 			
-			if (modMeta.freeplayData != null)
+			if (freeplayData == null) continue;
+			for (i in 0...freeplayData.tabs.length)
 			{
-				for (i in 0...modMeta.freeplayData.tabs.length)
-				{
-					freeplayTabs.push(modMeta.freeplayData.tabs[i]);
-				}
+				freeplayTabs.push(freeplayData.tabs[i]);
 			}
 		}
 	}
@@ -456,21 +456,31 @@ class FreeplayState extends MusicBeatState
 	
 	function getSongMeta(song:String)
 	{
-		var songMeta:Metadata.MetaVariables = null;
-		
 		// For some reason Metadata.getDirect() only accepts a path without the .json suffix
 		// Which is kinda hard to get without jank, so this is just easier at this point
-		var songMetaPath:String = Paths.json('$song/data/meta');
+		final songMetaPath:String = Paths.json('$song/data/meta');
 		if (FunkinAssets.exists(songMetaPath))
 		{
-			songMeta = FunkinAssets.parseJson(FunkinAssets.getContent(songMetaPath));
+			var songMeta:Metadata.MetaVariables = FunkinAssets.parseJson(FunkinAssets.getContent(songMetaPath));
 			return songMeta;
 		}
 		
 		return null;
 	}
 	
-	function loadTab(tab:Int)
+	function getFreeplayData(modFolder:String):FreeplayData
+	{
+		final freeplayDataPath = Paths.getPath('data/freeplay.json', modFolder, true);
+		if (FunkinAssets.exists(freeplayDataPath))
+		{
+			var freeplayData:FreeplayData = FunkinAssets.parseJson(FunkinAssets.getContent(freeplayDataPath));
+			return freeplayData;
+		}
+		
+		return null;
+	}
+	
+	function loadTab(tab:Int):Void
 	{
 		var tab = freeplayTabs[tab];
 		for (song in tab.songs)
@@ -658,4 +668,15 @@ class SongMetadata
 		this.folder = Mods.currentModDirectory;
 		if (this.folder == null) this.folder = '';
 	}
+}
+
+typedef FreeplayData =
+{
+	var tabs:Array<FreeplayTab>;
+}
+
+typedef FreeplayTab =
+{
+	var title:String;
+	var songs:Array<String>;
 }

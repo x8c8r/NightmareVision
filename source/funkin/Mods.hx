@@ -83,11 +83,6 @@ typedef ModMeta =
 	var ?comboPrefix:String;
 	var ?ratingsPrefix:String;
 	var ?countdownPrefix:String;
-	
-	/**
-	 * Mod's Freeplay data
-	**/
-	var ?freeplayData:FreeplayData;
 }
 
 typedef ModsList =
@@ -95,17 +90,6 @@ typedef ModsList =
 	var enabled:Array<String>;
 	var disabled:Array<String>;
 	var all:Array<String>;
-}
-
-typedef FreeplayData =
-{
-	var tabs:Array<FreeplayTab>;
-}
-
-typedef FreeplayTab =
-{
-	var title:String;
-	var songs:Array<String>;
 }
 
 // add docs later
