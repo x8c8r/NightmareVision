@@ -48,6 +48,7 @@ class FreeplayState extends MusicBeatState
 	public var scoreText:FlxText;
 	public var diffText:FlxText;
 	public var tabText:FlxText;
+	public var tabHint:FlxText;
 	public var lerpScore:Int = 0;
 	public var lerpRating:Float = 0;
 	public var intendedScore:Int = 0;
@@ -100,7 +101,7 @@ class FreeplayState extends MusicBeatState
 		scoreText = new FlxText(0, 5, FlxG.width - 6, "", 32);
 		scoreText.setFormat(Paths.DEFAULT_FONT, 32, FlxColor.WHITE, RIGHT);
 		
-		var scoreBGSize:Int = freeplayTabs.length > 0 ? 99 : 66;
+		var scoreBGSize:Int = freeplayTabs.length > 0 ? 132 : 66;
 		scoreBG = new FlxSprite(scoreText.x - 6, 0).makeGraphic(1, scoreBGSize, 0xFF000000);
 		scoreBG.alpha = 0.6;
 		add(scoreBG);
@@ -112,6 +113,12 @@ class FreeplayState extends MusicBeatState
 		tabText = new FlxText(diffText.x, diffText.y + 28, 0, 24);
 		tabText.font = scoreText.font;
 		if (freeplayTabs.length > 0) add(tabText);
+		
+		tabHint = new FlxText(tabText.x, tabText.y + 28, 0, 24);
+		tabHint.font = scoreText.font;
+		tabHint.text = "Press TAB to switch tabs.";
+		tabHint.color = FlxColor.GRAY;
+		if (freeplayTabs.length > 0) add(tabHint);
 		
 		add(scoreText);
 		
@@ -647,6 +654,8 @@ class FreeplayState extends MusicBeatState
 		diffText.x -= diffText.textField.textWidth / 2;
 		tabText.x = Std.int(scoreBG.x + (scoreBG.width / 2));
 		tabText.x -= tabText.textField.textWidth / 2;
+        tabHint.x = Std.int(scoreBG.x + (scoreBG.width / 2));
+        tabHint.x -= tabHint.textField.textWidth / 2;
 	}
 }
 
