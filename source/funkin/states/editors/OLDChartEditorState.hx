@@ -2296,7 +2296,7 @@ class OLDChartEditorState extends MusicBeatState
 				resetLittleFriends();
 				toggleMusic(false);
 				
-				if (!mouseQuant) FlxG.sound.music.time -= (FlxG.mouse.wheel * Conductor.stepCrotchet * 0.8);
+				if (!mouseQuant) FlxG.sound.music.time = FlxMath.bound(FlxG.sound.music.time - FlxG.mouse.wheel * Conductor.stepCrotchet * 0.8, 0, FlxG.sound.music.length);
 				else scrollQuantized(FlxG.mouse.wheel > 0);
 			}
 			
