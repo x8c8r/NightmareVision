@@ -621,7 +621,7 @@ class FreeplayState extends MusicBeatState
 		if (diff != 0) FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
 		
 		currentTab = FlxMath.wrap(currentTab + diff, 0, freeplayTabs.length - 1);
-		tabText.text = "[ " + freeplayTabs[currentTab].title + " ]";
+		tabText.text = "[ " + (freeplayTabs[currentTab].title ?? 'Unknown') + " ]";
 		
 		clearSongs();
 		
@@ -693,6 +693,6 @@ typedef FreeplayData =
 
 typedef FreeplayTab =
 {
-	var title:String;
+	var ?title:String;
 	var songs:Array<String>;
 }
