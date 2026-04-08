@@ -187,16 +187,22 @@ class CharacterEditorState extends UIState // MUST EXTEND UI STATE needed for ac
 	
 	function exitState()
 	{
-		if (goToPlayState)
-		{
-			FlxG.switchState(PlayState.new);
-		}
-		else
-		{
-			FlxG.switchState(funkin.states.editors.MasterEditorMenu.new);
-			FunkinSound.playMusic(Paths.music('freakyMenu'));
-		}
-		FlxG.mouse.visible = false;
+		// i want this to only show up on unsaved changes but i think id ahve to do a bit of refactoring for that to work nice
+		ToolKitUtils.openPrompt('Are you sure you want to exit? There may be unsaved changes.', 'Exiting Menu', 'yesno', (button) -> {
+			if (button.toString().contains('yes'))
+			{
+				if (goToPlayState)
+				{
+					FlxG.switchState(PlayState.new);
+				}
+				else
+				{
+					FlxG.switchState(funkin.states.editors.MasterEditorMenu.new);
+					FunkinSound.playMusic(Paths.music('freakyMenu'));
+				}
+				FlxG.mouse.visible = false;
+			}
+		});
 	}
 	
 	public function buildUI()
@@ -1462,7 +1468,7 @@ class CharacterEditorState extends UIState // MUST EXTEND UI STATE needed for ac
 			
 			function onFileCancel()
 			{
-				ToolKitUtils.makeNotification('Character File Saving', 'Character saving was canceled.', Warning);
+				ToolKitUtils.makeNotification('Character File Saving', 'Character saving was canceled.', Info);
 				FlxG.sound.play(Paths.sound('ui/warn'));
 			}
 			

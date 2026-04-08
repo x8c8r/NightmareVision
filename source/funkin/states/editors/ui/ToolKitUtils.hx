@@ -13,6 +13,7 @@ import haxe.ui.components.DropDown;
 import haxe.ui.components.OptionStepper;
 import haxe.ui.containers.dialogs.Dialog;
 import haxe.ui.notifications.NotificationData;
+import haxe.ui.containers.dialogs.MessageBox.MessageBoxType;
 
 /**
  * Utility class to assist `haxe-ui` in the Editors.
@@ -168,6 +169,13 @@ class ToolKitUtils
 				noti.addClass("blue-notification");
 			default:
 		}
+	}
+	
+	public static function openPrompt(message:String, title:String = '', type:MessageBoxType = 'info', ?callback:DialogButton->Void)
+	{
+		haxe.ui.containers.dialogs.Dialogs.messageBox(message, title, type, true, (button) -> {
+			if (callback != null) callback(button);
+		});
 	}
 	
 	static var _hitTest:Null<flixel.math.FlxPoint> = null;
