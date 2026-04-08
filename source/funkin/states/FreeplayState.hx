@@ -109,7 +109,7 @@ class FreeplayState extends MusicBeatState
 		diffText.font = scoreText.font;
 		add(diffText);
 		
-		tabText = new FlxText(diffText.x, diffText.y + 32, 0, 24);
+		tabText = new FlxText(diffText.x, diffText.y + 28, 0, 24);
 		tabText.font = scoreText.font;
 		if (freeplayTabs.length > 0) add(tabText);
 		
@@ -418,6 +418,7 @@ class FreeplayState extends MusicBeatState
 			Mods.currentModDirectory = i.folder;
 			
 			if (freeplayData == null) continue;
+			if (freeplayData.tabs == null) continue;
 			for (i in 0...freeplayData.tabs.length)
 			{
 				freeplayTabs.push(freeplayData.tabs[i]);
