@@ -468,30 +468,20 @@ class FreeplayState extends MusicBeatState
 		}
 	}
 	
-	function getSongMeta(song:String)
+	function getSongMeta(song:String):Null<MetaVariables>
 	{
 		// For some reason Metadata.getDirect() only accepts a path without the .json suffix
 		// Which is kinda hard to get without jank, so this is just easier at this point
 		final songMetaPath:String = Paths.json('$song/data/meta');
-		if (FunkinAssets.exists(songMetaPath))
-		{
-			var songMeta:Metadata.MetaVariables = FunkinAssets.parseJson(FunkinAssets.getContent(songMetaPath));
-			return songMeta;
-		}
 		
-		return null;
+		return FunkinAssets.exists(songMetaPath) ? FunkinAssets.parseJson5(FunkinAssets.getContent(songMetaPath)) : null;
 	}
 	
-	function getFreeplayData(modFolder:String):FreeplayData
+	function getFreeplayData(modFolder:String):Null<FreeplayData>
 	{
 		final freeplayDataPath = Paths.getPath('data/freeplay.json', modFolder, true);
-		if (FunkinAssets.exists(freeplayDataPath))
-		{
-			var freeplayData:FreeplayData = FunkinAssets.parseJson(FunkinAssets.getContent(freeplayDataPath));
-			return freeplayData;
-		}
 		
-		return null;
+		return FunkinAssets.exists(freeplayDataPath) ? FunkinAssets.parseJson5(FunkinAssets.getContent(freeplayDataPath)) : null;
 	}
 	
 	function loadTab(tab:Int):Void
