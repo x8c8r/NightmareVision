@@ -358,17 +358,8 @@ class NoteOffsetState extends MusicBeatState
 			zoomTween?.cancel();
 			beatTween?.cancel();
 			
-			// trace('WHY ARE YOU DOING THIS TO ME');
-			try
-			{
-				timeBar.destroy();
-				FunkinSound.playMusic(Paths.music('freakyMenu'));
-				FlxG.switchState(MainMenuState.new);
-			}
-			catch (e)
-			{
-				trace(e);
-			}
+			FunkinSound.playMusic(Paths.music('freakyMenu'));
+			FlxG.switchState(OptionsState.new);
 		}
 		
 		super.update(elapsed);
