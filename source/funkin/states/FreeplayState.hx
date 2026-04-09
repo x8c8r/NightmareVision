@@ -14,7 +14,7 @@ import flixel.tweens.FlxTween;
 
 import funkin.backend.Difficulty;
 import funkin.Mods;
-import funkin.data.Metadata;
+import funkin.data.SongMetaData;
 import funkin.states.editors.ChartEditorState;
 import funkin.data.WeekData;
 import funkin.states.*;
@@ -459,13 +459,9 @@ class FreeplayState extends MusicBeatState
 		}
 	}
 	
-	function getSongMeta(song:String):Null<MetaVariables>
+	function getSongMeta(song:String):Null<SongMetaData>
 	{
-		// For some reason Metadata.getDirect() only accepts a path without the .json suffix
-		// Which is kinda hard to get without jank, so this is just easier at this point
-		final songMetaPath:String = Paths.json('$song/data/meta');
-		
-		return FunkinAssets.exists(songMetaPath) ? FunkinAssets.parseJson5(FunkinAssets.getContent(songMetaPath)) : null;
+		return SongMeta.getFromPath(Paths.json('$song/data/meta'));
 	}
 	
 	function getFreeplayData(modFolder:String):Null<FreeplayData>

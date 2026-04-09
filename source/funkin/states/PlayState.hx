@@ -1,5 +1,7 @@
 package funkin.states;
 
+import funkin.data.SongMetaData;
+
 import haxe.Timer;
 import haxe.ds.Vector;
 
@@ -53,7 +55,7 @@ class PlayState extends MusicBeatState
 	public static var STRUM_X:Float = 42; // redundant
 	public static var STRUM_X_MIDDLESCROLL:Float = -278; // redundant
 	
-	public static var meta:Null<Metadata> = null; // bad?
+	public static var meta:Null<SongMetaData> = null; // bad?
 	
 	public static var SONG:Null<Song> = null;
 	
@@ -760,7 +762,7 @@ class PlayState extends MusicBeatState
 		insert(members.indexOf(playFields), playHUD); // Data told me to do this
 		playHUD.cameras = [camHUD];
 		
-		meta = Metadata.getSong();
+		meta = SongMeta.getFromSong();
 		
 		modManager = new ModManager(this);
 		
