@@ -21,7 +21,7 @@ typedef WeekFile =
 	var hiddenUntilUnlocked:Bool;
 	var hideStoryMode:Bool;
 	var hideFreeplay:Bool;
-	var difficulties:String;
+	var difficulties:Array<String>;
 }
 
 class WeekData
@@ -43,10 +43,11 @@ class WeekData
 	public var hiddenUntilUnlocked:Bool = false;
 	public var hideStoryMode:Bool = false;
 	public var hideFreeplay:Bool = false;
-	public var difficulties:String = '';
+	public var difficulties:Array<String> = [];
 	
 	public var fileName:String;
 	public var folder:String = '';
+	public var weekNum:Int = 0;
 	
 	public static function createWeekFile():WeekFile
 	{
@@ -67,7 +68,7 @@ class WeekData
 				hiddenUntilUnlocked: false,
 				hideStoryMode: false,
 				hideFreeplay: false,
-				difficulties: ''
+				difficulties: ['Easy', 'Normal', 'Hard']
 			};
 		return weekFile;
 	}
@@ -118,6 +119,7 @@ class WeekData
 					if (week != null)
 					{
 						var weekFile:WeekData = new WeekData(week, sexList[i]);
+						weekFile.weekNum = j;
 						
 						#if MODS_ALLOWED
 						if (j >= originalLength)
