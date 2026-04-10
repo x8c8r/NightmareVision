@@ -47,7 +47,6 @@ class WeekData
 	
 	public var fileName:String;
 	public var folder:String = '';
-	public var weekNum:Int = 0;
 	
 	public static function createWeekFile():WeekFile
 	{
@@ -119,7 +118,6 @@ class WeekData
 					if (week != null)
 					{
 						var weekFile:WeekData = new WeekData(week, sexList[i]);
-						weekFile.weekNum = j;
 						
 						#if MODS_ALLOWED
 						if (j >= originalLength)
