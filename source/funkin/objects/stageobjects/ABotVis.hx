@@ -1,5 +1,8 @@
 package funkin.objects.stageobjects;
 
+import extensions.funkinvis.LimeAudioClipEx;
+import extensions.funkinvis.SpectralAnalyzerEx;
+
 import flixel.FlxSprite;
 import flixel.graphics.frames.FlxAtlasFrames;
 import flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup;
@@ -64,7 +67,10 @@ class ABotVis extends FlxTypedSpriteGroup<FlxSprite>
 		if (snd == null) return;
 		
 		@:privateAccess
-		analyzer = new SpectralAnalyzer(snd._channel.__audioSource, BAR_COUNT, 0.1, 40);
+		{
+			analyzer = new SpectralAnalyzerEx(snd._channel.__audioSource, BAR_COUNT, 0.1, 40);
+			(cast analyzer.audioClip : LimeAudioClipEx).trackedSource = snd;
+		}
 		// A-Bot tuning...
 		analyzer.minDb = -65;
 		analyzer.maxDb = -25;
