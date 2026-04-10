@@ -11,6 +11,7 @@ typedef SongMetaData =
 	var ?coders:Array<String>;
 	
 	var ?displayName:String;
+	var ?difficulties:Array<String>;
 	
 	var ?freeplayColor:String;
 	var ?freeplayIcon:String;
