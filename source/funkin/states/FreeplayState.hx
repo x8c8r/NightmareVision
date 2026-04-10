@@ -225,6 +225,8 @@ class FreeplayState extends MusicBeatState
 	function weekIsLocked(name:String):Bool
 	{
 		var leWeek:WeekData = WeekData.weeksLoaded.get(name);
+		if (leWeek == null) return false;
+		
 		return (!leWeek.startUnlocked
 			&& leWeek.weekBefore.length > 0
 			&& (!StoryMenuState.weekCompleted.exists(leWeek.weekBefore) || !StoryMenuState.weekCompleted.get(leWeek.weekBefore)));
@@ -471,10 +473,12 @@ class FreeplayState extends MusicBeatState
 				var week:WeekData = WeekData.weeksLoaded[weekName];
 				
 				WeekData.setDirectoryFromWeek(week);
+				
+				// if week is null go to next item in loop
+				if (week == null || (week.songs == null || week.songs.length <= 0)) continue;
+				
 				for (song in week.songs)
-				{
 					addSong(Paths.sanitize(song[0]), week.fileName);
-				}
 			}
 		}
 		
