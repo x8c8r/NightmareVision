@@ -443,10 +443,9 @@ class PlayField extends FlxTypedContainer<StrumNote>
 			final tail = (note.isSustainNote ? note.parent.tail : note.tail);
 			for (sustain in tail)
 			{
-				note.blockHit = true;
-				note.ignoreNote = true;
-				note.alpha = 0.3;
-				note.copyAlpha = false;
+				sustain.blockHit = true;
+				sustain.ignoreNote = true;
+				sustain.alphaMod *= 0.3;
 			}
 		}
 		
@@ -460,6 +459,8 @@ class PlayField extends FlxTypedContainer<StrumNote>
 				i.visible = false;
 			}
 		}
+		
+		note.alphaMod *= 0.3;
 	}
 	
 	function noteMissPress(key:Int):Void
