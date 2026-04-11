@@ -22,7 +22,7 @@ class LimeAudioClipEx extends LimeAudioClip
 		#if web
 		dataLength = source.length;
 		#else
-		dataLength = audioBuffer.data.length;
+		dataLength = audioBuffer?.data?.length ?? 0;
 		#end
 		
 		final snd = trackedSource ?? FlxG.sound.music;

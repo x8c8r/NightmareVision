@@ -16,7 +16,7 @@ using Lambda;
 class ABotVis extends FlxTypedSpriteGroup<FlxSprite>
 {
 	// public var vis:VisShit;
-	var analyzer:Null<SpectralAnalyzer> = null;
+	public var analyzer:Null<SpectralAnalyzer> = null;
 	
 	var volumes:Array<Float> = [];
 	
