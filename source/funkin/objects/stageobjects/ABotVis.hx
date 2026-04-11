@@ -20,6 +20,8 @@ class ABotVis extends FlxTypedSpriteGroup<FlxSprite>
 	
 	var volumes:Array<Float> = [];
 	
+	public var startedAnalyzing:Bool = false;
+	
 	public var snd:Null<FlxSound> = null;
 	
 	static final BAR_COUNT:Int = 7;
@@ -84,6 +86,8 @@ class ABotVis extends FlxTypedSpriteGroup<FlxSprite>
 		analyzer.fftN = 256;
 		#end
 		
+		startedAnalyzing = true;
+		
 		// analyzer.maxDb = -35;
 		// analyzer.fftN = 2048;
 	}
@@ -110,7 +114,7 @@ class ABotVis extends FlxTypedSpriteGroup<FlxSprite>
 	override function draw()
 	{
 		super.draw();
-		drawFFT();
+		if (startedAnalyzing) drawFFT();
 	}
 	
 	/**
