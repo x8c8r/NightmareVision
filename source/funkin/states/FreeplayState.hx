@@ -438,19 +438,37 @@ class FreeplayState extends MusicBeatState
 			var freeplayData = getFreeplayData(i.folder);
 			Mods.currentModDirectory = i.folder;
 			
-			if (freeplayData == null) continue;
-			if (freeplayData.tabs == null) continue;
-			for (i in 0...freeplayData.tabs.length)
+			var tabs = freeplayData?.tabs ?? null;
+			
+			if (tabs == null)
 			{
-				freeplayTabs.push(freeplayData.tabs[i]);
+				var dir = FunkinAssets.readDirectory('content/${i.folder}/data/weeks');
+				
+				var fromWeeks = [];
+				for (week in dir)
+				{
+					final sanitizedWeek = Paths.sanitize(week).replace('.json', '');
+					fromWeeks.push(sanitizedWeek);
+				}
+				
+				tabs = [];
+				tabs.push(
+					{
+						title: i.folder,
+						fromWeeks: fromWeeks,
+						songs: []
+					});
+			}
+			
+			for (tab in tabs)
+			{
+				trace(tab);
+				freeplayTabs.push(tab);
 			}
 		}
 	}
 	
-	function getSongMeta(song:String):Null<SongMetaData>
-	{
-		return SongMeta.getFromPath(Paths.json('$song/data/meta'));
-	}
+	function getSongMeta(song:String):Null<SongMetaData> return SongMeta.getFromPath(Paths.json('$song/data/meta'));
 	
 	function getFreeplayData(modFolder:String):Null<FreeplayData>
 	{
@@ -481,11 +499,8 @@ class FreeplayState extends MusicBeatState
 					addSong(Paths.sanitize(song[0]), week.fileName);
 			}
 		}
-		
 		for (song in tab.songs)
-		{
 			addSong(song);
-		}
 	}
 	
 	function changeDiff(change:Int = 0)
