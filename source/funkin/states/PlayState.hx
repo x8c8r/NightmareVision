@@ -1231,7 +1231,8 @@ class PlayState extends MusicBeatState
 		
 		final songName:String = Paths.sanitize(SONG.song);
 		
-		var file:String = Paths.json('$songName/data/events');
+		var file:String = Paths.json('$songName/charts/events');
+		if (!FunkinAssets.exists(file)) file = Paths.json('$songName/data/events');
 		
 		inline function makeEv(time:Float, ev:String, v1:String, v2:String)
 		{

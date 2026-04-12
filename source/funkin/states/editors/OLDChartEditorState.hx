@@ -575,7 +575,7 @@ class OLDChartEditorState extends MusicBeatState
 		
 		var loadEventJson:FlxButton = new FlxButton(loadAutosaveBtn.x, loadAutosaveBtn.y + 30, 'Load Events', function() {
 			var songName:String = Paths.sanitize(_song.song);
-			var file:String = Paths.json(songName + '/data/events');
+			var file:String = Paths.json(songName + '/charts/events');
 			
 			if (FunkinAssets.exists(file, TEXT))
 			{
@@ -3709,7 +3709,7 @@ class OLDChartEditorState extends MusicBeatState
 		{
 			final songName = Paths.sanitize(song);
 			
-			ChartEditorState.song = Chart.fromPath(Paths.json('$songName/data/${Difficulty.getDifficultyFilePath()}'));
+			ChartEditorState.song = Chart.fromPath(Paths.json('$songName/charts/${Difficulty.getDifficultyFilePath()}'));
 		}
 		catch (e)
 		{

@@ -468,14 +468,18 @@ class FreeplayState extends MusicBeatState
 			}
 			
 			for (tab in tabs)
-			{
-				trace(tab);
 				freeplayTabs.push(tab);
-			}
 		}
 	}
 	
-	function getSongMeta(song:String):Null<SongMetaData> return SongMeta.getFromPath(Paths.json('$song/data/meta'));
+	function getSongMeta(song:String):Null<SongMetaData>
+	{
+		var path = SongMeta.getFromPath(Paths.json('$song/data/meta'));
+		
+		if (path == null) path = SongMeta.getFromPath(Paths.json('$song/meta'));
+		
+		return path;
+	}
 	
 	function getFreeplayData(modFolder:String):Null<FreeplayData>
 	{
