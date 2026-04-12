@@ -145,8 +145,7 @@ class PsychHUD extends BaseHUD
 		var str:String = 'N/A';
 		if (parent.totalPlayed != 0)
 		{
-			final sanitizedRank = markupEnabled ? '<r>${parent.ratingFC}<r>' : parent.ratingFC;
-			str = '${accuracy}% [$sanitizedRank]';
+			str = '${accuracy}% [${parent.ratingFC}]';
 		}
 		
 		final tempScore:String = 'Score: ${FlxStringUtil.formatMoney(score, false)}'
@@ -160,13 +159,32 @@ class PsychHUD extends BaseHUD
 		if (markupEnabled) applyScoreMarkup();
 	}
 	
-	function applyScoreMarkup()
+	var scoreTxtFormat:Null<FlxTextFormat> = null;
+	
+	inline function applyScoreMarkup()
 	{
-		var formats = [
-			new FlxTextFormatMarkerPair(new FlxTextFormat(rankColors.get(parent.ratingFC)), "<r>")
-		];
+		@:privateAccess
+		{
+			if (scoreTxt._formatRanges[0] == null)
+			{
+				scoreTxtFormat ??= new FlxTextFormat();
+				
+				scoreTxt.addFormat(scoreTxtFormat);
+			}
+			
+			scoreTxtFormat.format.color = rankColors.get(parent.ratingFC) ?? FlxColor.WHITE;
+			
+			final text = scoreTxt.text;
+			
+			scoreTxt._formatRanges[0].range.start = text.indexOf(parent.ratingFC);
+			scoreTxt._formatRanges[0].range.end = text.length - 2;
+		}
 		
-		scoreTxt.applyMarkup(scoreTxt.text, formats);
+		// var formats = [
+		// 	new FlxTextFormatMarkerPair(new FlxTextFormat(rankColors.get(parent.ratingFC)), "<r>")
+		// ];
+		
+		// scoreTxt.applyMarkup(scoreTxt.text, formats);
 	}
 	
 	var scoreTextTwn:Null<FlxTween> = null;
