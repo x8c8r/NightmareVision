@@ -959,7 +959,7 @@ class PlayState extends MusicBeatState
 			
 			inline function actualMiss()
 			{
-				if (combo > 5 && gf != null && gf.animOffsets.exists('sad')) gf.playAnim('sad');
+				if (combo > 5 && gf != null && gf.animOffsets.exists('sad')) gf.playAnimForDuration('sad', 1, true);
 				combo = 0;
 				audio.miss();
 				
