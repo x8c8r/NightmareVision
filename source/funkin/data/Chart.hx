@@ -46,7 +46,7 @@ class Chart
 	{
 		songName = Paths.sanitize(songName);
 		
-		var path = Paths.json('$songName/chart/${Difficulty.getDifficultyFilePath(difficulty)}');
+		var path = Paths.json('$songName/charts/${Difficulty.getDifficultyFilePath(difficulty)}');
 		
 		if (!FunkinAssets.exists(path)) path = Paths.json('$songName/data/${Difficulty.getDifficultyFilePath(difficulty)}');
 		
