@@ -282,6 +282,7 @@ class FreeplayState extends MusicBeatState
 				if (FlxG.keys.pressed.SHIFT) changeTab(-1);
 				else changeTab(1);
 				
+				changeDiff();
 				changeSelection();
 			}
 		}
