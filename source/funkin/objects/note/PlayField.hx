@@ -275,7 +275,7 @@ class PlayField extends FlxTypedContainer<StrumNote>
 	{
 		var scriptFunc:String = '';
 		if (field.playerControls) scriptFunc = 'goodNoteHit';
-		else scriptFunc = field.ID == 1 ? 'opponentNoteHit' : 'extraNotHit';
+		else scriptFunc = field.ID == 1 ? 'opponentNoteHit' : 'extraNoteHit';
 		
 		final scriptArgs:Array<Dynamic> = [note, field.ID];
 		
